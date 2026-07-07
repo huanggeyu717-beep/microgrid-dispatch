@@ -16,6 +16,14 @@ flowchart LR
 
 **当前进度：✅ 数据管线　⬜ 预测　⬜ NSGA-III优化　⬜ DRL**
 
+## 效果预览
+
+比利时电网 2024 全年真实数据（Elia，15 分钟分辨率），清洗对齐后测量值 vs TSO 日前预测：
+
+![一周实测与日前预测对比](reports/figures/week_profile.png)
+
+![平均日内曲线（10–90%分位带）](reports/figures/daily_profiles.png)
+
 ## 快速开始
 
 ```bash
