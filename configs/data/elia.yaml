@@ -1,0 +1,39 @@
+# Elia (Belgian TSO) open data — all source-specific knowledge lives here.
+# Column names follow the portal's field ids (verified against 2024 exports);
+# if the portal renames a field the fix is a one-line edit here, no code change.
+name: elia
+raw_dir: data/raw/elia
+csv_sep: ";"
+date_start: "2024-01-01"
+date_end: "2025-01-01"
+
+api:
+  base_url: https://opendata.elia.be/api/explore/v2.1/catalog/datasets
+
+datasets:
+  wind:
+    dataset_id: ods031
+    file: wind_2024.csv
+    datetime_col: datetime
+    measured_col: measured
+    forecast_da_col: dayaheadforecast
+    # rows split by offshore/onshore x region x grid connection (disjoint) -> national total
+    aggregate: sum_over_rows
+    filters: {}
+  solar:
+    dataset_id: ods032
+    file: solar_2024.csv
+    datetime_col: datetime
+    measured_col: measured
+    forecast_da_col: dayaheadforecast
+    aggregate: null
+    filters:
+      region: Belgium        # dataset carries a pre-aggregated national row
+  load:
+    dataset_id: ods001
+    file: load_2024.csv
+    datetime_col: datetime
+    measured_col: totalload   # Elia names the measured national load 'totalload'
+    forecast_da_col: dayaheadforecast
+    aggregate: null
+    filters: {}

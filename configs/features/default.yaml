@@ -1,0 +1,16 @@
+# Feature stage — all causal; steps run in listed order.
+steps:
+  - calendar
+  - lags
+  - rolling
+
+calendar:
+  encodings: [time_of_day, day_of_week, day_of_year]
+
+lags:                   # in steps of alignment.freq (15 min): 1h, 24h, 168h
+  columns: [wind_measured, solar_measured, load_measured]
+  lags: [4, 96, 672]
+
+rolling:                # past-only rolling stats: 4h and 24h windows
+  columns: [wind_measured, solar_measured, load_measured]
+  windows: [16, 96]

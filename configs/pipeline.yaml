@@ -1,0 +1,21 @@
+# Top-level pipeline config (hydra composition root).
+# Swap any group from the CLI, e.g.:
+#   python scripts/build_dataset.py data=gefcom2014 cleaning.flag_outliers_hampel.n_sigmas=5
+defaults:
+  - data: elia
+  - cleaning: default
+  - features: default
+  - _self_
+
+alignment:
+  freq: 15min          # canonical grid; all series are aligned onto it
+
+paths:
+  interim_dir: data/interim
+  processed_dir: data/processed
+  figures_dir: reports/figures
+
+hydra:
+  run:
+    dir: .             # do not chdir into outputs/
+  output_subdir: null

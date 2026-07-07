@@ -1,0 +1,28 @@
+# data artifacts (raw/interim/processed are reproducible via pipeline)
+data/raw/*
+data/interim/*
+data/processed/*
+!data/**/.gitkeep
+
+# python
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+# experiment tracking / hydra
+outputs/
+multirun/
+wandb/
+runs/
+
+# editors & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# logs & test cache
+*.log
+.pytest_cache/

@@ -1,0 +1,27 @@
+# Cleaning stage — steps run in listed order, each configured below.
+steps:
+  - drop_duplicates
+  - clip_physical_bounds
+  - flag_outliers_hampel
+  - interpolate_gaps
+
+clip_physical_bounds:
+  bounds:              # plausible MW ranges for the Belgian grid, generous margins
+    wind:  {min: 0.0, max: 8000.0}
+    solar: {min: -50.0, max: 12000.0}   # small negative night readings = metering noise
+    load:  {min: 2000.0, max: 20000.0}
+
+flag_outliers_hampel:
+  # window must be short vs the diurnal cycle: with a 1-day window the solar
+  # midday peak sits far from the (night-dominated) daily median and ~5% of
+  # genuine peak values get falsely flagged. 3h tracks the ramps.
+  window: 13           # 3h of 15-min steps (centered)
+  n_sigmas: 8          # conservative: only flag gross sensor errors
+  series: [wind, solar, load]
+  abs_floor_mw:        # never flag deviations below these magnitudes
+    wind: 400
+    solar: 800
+    load: 600
+
+interpolate_gaps:
+  max_gap_steps: 8     # fill gaps up to 2h; longer gaps stay NaN (reported)
