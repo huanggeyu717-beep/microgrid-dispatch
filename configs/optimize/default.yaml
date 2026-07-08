@@ -1,0 +1,11 @@
+# NSGA-III day-ahead dispatch settings.
+#   python scripts/optimize_dispatch.py optimize.day=2024-11-15
+day: "2024-11-15"          # any date in the forecast test period (Nov/Dec 2024)
+
+forecast_source: auto      # auto = LSTM median -> TSO day-ahead -> measured (fallbacks)
+
+# NSGA-III (Das-Dennis reference directions on the 2-objective plane)
+pop_size: 200
+n_gen: 400
+ref_partitions: 199        # das-dennis partitions -> ref_partitions+1 directions
+seed: 42

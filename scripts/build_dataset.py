@@ -9,7 +9,11 @@ import logging
 import hydra
 from omegaconf import DictConfig
 
-from microgrid.pipeline import build_dataset
+from microgrid import hydra_compat
+
+hydra_compat.apply()  # hydra 1.3.4 x Python 3.14 argparse (see module docstring)
+
+from microgrid.pipeline import build_dataset  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s | %(message)s")
 

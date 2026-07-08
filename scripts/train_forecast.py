@@ -12,7 +12,11 @@ import hydra
 import pandas as pd
 from omegaconf import DictConfig
 
-from microgrid.paths import resolve
+from microgrid import hydra_compat
+
+hydra_compat.apply()  # hydra 1.3.4 x Python 3.14 argparse (see module docstring)
+
+from microgrid.paths import resolve  # noqa: E402
 from microgrid.forecast import evaluate as E
 from microgrid.forecast import trainer
 from microgrid.forecast.models import get_model

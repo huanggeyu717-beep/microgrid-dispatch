@@ -1,0 +1,44 @@
+# Notional microgrid physical model. Everything the device models need lives
+# here — src/microgrid/optimize/system.py reads this group and nothing else.
+# All powers in MW, energies in MWh, one step = 15 min (dt_h below).
+dt_h: 0.25                    # 15-min step in hours -> 96 steps/day
+
+# --- Downscaling: microgrid = national Elia series x factor. ---
+# factor = target_peak / national_series_max (2024 maxima, MW):
+#   wind 4568.9, solar 7526.5, load 13281.6
+scaling:
+  wind:  {installed_mw: 2.0, factor: 0.000437743}   # 2 / 4568.9  -> 2 MW installed
+  solar: {installed_mw: 3.0, factor: 0.000398592}   # 3 / 7526.5  -> 3 MW installed
+  load:  {peak_mw: 4.0,      factor: 0.000301169}   # 4 / 13281.6 -> 4 MW peak
+
+# --- Micro gas turbine (dispatchable) ---
+gas_turbine:
+  p_min: 0.1                  # MW (always on within [p_min, p_max])
+  p_max: 2.0                  # MW
+  ramp: 0.5                   # MW per 15-min step, up and down
+  cost: {a: 8.0, b: 85.0, c: 6.0}   # fuel EUR/h = a*P^2 + b*P + c
+  emission_factor: 0.55       # tCO2 / MWh
+
+# --- Battery energy storage ---
+battery:
+  capacity_mwh: 4.0
+  p_charge_max: 1.0           # MW
+  p_discharge_max: 1.0        # MW
+  eta_charge: 0.95
+  eta_discharge: 0.95
+  soc_min: 0.15               # fraction of capacity
+  soc_max: 0.90
+  soc_init: 0.50              # = soc_final (intra-day energy neutrality)
+  terminal_soc_tol: 0.05      # MWh slack on the final-SoC equality constraint
+  degradation_cost: 25.0      # EUR / MWh throughput
+
+# --- Grid tie-line ---
+grid:
+  tie_limit: 3.0              # MW, import (+) / export (-)
+  emission_factor: 0.25       # tCO2 / MWh on imported energy (exports: no credit)
+  sell_ratio: 0.4             # sell price = sell_ratio * purchase price
+  # Time-of-use purchase price (EUR/kWh), by UTC hour of day.
+  tou_price_eur_per_kwh: {off_peak: 0.06, shoulder: 0.12, peak: 0.20}
+  tou_hours:                  # UTC hours; any hour not listed is 'shoulder'
+    off_peak: [23, 0, 1, 2, 3, 4, 5, 6]
+    peak:     [8, 9, 10, 18, 19, 20]

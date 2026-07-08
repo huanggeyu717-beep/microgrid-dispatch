@@ -1,17 +1,19 @@
-# Pinned known-good versions (CPU training verified on Linux/py3.10).
-# numpy <2 required by torch 1.x numpy interop; any torch>=1.12 works,
-# newer is fine on machines with more disk/GPU.
-pandas==2.3.3
-numpy==1.26.4
+# Reference environment: Python 3.14, torch>=2 / numpy>=2 (CPU verified on Windows).
+# Earlier revisions pinned torch==1.12.1 / numpy==1.26.4 as a workaround for a
+# constrained sandbox (Python 3.10, limited disk); those are no longer required.
+# LSTM checkpoints saved under torch 1.12 load unchanged here (weights_only=False).
+pandas==3.0.3
+numpy==2.5.1
 pyarrow==24.0.0
 hydra-core==1.3.4
 omegaconf==2.3.1
-matplotlib==3.10.9
+matplotlib==3.11.0
 requests==2.34.2
 pytest==9.1.1
-torch==1.12.1
+# torch CPU wheels: pip install torch --index-url https://download.pytorch.org/whl/cpu
+torch==2.13.0
+pymoo==0.6.2      # NSGA-III multi-objective day-ahead dispatch (pulls in scipy)
 
 # Phase 3+ (uncomment when the modules land):
-# pymoo
 # shap
 # wandb

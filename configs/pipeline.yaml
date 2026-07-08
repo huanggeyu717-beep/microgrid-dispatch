@@ -8,6 +8,8 @@ defaults:
   - features: default
   - forecast: default
   - model: lstm
+  - system: default
+  - optimize: default
   - _self_
 
 alignment:

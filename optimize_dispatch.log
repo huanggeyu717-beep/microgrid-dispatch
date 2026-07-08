@@ -1,0 +1,101 @@
+[2026-07-08 15:30:22,427][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:30:22,437][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 15:30:22,453][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:30:22,457][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 15:30:22,474][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:30:22,478][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 15:30:22,480][__main__][INFO] - solving NSGA-III: 192 vars, pop=40, n_gen=15
+[2026-07-08 15:30:23,109][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 0 non-dominated feasible solutions
+[2026-07-08 15:30:48,642][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:30:48,650][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 15:30:48,667][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:30:48,671][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 15:30:48,688][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:30:48,691][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 15:30:48,693][__main__][INFO] - solving NSGA-III: 192 vars, pop=100, n_gen=250
+[2026-07-08 15:30:51,217][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 0 non-dominated feasible solutions
+[2026-07-08 15:33:33,643][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:33:33,654][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 15:33:33,676][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:33:33,681][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 15:33:33,700][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:33:33,705][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 15:33:33,707][__main__][INFO] - solving NSGA-III: 192 vars, pop=100, n_gen=250
+[2026-07-08 15:33:36,401][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 20 non-dominated feasible solutions
+[2026-07-08 15:33:36,402][__main__][INFO] - TOPSIS pick: cost=7595.16 EUR, CO2=24.2985 t (weights cost=0.365, CO2=0.635)
+[2026-07-08 15:33:36,404][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
+[2026-07-08 15:33:36,588][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 15:33:36,876][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 15:34:13,877][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:34:13,886][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 15:34:13,899][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:34:13,902][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 15:34:13,915][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:34:13,918][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 15:34:13,920][__main__][INFO] - solving NSGA-III: 192 vars, pop=200, n_gen=400
+[2026-07-08 15:34:23,138][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 24 non-dominated feasible solutions
+[2026-07-08 15:34:23,139][__main__][INFO] - TOPSIS pick: cost=7762.86 EUR, CO2=22.9498 t (weights cost=0.021, CO2=0.979)
+[2026-07-08 15:34:23,140][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
+[2026-07-08 15:34:23,304][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 15:34:23,592][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 15:38:59,246][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:38:59,255][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 15:38:59,271][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:38:59,274][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 15:38:59,288][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:38:59,291][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 15:38:59,292][__main__][INFO] - solving NSGA-III: 192 vars, pop=200, n_gen=400
+[2026-07-08 15:39:09,121][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 26 non-dominated feasible solutions
+[2026-07-08 15:39:09,133][__main__][INFO] - TOPSIS pick: cost=7363.14 EUR, CO2=26.1172 t (weights cost=0.394, CO2=0.606)
+[2026-07-08 15:39:09,135][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
+[2026-07-08 15:39:09,299][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 15:39:09,602][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 15:40:23,025][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:40:23,035][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 15:40:23,048][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:40:23,052][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 15:40:23,070][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:40:23,073][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 15:40:23,075][__main__][INFO] - solving NSGA-III: 192 vars, pop=200, n_gen=400
+[2026-07-08 15:40:32,989][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 92 non-dominated feasible solutions
+[2026-07-08 15:40:33,000][__main__][INFO] - TOPSIS pick: cost=7726.20 EUR, CO2=20.3363 t (weights cost=0.014, CO2=0.986)
+[2026-07-08 15:40:33,002][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
+[2026-07-08 15:40:33,157][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 15:40:33,457][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 15:42:44,719][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:42:44,728][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.135 MW (scale x3.01e-04)
+[2026-07-08 15:42:44,745][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:42:44,748][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=1.847 MW (scale x4.38e-04)
+[2026-07-08 15:42:44,761][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:42:44,764][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.997 MW (scale x3.99e-04)
+[2026-07-08 15:42:44,766][__main__][INFO] - solving NSGA-III: 192 vars, pop=200, n_gen=400
+[2026-07-08 15:42:54,763][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 215 non-dominated feasible solutions
+[2026-07-08 15:42:54,774][__main__][INFO] - TOPSIS pick: cost=2069.26 EUR, CO2=5.5272 t (weights cost=0.492, CO2=0.508)
+[2026-07-08 15:42:54,776][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-24\solution.json
+[2026-07-08 15:42:54,937][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 15:42:55,237][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 15:44:16,193][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:44:16,203][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 15:44:16,217][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:44:16,220][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 15:44:16,234][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 15:44:16,237][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 15:44:16,239][__main__][INFO] - solving NSGA-III: 192 vars, pop=200, n_gen=400
+[2026-07-08 15:44:26,096][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 92 non-dominated feasible solutions
+[2026-07-08 15:44:26,107][__main__][INFO] - TOPSIS pick: cost=7726.20 EUR, CO2=20.3363 t (weights cost=0.014, CO2=0.986)
+[2026-07-08 15:44:26,109][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
+[2026-07-08 15:44:26,274][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 15:44:26,592][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 22:36:49,909][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 22:36:49,920][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 22:36:49,935][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 22:36:49,939][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 22:36:49,957][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 22:36:49,962][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 22:36:49,964][__main__][INFO] - solving NSGA-III: 192 vars, pop=200, n_gen=400
+[2026-07-08 22:37:00,521][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 92 non-dominated feasible solutions
+[2026-07-08 22:37:00,534][__main__][INFO] - TOPSIS pick: cost=7507.65 EUR, CO2=20.8823 t (weights cost=0.161, CO2=0.839)
+[2026-07-08 22:37:00,534][__main__][INFO] - knee point:  cost=7426.73 EUR, CO2=21.4433 t
+[2026-07-08 22:37:00,535][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
+[2026-07-08 22:37:00,746][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 22:37:01,152][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
