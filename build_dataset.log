@@ -1,0 +1,63 @@
+[2026-07-08 00:34:43,342][microgrid.pipeline.build_dataset][INFO] - === stage 1/4: load raw (elia) ===
+[2026-07-08 00:34:43,811][microgrid.data.sources.elia][INFO] - Parsed wind   70272 rows from wind_2024.csv
+[2026-07-08 00:34:44,811][microgrid.data.sources.elia][INFO] - Parsed solar  70272 rows from solar_2024.csv
+[2026-07-08 00:34:44,903][microgrid.data.sources.elia][INFO] - Parsed load   70272 rows from load_2024.csv
+[2026-07-08 00:34:44,920][microgrid.pipeline.build_dataset][INFO] - === stage 2/4: clean ===
+[2026-07-08 00:34:44,972][microgrid.data.cleaning][INFO] - drop_duplicates: removed 0 rows
+[2026-07-08 00:34:44,987][microgrid.data.cleaning][INFO] - clip_physical_bounds[wind]: 0 values -> NaN
+[2026-07-08 00:34:45,001][microgrid.data.cleaning][INFO] - clip_physical_bounds[solar]: 0 values -> NaN
+[2026-07-08 00:34:45,015][microgrid.data.cleaning][INFO] - clip_physical_bounds[load]: 0 values -> NaN
+[2026-07-08 00:34:45,068][microgrid.data.cleaning][INFO] - hampel[load]: 0 outliers -> NaN
+[2026-07-08 00:34:45,105][microgrid.data.cleaning][INFO] - hampel[solar]: 2270 outliers -> NaN
+[2026-07-08 00:34:45,142][microgrid.data.cleaning][INFO] - hampel[wind]: 124 outliers -> NaN
+[2026-07-08 00:34:45,223][microgrid.data.cleaning][INFO] - interpolate_gaps: NaN 2682 -> 1777
+[2026-07-08 00:34:45,596][microgrid.pipeline.build_dataset][INFO] - === stage 3/4: align ===
+[2026-07-08 00:34:45,668][microgrid.data.alignment][INFO] - regularize_index: 0 missing grid slots -> NaN rows
+[2026-07-08 00:34:45,671][microgrid.pipeline.build_dataset][INFO] - === stage 4/4: features ===
+[2026-07-08 00:34:45,682][microgrid.data.features][INFO] - features/calendar -> 13 columns
+[2026-07-08 00:34:45,688][microgrid.data.features][INFO] - features/lags -> 22 columns
+[2026-07-08 00:34:45,702][microgrid.data.features][INFO] - features/rolling -> 34 columns
+[2026-07-08 00:34:46,766][microgrid.pipeline.build_dataset][INFO] - Saved /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/data/processed/elia_dataset.parquet  (35136 rows x 34 cols)
+[2026-07-08 00:34:46,768][microgrid.pipeline.build_dataset][INFO] - Saved /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/data/processed/elia_quality_report.json
+[2026-07-08 00:35:28,607][microgrid.pipeline.build_dataset][INFO] - === stage 1/4: load raw (elia) ===
+[2026-07-08 00:35:29,072][microgrid.data.sources.elia][INFO] - Parsed wind   70272 rows from wind_2024.csv
+[2026-07-08 00:35:30,001][microgrid.data.sources.elia][INFO] - Parsed solar  70272 rows from solar_2024.csv
+[2026-07-08 00:35:30,091][microgrid.data.sources.elia][INFO] - Parsed load   70272 rows from load_2024.csv
+[2026-07-08 00:35:30,108][microgrid.pipeline.build_dataset][INFO] - === stage 2/4: clean ===
+[2026-07-08 00:35:30,167][microgrid.data.cleaning][INFO] - drop_duplicates: removed 0 rows
+[2026-07-08 00:35:30,183][microgrid.data.cleaning][INFO] - clip_physical_bounds[wind]: 0 values -> NaN
+[2026-07-08 00:35:30,196][microgrid.data.cleaning][INFO] - clip_physical_bounds[solar]: 0 values -> NaN
+[2026-07-08 00:35:30,210][microgrid.data.cleaning][INFO] - clip_physical_bounds[load]: 0 values -> NaN
+[2026-07-08 00:35:30,247][microgrid.data.cleaning][INFO] - hampel[wind]: 684 outliers -> NaN
+[2026-07-08 00:35:30,279][microgrid.data.cleaning][INFO] - hampel[solar]: 179 outliers -> NaN
+[2026-07-08 00:35:30,315][microgrid.data.cleaning][INFO] - hampel[load]: 870 outliers -> NaN
+[2026-07-08 00:35:30,393][microgrid.data.cleaning][INFO] - interpolate_gaps: NaN 2021 -> 0
+[2026-07-08 00:35:30,806][microgrid.pipeline.build_dataset][INFO] - === stage 3/4: align ===
+[2026-07-08 00:35:30,852][microgrid.data.alignment][INFO] - regularize_index: 0 missing grid slots -> NaN rows
+[2026-07-08 00:35:30,855][microgrid.pipeline.build_dataset][INFO] - === stage 4/4: features ===
+[2026-07-08 00:35:30,866][microgrid.data.features][INFO] - features/calendar -> 13 columns
+[2026-07-08 00:35:30,871][microgrid.data.features][INFO] - features/lags -> 22 columns
+[2026-07-08 00:35:30,886][microgrid.data.features][INFO] - features/rolling -> 34 columns
+[2026-07-08 00:35:31,905][microgrid.pipeline.build_dataset][INFO] - Saved /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/data/processed/elia_dataset.parquet  (35136 rows x 34 cols)
+[2026-07-08 00:35:31,907][microgrid.pipeline.build_dataset][INFO] - Saved /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/data/processed/elia_quality_report.json
+[2026-07-08 00:36:22,690][microgrid.pipeline.build_dataset][INFO] - === stage 1/4: load raw (elia) ===
+[2026-07-08 00:36:23,154][microgrid.data.sources.elia][INFO] - Parsed wind   70272 rows from wind_2024.csv
+[2026-07-08 00:36:24,071][microgrid.data.sources.elia][INFO] - Parsed solar  70272 rows from solar_2024.csv
+[2026-07-08 00:36:24,157][microgrid.data.sources.elia][INFO] - Parsed load   70272 rows from load_2024.csv
+[2026-07-08 00:36:24,173][microgrid.pipeline.build_dataset][INFO] - === stage 2/4: clean ===
+[2026-07-08 00:36:24,221][microgrid.data.cleaning][INFO] - drop_duplicates: removed 0 rows
+[2026-07-08 00:36:24,240][microgrid.data.cleaning][INFO] - clip_physical_bounds[wind]: 0 values -> NaN
+[2026-07-08 00:36:24,255][microgrid.data.cleaning][INFO] - clip_physical_bounds[solar]: 0 values -> NaN
+[2026-07-08 00:36:24,266][microgrid.data.cleaning][INFO] - clip_physical_bounds[load]: 0 values -> NaN
+[2026-07-08 00:36:24,310][microgrid.data.cleaning][INFO] - hampel[wind]: 5 outliers -> NaN
+[2026-07-08 00:36:24,346][microgrid.data.cleaning][INFO] - hampel[solar]: 3 outliers -> NaN
+[2026-07-08 00:36:24,380][microgrid.data.cleaning][INFO] - hampel[load]: 0 outliers -> NaN
+[2026-07-08 00:36:24,453][microgrid.data.cleaning][INFO] - interpolate_gaps: NaN 296 -> 0
+[2026-07-08 00:36:24,854][microgrid.pipeline.build_dataset][INFO] - === stage 3/4: align ===
+[2026-07-08 00:36:24,897][microgrid.data.alignment][INFO] - regularize_index: 0 missing grid slots -> NaN rows
+[2026-07-08 00:36:24,899][microgrid.pipeline.build_dataset][INFO] - === stage 4/4: features ===
+[2026-07-08 00:36:24,911][microgrid.data.features][INFO] - features/calendar -> 13 columns
+[2026-07-08 00:36:24,917][microgrid.data.features][INFO] - features/lags -> 22 columns
+[2026-07-08 00:36:24,931][microgrid.data.features][INFO] - features/rolling -> 34 columns
+[2026-07-08 00:36:25,957][microgrid.pipeline.build_dataset][INFO] - Saved /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/data/processed/elia_dataset.parquet  (35136 rows x 34 cols)
+[2026-07-08 00:36:25,959][microgrid.pipeline.build_dataset][INFO] - Saved /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/data/processed/elia_quality_report.json

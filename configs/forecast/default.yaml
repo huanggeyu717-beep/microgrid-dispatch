@@ -1,0 +1,27 @@
+# Day-ahead forecasting task. Swap target from the CLI:
+#   python scripts/train_forecast.py forecast.target=wind
+target: load               # wind | solar | load
+context_steps: 96          # 24h of 15-min history for the encoder
+horizon_steps: 96          # 24h day-ahead horizon
+stride: 8                  # window every 2h -> ~3.3k train samples
+quantiles: [0.1, 0.5, 0.9]
+
+# encoder sees all three measured series (cross-series information helps)
+history_columns: [wind_measured, solar_measured, load_measured]
+# decoder inputs, all known at issue time (leakage-free)
+calendar_columns: [tod_sin, tod_cos, dow_sin, dow_cos, is_weekend, doy_sin, doy_cos]
+use_tso_forecast_input: true   # feed Elia's DA forecast to the decoder
+
+splits:                    # chronological; horizon decides membership
+  train_end: "2024-10-01"
+  val_end: "2024-11-01"    # test = Nov + Dec
+
+train:
+  batch_size: 128
+  max_epochs: 30
+  lr: 0.002
+  weight_decay: 0.0001
+  patience: 4
+  seed: 42
+  num_threads: 2
+  max_seconds: null   # time-boxed resumable training (sandbox-friendly)

@@ -14,7 +14,7 @@ flowchart LR
     D --> F[熵权TOPSIS选点<br>调度方案]
 ```
 
-**当前进度：✅ 数据管线　⬜ 预测　⬜ NSGA-III优化　⬜ DRL**
+**当前进度：✅ 数据管线　✅ 预测（LSTM基线）　⬜ PatchTST　⬜ NSGA-III优化　⬜ DRL**
 
 ## 效果预览
 
@@ -23,6 +23,20 @@ flowchart LR
 ![一周实测与日前预测对比](reports/figures/week_profile.png)
 
 ![平均日内曲线（10–90%分位带）](reports/figures/daily_profiles.png)
+
+### 日前概率预测（LSTM 基线，测试集 2024-11 ~ 2024-12）
+
+分位数损失训练（q=0.1/0.5/0.9），输出 80% 预测区间；对标季节持久性基线与 Elia 官方日前预测：
+
+| 目标 | MAE (MW) | vs 持久性基线 | vs TSO日前预测 | 80%区间覆盖率 |
+|------|---------|--------------|---------------|--------------|
+| 负荷 | 260 | **+49.4%** | -1.4% | 73.3% |
+| 风电 | 225 | **+79.4%** | -21.7% | 86.5% |
+| 光伏 | 106 | **+38.6%** | -11.0% | 93.2% |
+
+> 模型未使用气象数值预报（NWP），仅靠历史序列+日历特征+TSO预测输入即接近 TSO 水平（负荷差1.4%）；风电差距较大，因风电本质由天气驱动——这是后续接入 NWP 特征的明确改进方向。
+
+![负荷日前分位数预测](reports/figures/forecast_load.png)
 
 ## 快速开始
 
@@ -38,6 +52,11 @@ python scripts/build_dataset.py
 
 # 3. 生成数据探索图 -> reports/figures/
 python scripts/explore_data.py
+
+# 4. 训练日前预测模型（LSTM基线，CPU可训）
+python scripts/train_forecast.py forecast.target=load
+python scripts/train_forecast.py forecast.target=wind
+python scripts/train_forecast.py forecast.target=solar
 
 # 运行单元测试（无需真实数据）
 pytest
@@ -58,6 +77,8 @@ src/microgrid/
   schema.py         # 规范数据模式（模块间契约）
   data/sources/     # 数据源适配器（elia / gefcom2014 + 注册表）
   data/             # cleaning / alignment / features（纯函数阶段）
+  forecast/         # 窗口数据集 / 分位数损失 / 指标 / 基线 / 训练器 / 评估
+  forecast/models/  # 模型注册表（lstm；PatchTST 预留同一接口）
   pipeline/         # 阶段编排 + 质量报告
   viz/              # 探索性可视化
 scripts/            # CLI 入口（hydra）
@@ -68,6 +89,7 @@ data/               # raw / interim / processed（git 忽略）
 ## 路线图
 
 1. ✅ 数据管线：Elia 风/光/负荷，清洗、15min 对齐、因果特征
-2. ⬜ 预测：PatchTST 与 LSTM 基线，分位数损失区间预测，SHAP 可解释性
-3. ⬜ 优化：pymoo NSGA-III 日前调度（成本 vs 碳排放），熵权 TOPSIS 选点
-4. ⬜ DRL：SAC/PPO 调度策略，与 NSGA-III 对比（成本 / 决策时延 / 预测误差鲁棒性）
+2. ✅ 预测（一期）：seq2seq LSTM 基线，分位数区间预测，无泄漏窗口切分，时间盒断点续训
+3. ⬜ 预测（二期）：PatchTST 接入同一框架，NWP 气象特征，SHAP 可解释性
+4. ⬜ 优化：pymoo NSGA-III 日前调度（成本 vs 碳排放），熵权 TOPSIS 选点
+5. ⬜ DRL：SAC/PPO 调度策略，与 NSGA-III 对比（成本 / 决策时延 / 预测误差鲁棒性）

@@ -1,15 +1,17 @@
-# Phase 1: data pipeline (pinned known-good versions)
+# Pinned known-good versions (CPU training verified on Linux/py3.10).
+# numpy <2 required by torch 1.x numpy interop; any torch>=1.12 works,
+# newer is fine on machines with more disk/GPU.
 pandas==2.3.3
-numpy==2.2.6
+numpy==1.26.4
 pyarrow==24.0.0
 hydra-core==1.3.4
 omegaconf==2.3.1
 matplotlib==3.10.9
 requests==2.34.2
 pytest==9.1.1
+torch==1.12.1
 
-# Phase 2+ (uncomment when the modules land):
-# torch
+# Phase 3+ (uncomment when the modules land):
 # pymoo
 # shap
 # wandb

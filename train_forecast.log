@@ -1,0 +1,141 @@
+[2026-07-08 01:07:15,994][microgrid.forecast.windows][INFO] - train windows: 6528 (context=192, horizon=96, stride=4)
+[2026-07-08 01:07:16,008][microgrid.forecast.windows][INFO] - val windows: 744 (context=192, horizon=96, stride=4)
+[2026-07-08 01:07:16,024][microgrid.forecast.windows][INFO] - test windows: 1441 (context=192, horizon=96, stride=4)
+[2026-07-08 01:07:16,030][__main__][INFO] - model lstm: 0.41M params
+[2026-07-08 01:10:51,569][microgrid.forecast.windows][INFO] - train windows: 3276 (context=96, horizon=96, stride=8)
+[2026-07-08 01:10:51,579][microgrid.forecast.windows][INFO] - val windows: 372 (context=96, horizon=96, stride=8)
+[2026-07-08 01:10:51,591][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 01:10:51,594][__main__][INFO] - model lstm: 0.04M params
+[2026-07-08 01:10:54,086][microgrid.forecast.trainer][INFO] - epoch 00  train 0.2696  val 0.1136  (2s)
+[2026-07-08 01:10:56,543][microgrid.forecast.trainer][INFO] - epoch 01  train 0.0932  val 0.0554  (2s)
+[2026-07-08 01:10:59,011][microgrid.forecast.trainer][INFO] - epoch 02  train 0.0660  val 0.0486  (2s)
+[2026-07-08 01:11:01,536][microgrid.forecast.trainer][INFO] - epoch 03  train 0.0611  val 0.0462  (2s)
+[2026-07-08 01:11:03,950][microgrid.forecast.trainer][INFO] - epoch 04  train 0.0597  val 0.0450  (2s)
+[2026-07-08 01:11:06,503][microgrid.forecast.trainer][INFO] - epoch 05  train 0.0593  val 0.0456  (2s)
+[2026-07-08 01:11:08,953][microgrid.forecast.trainer][INFO] - epoch 06  train 0.0581  val 0.0450  (2s)
+[2026-07-08 01:11:11,397][microgrid.forecast.trainer][INFO] - epoch 07  train 0.0575  val 0.0476  (2s)
+[2026-07-08 01:11:13,801][microgrid.forecast.trainer][INFO] - epoch 08  train 0.0575  val 0.0448  (2s)
+[2026-07-08 01:11:13,889][microgrid.forecast.trainer][INFO] - time budget reached after epoch 8 — resume to continue
+[2026-07-08 01:11:13,890][__main__][INFO] - RESUME_NEEDED: rerun this command to continue training
+[2026-07-08 01:11:26,881][microgrid.forecast.windows][INFO] - train windows: 3276 (context=96, horizon=96, stride=8)
+[2026-07-08 01:11:26,893][microgrid.forecast.windows][INFO] - val windows: 372 (context=96, horizon=96, stride=8)
+[2026-07-08 01:11:26,910][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 01:11:26,914][__main__][INFO] - model lstm: 0.04M params
+[2026-07-08 01:11:26,946][microgrid.forecast.trainer][INFO] - resuming at epoch 9 (best 0.0448 @ 8)
+[2026-07-08 01:11:29,951][microgrid.forecast.trainer][INFO] - epoch 09  train 0.0569  val 0.0440  (3s)
+[2026-07-08 01:11:32,885][microgrid.forecast.trainer][INFO] - epoch 10  train 0.0566  val 0.0443  (3s)
+[2026-07-08 01:11:35,463][microgrid.forecast.trainer][INFO] - epoch 11  train 0.0569  val 0.0444  (3s)
+[2026-07-08 01:11:37,971][microgrid.forecast.trainer][INFO] - epoch 12  train 0.0565  val 0.0443  (2s)
+[2026-07-08 01:11:40,700][microgrid.forecast.trainer][INFO] - epoch 13  train 0.0560  val 0.0444  (3s)
+[2026-07-08 01:11:40,767][microgrid.forecast.trainer][INFO] - training complete: early stop at epoch 13 (best 9, val 0.0440)
+[2026-07-08 01:11:40,943][microgrid.forecast.evaluate][INFO] - metrics: {
+  "target": "load",
+  "model": "lstm",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 260.07,
+    "rmse": 322.88,
+    "pinball": 81.83,
+    "coverage_80": 0.733
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 514.23,
+    "tso_dayahead": 256.59
+  },
+  "skill_vs_persistence": 0.494,
+  "skill_vs_tso": -0.014
+}
+[2026-07-08 01:11:41,667][microgrid.forecast.evaluate][INFO] - figure -> /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/reports/figures/forecast_load.png
+[2026-07-08 01:12:02,987][microgrid.forecast.windows][INFO] - train windows: 3276 (context=96, horizon=96, stride=8)
+[2026-07-08 01:12:03,004][microgrid.forecast.windows][INFO] - val windows: 372 (context=96, horizon=96, stride=8)
+[2026-07-08 01:12:03,030][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 01:12:03,033][__main__][INFO] - model lstm: 0.04M params
+[2026-07-08 01:12:05,485][microgrid.forecast.trainer][INFO] - epoch 00  train 0.3123  val 0.1161  (2s)
+[2026-07-08 01:12:07,982][microgrid.forecast.trainer][INFO] - epoch 01  train 0.0936  val 0.0670  (2s)
+[2026-07-08 01:12:10,507][microgrid.forecast.trainer][INFO] - epoch 02  train 0.0712  val 0.0664  (2s)
+[2026-07-08 01:12:13,055][microgrid.forecast.trainer][INFO] - epoch 03  train 0.0675  val 0.0640  (2s)
+[2026-07-08 01:12:15,550][microgrid.forecast.trainer][INFO] - epoch 04  train 0.0663  val 0.0621  (2s)
+[2026-07-08 01:12:18,236][microgrid.forecast.trainer][INFO] - epoch 05  train 0.0654  val 0.0660  (3s)
+[2026-07-08 01:12:21,898][microgrid.forecast.trainer][INFO] - epoch 06  train 0.0645  val 0.0617  (4s)
+[2026-07-08 01:12:24,878][microgrid.forecast.trainer][INFO] - epoch 07  train 0.0633  val 0.0610  (3s)
+[2026-07-08 01:12:27,646][microgrid.forecast.trainer][INFO] - epoch 08  train 0.0628  val 0.0613  (3s)
+[2026-07-08 01:12:30,365][microgrid.forecast.trainer][INFO] - epoch 09  train 0.0615  val 0.0600  (3s)
+[2026-07-08 01:12:33,401][microgrid.forecast.trainer][INFO] - epoch 10  train 0.0609  val 0.0600  (3s)
+[2026-07-08 01:12:33,482][microgrid.forecast.trainer][INFO] - time budget reached after epoch 10 — resume to continue
+[2026-07-08 01:12:33,484][__main__][INFO] - RESUME_NEEDED: rerun this command to continue training
+[2026-07-08 01:12:43,746][microgrid.forecast.windows][INFO] - train windows: 3276 (context=96, horizon=96, stride=8)
+[2026-07-08 01:12:43,757][microgrid.forecast.windows][INFO] - val windows: 372 (context=96, horizon=96, stride=8)
+[2026-07-08 01:12:43,768][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 01:12:43,771][__main__][INFO] - model lstm: 0.04M params
+[2026-07-08 01:12:43,800][microgrid.forecast.trainer][INFO] - resuming at epoch 11 (best 0.0600 @ 9)
+[2026-07-08 01:12:46,274][microgrid.forecast.trainer][INFO] - epoch 11  train 0.0609  val 0.0614  (2s)
+[2026-07-08 01:12:48,859][microgrid.forecast.trainer][INFO] - epoch 12  train 0.0603  val 0.0611  (3s)
+[2026-07-08 01:12:51,345][microgrid.forecast.trainer][INFO] - epoch 13  train 0.0601  val 0.0617  (2s)
+[2026-07-08 01:12:51,412][microgrid.forecast.trainer][INFO] - training complete: early stop at epoch 13 (best 9, val 0.0600)
+[2026-07-08 01:12:51,597][microgrid.forecast.evaluate][INFO] - metrics: {
+  "target": "wind",
+  "model": "lstm",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 225.25,
+    "rmse": 301.3,
+    "pinball": 71.76,
+    "coverage_80": 0.865
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 1093.26,
+    "tso_dayahead": 185.08
+  },
+  "skill_vs_persistence": 0.794,
+  "skill_vs_tso": -0.217
+}
+[2026-07-08 01:12:52,208][microgrid.forecast.evaluate][INFO] - figure -> /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/reports/figures/forecast_wind.png
+[2026-07-08 01:13:04,545][microgrid.forecast.windows][INFO] - train windows: 3276 (context=96, horizon=96, stride=8)
+[2026-07-08 01:13:04,556][microgrid.forecast.windows][INFO] - val windows: 372 (context=96, horizon=96, stride=8)
+[2026-07-08 01:13:04,566][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 01:13:04,571][__main__][INFO] - model lstm: 0.04M params
+[2026-07-08 01:13:07,110][microgrid.forecast.trainer][INFO] - epoch 00  train 0.2452  val 0.0989  (3s)
+[2026-07-08 01:13:09,590][microgrid.forecast.trainer][INFO] - epoch 01  train 0.0739  val 0.0435  (2s)
+[2026-07-08 01:13:12,139][microgrid.forecast.trainer][INFO] - epoch 02  train 0.0511  val 0.0376  (2s)
+[2026-07-08 01:13:14,640][microgrid.forecast.trainer][INFO] - epoch 03  train 0.0473  val 0.0349  (2s)
+[2026-07-08 01:13:17,198][microgrid.forecast.trainer][INFO] - epoch 04  train 0.0454  val 0.0335  (2s)
+[2026-07-08 01:13:20,159][microgrid.forecast.trainer][INFO] - epoch 05  train 0.0441  val 0.0333  (3s)
+[2026-07-08 01:13:22,868][microgrid.forecast.trainer][INFO] - epoch 06  train 0.0433  val 0.0334  (3s)
+[2026-07-08 01:13:25,622][microgrid.forecast.trainer][INFO] - epoch 07  train 0.0426  val 0.0327  (3s)
+[2026-07-08 01:13:28,577][microgrid.forecast.trainer][INFO] - epoch 08  train 0.0425  val 0.0332  (3s)
+[2026-07-08 01:13:31,240][microgrid.forecast.trainer][INFO] - epoch 09  train 0.0422  val 0.0326  (3s)
+[2026-07-08 01:13:33,943][microgrid.forecast.trainer][INFO] - epoch 10  train 0.0416  val 0.0321  (3s)
+[2026-07-08 01:13:36,623][microgrid.forecast.trainer][INFO] - epoch 11  train 0.0412  val 0.0313  (3s)
+[2026-07-08 01:13:36,718][microgrid.forecast.trainer][INFO] - time budget reached after epoch 11 — resume to continue
+[2026-07-08 01:13:36,719][__main__][INFO] - RESUME_NEEDED: rerun this command to continue training
+[2026-07-08 01:13:51,091][microgrid.forecast.windows][INFO] - train windows: 3276 (context=96, horizon=96, stride=8)
+[2026-07-08 01:13:51,102][microgrid.forecast.windows][INFO] - val windows: 372 (context=96, horizon=96, stride=8)
+[2026-07-08 01:13:51,113][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 01:13:51,117][__main__][INFO] - model lstm: 0.04M params
+[2026-07-08 01:13:51,143][microgrid.forecast.trainer][INFO] - resuming at epoch 12 (best 0.0313 @ 11)
+[2026-07-08 01:13:53,674][microgrid.forecast.trainer][INFO] - epoch 12  train 0.0410  val 0.0314  (3s)
+[2026-07-08 01:13:56,150][microgrid.forecast.trainer][INFO] - epoch 13  train 0.0407  val 0.0319  (2s)
+[2026-07-08 01:13:58,641][microgrid.forecast.trainer][INFO] - epoch 14  train 0.0405  val 0.0309  (2s)
+[2026-07-08 01:14:01,230][microgrid.forecast.trainer][INFO] - epoch 15  train 0.0401  val 0.0314  (2s)
+[2026-07-08 01:14:03,899][microgrid.forecast.trainer][INFO] - epoch 16  train 0.0399  val 0.0309  (3s)
+[2026-07-08 01:14:06,584][microgrid.forecast.trainer][INFO] - epoch 17  train 0.0396  val 0.0321  (3s)
+[2026-07-08 01:14:09,206][microgrid.forecast.trainer][INFO] - epoch 18  train 0.0394  val 0.0323  (3s)
+[2026-07-08 01:14:09,280][microgrid.forecast.trainer][INFO] - training complete: early stop at epoch 18 (best 14, val 0.0309)
+[2026-07-08 01:14:09,474][microgrid.forecast.evaluate][INFO] - metrics: {
+  "target": "solar",
+  "model": "lstm",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 105.58,
+    "rmse": 296.67,
+    "pinball": 39.12,
+    "coverage_80": 0.932
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 172.05,
+    "tso_dayahead": 95.14
+  },
+  "skill_vs_persistence": 0.386,
+  "skill_vs_tso": -0.11
+}
+[2026-07-08 01:14:10,125][microgrid.forecast.evaluate][INFO] - figure -> /sessions/modest-gallant-fermi/mnt/毕业设计/microgrid-project/reports/figures/forecast_solar.png

@@ -23,6 +23,5 @@ runs/
 .DS_Store
 Thumbs.db
 
-# logs & test cache
-*.log
-.pytest_cache/
+# model checkpoints (binary; metrics/history text files are kept)
+models/**/*.pt
