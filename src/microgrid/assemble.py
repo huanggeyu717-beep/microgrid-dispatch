@@ -74,6 +74,26 @@ def build_model(
     )
 
 
+def build_rl_algorithm(algo_cfg: DictConfig, env: Any) -> Any:
+    """Build the SB3 RL algorithm named by ``algo_cfg._target_`` (task 04).
+
+    Unlike the whole-node components above, an SB3 algorithm takes ordinary
+    keyword arguments, so the config keys are unpacked normally and the training
+    ``env`` is injected here. ``_convert_="all"`` turns nested nodes
+    (``policy_kwargs``) into plain dicts SB3 understands. Built only here.
+    """
+    if algo_cfg is None or not (hasattr(algo_cfg, "get") and algo_cfg.get("_target_")):
+        raise ValueError(
+            "rl.algo config must set '_target_' (e.g. 'stable_baselines3.SAC')"
+        )
+    try:
+        return instantiate(algo_cfg, env=env, _convert_="all")
+    except Exception as e:  # noqa: BLE001 — name the offending target
+        raise TypeError(
+            f"could not build rl algorithm from _target_='{algo_cfg._target_}': {e}"
+        ) from e
+
+
 def build_objectives(opt_cfg: DictConfig) -> list[tuple[str, Any]]:
     """Build the selected dispatch objectives as ``[(name, fn), ...]``.
 

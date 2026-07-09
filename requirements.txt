@@ -13,6 +13,8 @@ pytest==9.1.1
 # torch CPU wheels: pip install torch --index-url https://download.pytorch.org/whl/cpu
 torch==2.13.0
 pymoo==0.6.2      # NSGA-III multi-objective day-ahead dispatch (pulls in scipy)
+gymnasium==1.3.0            # RL env API (task 04 DRL dispatch)
+stable-baselines3==2.9.0   # SAC/PPO; declares torch<3.0,>=2.8 (satisfied by 2.13)
 
 # Phase 3+ (uncomment when the modules land):
 # shap

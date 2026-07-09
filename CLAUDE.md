@@ -53,14 +53,17 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 01 | Data pipeline (Elia, clean/align/features) | ✅ done | [docs/tasks/01-data-pipeline.md](docs/tasks/01-data-pipeline.md) |
 | 02 | Day-ahead quantile forecasting (LSTM baseline) | ✅ done | [docs/tasks/02-forecast-lstm.md](docs/tasks/02-forecast-lstm.md) |
 | 03 | NSGA-III dispatch (3 objectives, TOPSIS) + config-driven architecture | ✅ done | [docs/tasks/03-nsga3-dispatch.md](docs/tasks/03-nsga3-dispatch.md) |
-| 04 | DRL dispatch policy (SAC/PPO) vs NSGA-III | 🔄 **ACTIVE** | [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md) |
-| 05 | PatchTST forecaster + NWP features | ⬜ pending | [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md) |
+| 04 | DRL dispatch policy (SAC) vs NSGA-III + rule-based | ✅ done | [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md) |
+| 05 | PatchTST forecaster + NWP features | 🔄 **ACTIVE** | [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md) |
 
 ## ACTIVE TASK
 
-> **Before doing anything, read [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md).**
+> **Before doing anything, read [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md).**
 > It is the complete instruction for the current work: goal, design
 > decisions, acceptance criteria, and a progress checklist you must keep
 > updated. When the task completes, flip its board row to ✅, point this
 > section at the next task file, and write the archive summary at the top
 > of the finished task file.
+>
+> Task 04 (DRL dispatch) is done — archive summary at the top of
+> [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md).

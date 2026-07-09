@@ -1,0 +1,25 @@
+{
+  "algo": "stable_baselines3.SAC",
+  "total_timesteps": 4000,
+  "n_train_days": 274,
+  "n_val_days": 31,
+  "best_val_cost": 3994.82,
+  "final_eval": {
+    "step": 4000,
+    "val_cost": 4299.4201387719795,
+    "val_co2": 17.161406380338747,
+    "val_peak": 1.805171215665944,
+    "val_soc_dev": 0.3499999999999999
+  },
+  "env_cfg": {
+    "forecast_horizon_k": 8,
+    "power_scale": 4.0,
+    "price_scale": 200.0,
+    "reward": {
+      "co2_price": 80.0,
+      "cost_scale": 100.0,
+      "w_soc": 500.0,
+      "w_peak": 100.0
+    }
+  }
+}

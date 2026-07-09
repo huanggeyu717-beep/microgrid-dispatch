@@ -1,0 +1,48 @@
+# PPO fallback (task 04 timebox switch). If SAC does not clearly beat the
+# rule-based baseline by week 2, switch to this with `rl=ppo` — same env,
+# baseline, and reward; only the algorithm changes.
+#   python scripts/train_rl.py rl=ppo
+
+# PPO = Proximal Policy Optimization: an on-policy actor-critic method that
+# updates the policy in small clipped steps for stable learning. It collects
+# fresh rollouts each update (n_steps) rather than replaying a buffer.
+algo:
+  _target_: stable_baselines3.PPO
+  policy: MlpPolicy
+  learning_rate: 3.0e-4
+  n_steps: 2048                # rollout length per policy update
+  batch_size: 256
+  n_epochs: 10
+  gamma: 0.99
+  gae_lambda: 0.95
+  clip_range: 0.2
+  ent_coef: 0.0
+  policy_kwargs:
+    net_arch: [256, 256]
+  verbose: 0
+  seed: 42
+
+env:
+  forecast_horizon_k: 8
+  power_scale: 4.0
+  price_scale: 200.0
+  reward:
+    co2_price: 30.0
+    cost_scale: 100.0
+    w_soc: 1500.0
+    w_peak: 40.0
+
+train:
+  total_timesteps: 300000
+  eval_freq: 10000
+  n_eval_days: 31
+  checkpoint_freq: 10000
+  seed: 42
+  resume: true
+  max_seconds: null
+  forecast_source: auto
+  out_dir: models/rl_ppo
+
+baseline:
+  charge_rate_frac: 1.0
+  discharge_rate_frac: 1.0

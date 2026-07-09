@@ -1,0 +1,69 @@
+# DRL dispatch (task 04). Trains a SAC policy on the same notional microgrid as
+# task 03 and compares it against NSGA-III+TOPSIS and a rule-based baseline.
+#   python scripts/train_rl.py                 # full run (~<2h CPU)
+#   python scripts/train_rl.py rl=ppo          # documented fallback switch
+#   python scripts/train_rl.py rl=smoke        # tiny time-boxed run (tests/CI)
+
+# --- Algorithm (built ONLY by microgrid.assemble.build_rl_algorithm). ---
+# SAC = Soft Actor-Critic: an off-policy actor-critic RL algorithm for
+# continuous actions that maximizes reward *and* policy entropy (keeps exploring
+# instead of collapsing early) — the natural first choice for a 2-D continuous
+# dispatch action. `_target_` names the class; every other key is a constructor
+# kwarg passed straight through (the env is injected at build time).
+algo:
+  _target_: stable_baselines3.SAC
+  policy: MlpPolicy
+  learning_rate: 3.0e-4
+  buffer_size: 200000          # replay buffer: past transitions SAC learns from
+  batch_size: 256
+  gamma: 0.99                  # discount on future reward
+  tau: 0.005                   # target-network soft-update rate
+  learning_starts: 2000        # steps of random actions before learning begins
+  train_freq: 1
+  gradient_steps: 1
+  ent_coef: auto               # temperature on the entropy bonus, auto-tuned
+  policy_kwargs:
+    net_arch: [256, 256]       # small 2x256 MLP (CPU budget)
+  verbose: 0
+  seed: 42
+
+# --- Environment (src/microgrid/rl/env.py MicrogridEnv). ---
+env:
+  forecast_horizon_k: 8        # LSTM-median lookahead in the observation (2h)
+  # Observation scale constants (bring MW / EUR·MWh^-1 quantities to O(1)).
+  power_scale: 4.0             # ~ load peak [MW]
+  price_scale: 200.0           # ~ peak buy price [EUR/MWh]
+  # Reward (per step): -(dcost + co2_price*dco2) / cost_scale, both in EUR.
+  reward:
+    co2_price: 30.0            # EUR per tCO2 — carbon price folding CO2 into cost
+    cost_scale: 100.0          # divides the per-step EUR reward to O(1)
+    w_soc: 1500.0              # terminal: EUR per unit |SoC_T - SoC_0| (fraction).
+                               # High on purpose: it must exceed the arbitrage
+                               # value of spending the initial charge (~266 EUR at
+                               # full drain), else the policy games cost by ending
+                               # depleted — unfair vs energy-neutral NSGA/rule.
+    w_peak: 40.0               # terminal: EUR per MW of episode grid peak
+
+# --- Training (src/microgrid/rl/train.py). ---
+train:
+  total_timesteps: 300000      # ~3100 episodes of 96 steps; stays < ~2h CPU
+  eval_freq: 10000             # steps between validation-day evaluations
+  n_eval_days: 31              # validation (Oct) days per eval (fixed set; all of Oct)
+  checkpoint_freq: 10000
+  seed: 42
+  resume: true                 # continue from out_dir/last.zip (+ replay buffer) if present
+  max_seconds: null            # time-boxed resumable training: stop after N seconds,
+                               # re-run to continue (keeps checkpoints + CSV logs)
+  # Day splits mirror the forecast task (Jan-Sep train, Oct val, Nov-Dec test).
+  # Days come from data/processed/<data>_dataset.parquet; forecasts from the
+  # same LSTM checkpoints task 03 uses (auto = LSTM median -> TSO -> measured).
+  forecast_source: auto
+  out_dir: models/rl_sac
+
+# --- Rule-based baseline (src/microgrid/rl/baseline.py). ---
+baseline:
+  # Charge when price is off-peak, discharge at peak (within SoC bounds); run the
+  # turbine at its min-average-cost setpoint whenever the buy price beats its
+  # marginal cost there; the grid covers the residual. Pure function of the day.
+  charge_rate_frac: 1.0        # fraction of p_charge_max used off-peak
+  discharge_rate_frac: 1.0     # fraction of p_discharge_max used at peak

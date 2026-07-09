@@ -1,0 +1,19 @@
+{
+  "algo": "stable_baselines3.SAC",
+  "timesteps_this_run": 300000,
+  "cumulative_timesteps": 130401,
+  "n_train_days": 274,
+  "n_val_days": 31,
+  "best_val_cost": 4825.58,
+  "env_cfg": {
+    "forecast_horizon_k": 8,
+    "power_scale": 4.0,
+    "price_scale": 200.0,
+    "reward": {
+      "co2_price": 30.0,
+      "cost_scale": 100.0,
+      "w_soc": 1500.0,
+      "w_peak": 40.0
+    }
+  }
+}

@@ -10,11 +10,19 @@ defaults:
   - model: lstm
   - system: default
   - optimize: default
+  - rl: default                 # DRL dispatch (task 04); swap with rl=ppo / rl=smoke
   - scenario: winter_weekday    # named dispatch scenario; swap with scenario=price_spike
   - _self_
 
 alignment:
   freq: 15min          # canonical grid; all series are aligned onto it
+
+# Three-way dispatch comparison (scripts/compare_dispatch.py, task 04).
+compare:
+  max_days: 0          # 0 = all Nov–Dec test days; >0 caps for a quick dev run
+  robust_subset: 12    # seeded day subset for the forecast-error robustness curve
+  subset_seed: 20241109
+  max_seconds: null    # time-boxed + resumable (per-day cache); null = run to completion
 
 paths:
   interim_dir: data/interim

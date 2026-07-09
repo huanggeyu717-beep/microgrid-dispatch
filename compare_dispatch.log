@@ -1,0 +1,725 @@
+[2026-07-09 01:42:22,756][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_smoke\best.zip
+[2026-07-09 01:42:22,881][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:42:22,951][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:42:22,971][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:42:22,985][microgrid.rl.data][INFO] - built 3 day profiles (forecast sources: {'lstm': 9})
+[2026-07-09 01:42:22,985][__main__][INFO] - comparing on 3 test days
+[2026-07-09 01:42:22,987][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:23,444][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 176 non-dominated feasible solutions
+[2026-07-09 01:42:23,486][__main__][INFO] - [1/3] 2024-11-01  cost rule=6102 nsga3=6276 rl=6301
+[2026-07-09 01:42:23,487][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:23,829][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 199 non-dominated feasible solutions
+[2026-07-09 01:42:23,867][__main__][INFO] - [2/3] 2024-11-02  cost rule=5941 nsga3=6194 rl=6172
+[2026-07-09 01:42:23,867][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:24,212][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 165 non-dominated feasible solutions
+[2026-07-09 01:42:24,245][__main__][INFO] - [3/3] 2024-11-03  cost rule=6001 nsga3=6421 rl=6274
+[2026-07-09 01:42:24,246][__main__][INFO] - robustness subset (2 days, seed 20241109): ['2024-11-02', '2024-11-03']
+[2026-07-09 01:42:24,247][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:24,586][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 199 non-dominated feasible solutions
+[2026-07-09 01:42:24,627][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:24,962][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 165 non-dominated feasible solutions
+[2026-07-09 01:42:25,000][__main__][INFO] - robustness f=0: {'rule': 5971.0, 'nsga3': 6307.0, 'rl': 6223.0}
+[2026-07-09 01:42:25,000][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:25,340][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 143 non-dominated feasible solutions
+[2026-07-09 01:42:25,379][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:25,718][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 145 non-dominated feasible solutions
+[2026-07-09 01:42:25,756][__main__][INFO] - robustness f=1: {'rule': 5971.0, 'nsga3': 6233.0, 'rl': 6232.0}
+[2026-07-09 01:42:25,757][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:26,101][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 161 non-dominated feasible solutions
+[2026-07-09 01:42:26,139][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:26,478][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 141 non-dominated feasible solutions
+[2026-07-09 01:42:26,515][__main__][INFO] - robustness f=2: {'rule': 5971.0, 'nsga3': 6427.0, 'rl': 6238.0}
+[2026-07-09 01:42:26,515][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:26,849][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 145 non-dominated feasible solutions
+[2026-07-09 01:42:26,888][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 01:42:27,233][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 143 non-dominated feasible solutions
+[2026-07-09 01:42:27,272][__main__][INFO] - robustness f=3: {'rule': 5971.0, 'nsga3': 6377.0, 'rl': 6261.0}
+[2026-07-09 01:42:27,273][__main__][INFO] - comparison -> D:\毕业设计\microgrid-project\models\comparison\comparison.json
+[2026-07-09 01:42:27,705][microgrid.rl.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_comparison_bars.png
+[2026-07-09 01:42:27,830][microgrid.rl.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_robustness.png
+[2026-07-09 01:42:27,831][__main__][INFO] - VERDICT: RL mean cost 6249 vs rule-based 6015 (RL worse by 3.9%)
+[2026-07-09 02:47:44,153][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 02:47:44,282][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:47:44,355][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:47:44,379][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:47:44,504][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 02:47:44,506][__main__][INFO] - comparison: 97/97 work items pending (61 test days, 12 robustness subset)
+[2026-07-09 02:47:44,507][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:47:54,565][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 668 non-dominated feasible solutions
+[2026-07-09 02:47:54,623][__main__][INFO] - [1/97] 2024-11-01 f=0  cost rule=6102 nsga3=6228 rl=5729
+[2026-07-09 02:47:54,624][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:48:04,808][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 834 non-dominated feasible solutions
+[2026-07-09 02:48:04,876][__main__][INFO] - [2/97] 2024-11-02 f=0  cost rule=5941 nsga3=6152 rl=5616
+[2026-07-09 02:48:04,877][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:48:14,917][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 743 non-dominated feasible solutions
+[2026-07-09 02:48:14,972][__main__][INFO] - [3/97] 2024-11-03 f=0  cost rule=6001 nsga3=6279 rl=5777
+[2026-07-09 02:48:14,973][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:48:25,330][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 651 non-dominated feasible solutions
+[2026-07-09 02:48:25,384][__main__][INFO] - [4/97] 2024-11-04 f=0  cost rule=7043 nsga3=7163 rl=6810
+[2026-07-09 02:48:25,385][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:48:35,360][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 560 non-dominated feasible solutions
+[2026-07-09 02:48:35,415][__main__][INFO] - [5/97] 2024-11-05 f=0  cost rule=7638 nsga3=7728 rl=7342
+[2026-07-09 02:48:35,416][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:48:45,373][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 639 non-dominated feasible solutions
+[2026-07-09 02:48:45,431][__main__][INFO] - [6/97] 2024-11-06 f=0  cost rule=8096 nsga3=8167 rl=7881
+[2026-07-09 02:48:45,432][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:48:55,549][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 705 non-dominated feasible solutions
+[2026-07-09 02:48:55,603][__main__][INFO] - [7/97] 2024-11-07 f=0  cost rule=7622 nsga3=7625 rl=7425
+[2026-07-09 02:48:55,604][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:49:05,699][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 670 non-dominated feasible solutions
+[2026-07-09 02:49:05,756][__main__][INFO] - [8/97] 2024-11-08 f=0  cost rule=7903 nsga3=7853 rl=7678
+[2026-07-09 02:49:05,757][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:49:15,835][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 622 non-dominated feasible solutions
+[2026-07-09 02:49:15,887][__main__][INFO] - [9/97] 2024-11-09 f=0  cost rule=7034 nsga3=7036 rl=6725
+[2026-07-09 02:49:15,888][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:49:26,349][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 533 non-dominated feasible solutions
+[2026-07-09 02:49:26,406][__main__][INFO] - [10/97] 2024-11-10 f=0  cost rule=6526 nsga3=6463 rl=6184
+[2026-07-09 02:49:26,407][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:49:37,317][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 937 non-dominated feasible solutions
+[2026-07-09 02:49:37,370][__main__][INFO] - [11/97] 2024-11-11 f=0  cost rule=3362 nsga3=3650 rl=3583
+[2026-07-09 02:49:37,371][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:49:47,459][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 565 non-dominated feasible solutions
+[2026-07-09 02:49:47,513][__main__][INFO] - [12/97] 2024-11-12 f=0  cost rule=4874 nsga3=5042 rl=4729
+[2026-07-09 02:49:47,513][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:49:57,678][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 681 non-dominated feasible solutions
+[2026-07-09 02:49:57,731][__main__][INFO] - [13/97] 2024-11-13 f=0  cost rule=7257 nsga3=7229 rl=7032
+[2026-07-09 02:49:57,732][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:50:07,768][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 699 non-dominated feasible solutions
+[2026-07-09 02:50:07,822][__main__][INFO] - [14/97] 2024-11-14 f=0  cost rule=7421 nsga3=7432 rl=7156
+[2026-07-09 02:50:07,823][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:50:17,915][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 650 non-dominated feasible solutions
+[2026-07-09 02:50:17,969][__main__][INFO] - [15/97] 2024-11-15 f=0  cost rule=7806 nsga3=7846 rl=7612
+[2026-07-09 02:50:17,970][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:50:28,088][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 817 non-dominated feasible solutions
+[2026-07-09 02:50:28,143][__main__][INFO] - [16/97] 2024-11-16 f=0  cost rule=4900 nsga3=5089 rl=4695
+[2026-07-09 02:50:28,144][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:50:39,573][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 792 non-dominated feasible solutions
+[2026-07-09 02:50:39,631][__main__][INFO] - [17/97] 2024-11-17 f=0  cost rule=3655 nsga3=3943 rl=3708
+[2026-07-09 02:50:39,632][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:50:49,807][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 571 non-dominated feasible solutions
+[2026-07-09 02:50:49,860][__main__][INFO] - [18/97] 2024-11-18 f=0  cost rule=7342 nsga3=7457 rl=7099
+[2026-07-09 02:50:49,861][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:50:59,979][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 601 non-dominated feasible solutions
+[2026-07-09 02:51:00,041][__main__][INFO] - [19/97] 2024-11-19 f=0  cost rule=5536 nsga3=5676 rl=5240
+[2026-07-09 02:51:00,042][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:51:10,263][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 657 non-dominated feasible solutions
+[2026-07-09 02:51:10,317][__main__][INFO] - [20/97] 2024-11-20 f=0  cost rule=3489 nsga3=3825 rl=3646
+[2026-07-09 02:51:10,318][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:51:20,422][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 569 non-dominated feasible solutions
+[2026-07-09 02:51:20,477][__main__][INFO] - [21/97] 2024-11-21 f=0  cost rule=6972 nsga3=7024 rl=6659
+[2026-07-09 02:51:20,477][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:51:30,824][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 608 non-dominated feasible solutions
+[2026-07-09 02:51:30,879][__main__][INFO] - [22/97] 2024-11-22 f=0  cost rule=4289 nsga3=4469 rl=4450
+[2026-07-09 02:51:30,879][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:51:42,434][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 935 non-dominated feasible solutions
+[2026-07-09 02:51:42,485][__main__][INFO] - [23/97] 2024-11-23 f=0  cost rule=2931 nsga3=3095 rl=3306
+[2026-07-09 02:51:42,486][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:51:52,833][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1521 non-dominated feasible solutions
+[2026-07-09 02:51:52,886][__main__][INFO] - [24/97] 2024-11-24 f=0  cost rule=1667 nsga3=1689 rl=1748
+[2026-07-09 02:51:52,887][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:52:03,083][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 584 non-dominated feasible solutions
+[2026-07-09 02:52:03,137][__main__][INFO] - [25/97] 2024-11-25 f=0  cost rule=4155 nsga3=4484 rl=4012
+[2026-07-09 02:52:03,138][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:52:13,219][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 609 non-dominated feasible solutions
+[2026-07-09 02:52:13,271][__main__][INFO] - [26/97] 2024-11-26 f=0  cost rule=5539 nsga3=5606 rl=5390
+[2026-07-09 02:52:13,272][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:52:23,785][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 911 non-dominated feasible solutions
+[2026-07-09 02:52:23,843][__main__][INFO] - [27/97] 2024-11-27 f=0  cost rule=3488 nsga3=3584 rl=3878
+[2026-07-09 02:52:23,843][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:52:34,109][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 644 non-dominated feasible solutions
+[2026-07-09 02:52:34,166][__main__][INFO] - [28/97] 2024-11-28 f=0  cost rule=6613 nsga3=6637 rl=6353
+[2026-07-09 02:52:34,167][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:52:44,998][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 618 non-dominated feasible solutions
+[2026-07-09 02:52:45,072][__main__][INFO] - [29/97] 2024-11-29 f=0  cost rule=5246 nsga3=5312 rl=5161
+[2026-07-09 02:52:45,073][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:52:55,432][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 677 non-dominated feasible solutions
+[2026-07-09 02:52:55,485][__main__][INFO] - [30/97] 2024-11-30 f=0  cost rule=5341 nsga3=5544 rl=5149
+[2026-07-09 02:52:55,486][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:53:05,829][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 931 non-dominated feasible solutions
+[2026-07-09 02:53:05,887][__main__][INFO] - [31/97] 2024-12-01 f=0  cost rule=3442 nsga3=3660 rl=3536
+[2026-07-09 02:53:05,888][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:53:16,055][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 577 non-dominated feasible solutions
+[2026-07-09 02:53:16,109][__main__][INFO] - [32/97] 2024-12-02 f=0  cost rule=4231 nsga3=4426 rl=4149
+[2026-07-09 02:53:16,110][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:53:26,270][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 606 non-dominated feasible solutions
+[2026-07-09 02:53:26,323][__main__][INFO] - [33/97] 2024-12-03 f=0  cost rule=6908 nsga3=7032 rl=6603
+[2026-07-09 02:53:26,324][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:53:36,472][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 538 non-dominated feasible solutions
+[2026-07-09 02:53:36,528][__main__][INFO] - [34/97] 2024-12-04 f=0  cost rule=6885 nsga3=6980 rl=6647
+[2026-07-09 02:53:36,529][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:53:46,792][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 668 non-dominated feasible solutions
+[2026-07-09 02:53:46,863][__main__][INFO] - [35/97] 2024-12-05 f=0  cost rule=3253 nsga3=3626 rl=3654
+[2026-07-09 02:53:46,864][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:53:58,147][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 654 non-dominated feasible solutions
+[2026-07-09 02:53:58,202][__main__][INFO] - [36/97] 2024-12-06 f=0  cost rule=4223 nsga3=4325 rl=4088
+[2026-07-09 02:53:58,203][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:54:08,382][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1098 non-dominated feasible solutions
+[2026-07-09 02:54:08,437][__main__][INFO] - [37/97] 2024-12-07 f=0  cost rule=2104 nsga3=2156 rl=2245
+[2026-07-09 02:54:08,438][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:54:18,581][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 771 non-dominated feasible solutions
+[2026-07-09 02:54:18,636][__main__][INFO] - [38/97] 2024-12-08 f=0  cost rule=2969 nsga3=3050 rl=2961
+[2026-07-09 02:54:18,637][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:54:28,775][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 705 non-dominated feasible solutions
+[2026-07-09 02:54:28,829][__main__][INFO] - [39/97] 2024-12-09 f=0  cost rule=3674 nsga3=3976 rl=3826
+[2026-07-09 02:54:28,830][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:54:39,154][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 721 non-dominated feasible solutions
+[2026-07-09 02:54:39,211][__main__][INFO] - [40/97] 2024-12-10 f=0  cost rule=4941 nsga3=5351 rl=4910
+[2026-07-09 02:54:39,212][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:54:49,436][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 608 non-dominated feasible solutions
+[2026-07-09 02:54:49,490][__main__][INFO] - [41/97] 2024-12-11 f=0  cost rule=7713 nsga3=7714 rl=7450
+[2026-07-09 02:54:49,490][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:55:00,978][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 636 non-dominated feasible solutions
+[2026-07-09 02:55:01,040][__main__][INFO] - [42/97] 2024-12-12 f=0  cost rule=8389 nsga3=8424 rl=8217
+[2026-07-09 02:55:01,041][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:55:11,176][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 624 non-dominated feasible solutions
+[2026-07-09 02:55:11,234][__main__][INFO] - [43/97] 2024-12-13 f=0  cost rule=8369 nsga3=8400 rl=8149
+[2026-07-09 02:55:11,235][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:55:21,404][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 748 non-dominated feasible solutions
+[2026-07-09 02:55:21,458][__main__][INFO] - [44/97] 2024-12-14 f=0  cost rule=5501 nsga3=5645 rl=5298
+[2026-07-09 02:55:21,458][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:55:31,640][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 866 non-dominated feasible solutions
+[2026-07-09 02:55:31,698][__main__][INFO] - [45/97] 2024-12-15 f=0  cost rule=3344 nsga3=3482 rl=3392
+[2026-07-09 02:55:31,699][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:55:42,014][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 576 non-dominated feasible solutions
+[2026-07-09 02:55:42,069][__main__][INFO] - [46/97] 2024-12-16 f=0  cost rule=4340 nsga3=4583 rl=4306
+[2026-07-09 02:55:42,069][__main__][INFO] - time budget 470s reached (46 items done this run); re-run to resume
+[2026-07-09 02:55:42,070][__main__][INFO] - 51 items still pending; re-run scripts/compare_dispatch.py to continue
+[2026-07-09 02:55:59,307][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 02:55:59,457][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:55:59,537][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:55:59,568][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:55:59,717][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 02:55:59,719][__main__][INFO] - comparison: 51/97 work items pending (61 test days, 12 robustness subset)
+[2026-07-09 02:55:59,720][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:56:10,010][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 634 non-dominated feasible solutions
+[2026-07-09 02:56:10,066][__main__][INFO] - [1/51] 2024-12-17 f=0  cost rule=5980 nsga3=6230 rl=5733
+[2026-07-09 02:56:10,067][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:56:20,112][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 695 non-dominated feasible solutions
+[2026-07-09 02:56:20,168][__main__][INFO] - [2/51] 2024-12-18 f=0  cost rule=2948 nsga3=3215 rl=3237
+[2026-07-09 02:56:20,169][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:56:30,271][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 668 non-dominated feasible solutions
+[2026-07-09 02:56:30,324][__main__][INFO] - [3/51] 2024-12-19 f=0  cost rule=3625 nsga3=3895 rl=3730
+[2026-07-09 02:56:30,325][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:56:40,469][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 720 non-dominated feasible solutions
+[2026-07-09 02:56:40,520][__main__][INFO] - [4/51] 2024-12-20 f=0  cost rule=4345 nsga3=4538 rl=4314
+[2026-07-09 02:56:40,521][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:56:50,691][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 952 non-dominated feasible solutions
+[2026-07-09 02:56:50,747][__main__][INFO] - [5/51] 2024-12-21 f=0  cost rule=2694 nsga3=2918 rl=3121
+[2026-07-09 02:56:50,748][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:57:01,043][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1274 non-dominated feasible solutions
+[2026-07-09 02:57:01,097][__main__][INFO] - [6/51] 2024-12-22 f=0  cost rule=2558 nsga3=2847 rl=2588
+[2026-07-09 02:57:01,098][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:57:12,440][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 758 non-dominated feasible solutions
+[2026-07-09 02:57:12,497][__main__][INFO] - [7/51] 2024-12-23 f=0  cost rule=4302 nsga3=4564 rl=4176
+[2026-07-09 02:57:12,497][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:57:22,640][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 601 non-dominated feasible solutions
+[2026-07-09 02:57:22,692][__main__][INFO] - [8/51] 2024-12-24 f=0  cost rule=6114 nsga3=6221 rl=5824
+[2026-07-09 02:57:22,692][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:57:32,761][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 582 non-dominated feasible solutions
+[2026-07-09 02:57:32,815][__main__][INFO] - [9/51] 2024-12-25 f=0  cost rule=5948 nsga3=5890 rl=5626
+[2026-07-09 02:57:32,816][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:57:43,012][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 534 non-dominated feasible solutions
+[2026-07-09 02:57:43,067][__main__][INFO] - [10/51] 2024-12-26 f=0  cost rule=6922 nsga3=7021 rl=6657
+[2026-07-09 02:57:43,068][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:57:53,133][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 616 non-dominated feasible solutions
+[2026-07-09 02:57:53,187][__main__][INFO] - [11/51] 2024-12-27 f=0  cost rule=7051 nsga3=6969 rl=6777
+[2026-07-09 02:57:53,187][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:58:03,300][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 666 non-dominated feasible solutions
+[2026-07-09 02:58:03,356][__main__][INFO] - [12/51] 2024-12-28 f=0  cost rule=6146 nsga3=6191 rl=5889
+[2026-07-09 02:58:03,357][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:58:14,542][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 679 non-dominated feasible solutions
+[2026-07-09 02:58:14,596][__main__][INFO] - [13/51] 2024-12-29 f=0  cost rule=6142 nsga3=6261 rl=5879
+[2026-07-09 02:58:14,597][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:58:24,746][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 816 non-dominated feasible solutions
+[2026-07-09 02:58:24,797][__main__][INFO] - [14/51] 2024-12-30 f=0  cost rule=4565 nsga3=4689 rl=4395
+[2026-07-09 02:58:24,798][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:58:35,053][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 829 non-dominated feasible solutions
+[2026-07-09 02:58:35,109][__main__][INFO] - [15/51] 2024-12-31 f=0  cost rule=2954 nsga3=3185 rl=3254
+[2026-07-09 02:58:35,111][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:58:45,177][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 543 non-dominated feasible solutions
+[2026-07-09 02:58:45,237][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:58:55,353][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 606 non-dominated feasible solutions
+[2026-07-09 02:58:55,410][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:59:05,642][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 932 non-dominated feasible solutions
+[2026-07-09 02:59:05,699][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:59:16,115][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 909 non-dominated feasible solutions
+[2026-07-09 02:59:16,193][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:59:27,092][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 605 non-dominated feasible solutions
+[2026-07-09 02:59:27,149][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:59:37,329][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 514 non-dominated feasible solutions
+[2026-07-09 02:59:37,386][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:59:47,631][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 487 non-dominated feasible solutions
+[2026-07-09 02:59:47,685][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 02:59:57,771][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 556 non-dominated feasible solutions
+[2026-07-09 02:59:57,823][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:00:07,915][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 505 non-dominated feasible solutions
+[2026-07-09 03:00:07,969][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:00:18,070][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 723 non-dominated feasible solutions
+[2026-07-09 03:00:18,126][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:00:29,489][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 701 non-dominated feasible solutions
+[2026-07-09 03:00:29,541][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:00:39,805][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 677 non-dominated feasible solutions
+[2026-07-09 03:00:39,860][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:00:50,066][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 606 non-dominated feasible solutions
+[2026-07-09 03:00:50,131][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:01:00,261][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 663 non-dominated feasible solutions
+[2026-07-09 03:01:00,320][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:01:10,630][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1182 non-dominated feasible solutions
+[2026-07-09 03:01:10,681][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:01:20,838][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 867 non-dominated feasible solutions
+[2026-07-09 03:01:20,890][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:01:32,048][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 643 non-dominated feasible solutions
+[2026-07-09 03:01:32,105][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:01:42,458][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 620 non-dominated feasible solutions
+[2026-07-09 03:01:42,511][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:01:52,638][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 541 non-dominated feasible solutions
+[2026-07-09 03:01:52,689][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:02:02,749][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 575 non-dominated feasible solutions
+[2026-07-09 03:02:02,816][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:02:12,969][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 547 non-dominated feasible solutions
+[2026-07-09 03:02:13,027][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:02:23,252][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 495 non-dominated feasible solutions
+[2026-07-09 03:02:23,307][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:02:34,005][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 677 non-dominated feasible solutions
+[2026-07-09 03:02:34,081][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:02:44,750][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 755 non-dominated feasible solutions
+[2026-07-09 03:02:44,809][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:02:54,935][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 632 non-dominated feasible solutions
+[2026-07-09 03:02:54,995][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:03:05,215][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 612 non-dominated feasible solutions
+[2026-07-09 03:03:05,270][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:03:15,446][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 854 non-dominated feasible solutions
+[2026-07-09 03:03:15,500][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:03:25,666][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 826 non-dominated feasible solutions
+[2026-07-09 03:03:25,722][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:03:35,968][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 626 non-dominated feasible solutions
+[2026-07-09 03:03:36,019][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:03:47,381][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 576 non-dominated feasible solutions
+[2026-07-09 03:03:47,436][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:03:57,536][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 534 non-dominated feasible solutions
+[2026-07-09 03:03:57,592][__main__][INFO] - time budget 470s reached (46 items done this run); re-run to resume
+[2026-07-09 03:03:57,594][__main__][INFO] - 5 items still pending; re-run scripts/compare_dispatch.py to continue
+[2026-07-09 03:04:16,620][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 03:04:16,743][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 03:04:16,823][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 03:04:16,847][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 03:04:16,973][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 03:04:16,975][__main__][INFO] - comparison: 5/97 work items pending (61 test days, 12 robustness subset)
+[2026-07-09 03:04:16,976][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:04:26,977][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 619 non-dominated feasible solutions
+[2026-07-09 03:04:27,036][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:04:37,054][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 521 non-dominated feasible solutions
+[2026-07-09 03:04:37,110][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:04:47,467][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 529 non-dominated feasible solutions
+[2026-07-09 03:04:47,521][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:04:57,656][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 635 non-dominated feasible solutions
+[2026-07-09 03:04:57,710][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 03:05:07,949][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 658 non-dominated feasible solutions
+[2026-07-09 03:05:08,716][__main__][INFO] - comparison -> D:\毕业设计\microgrid-project\models\comparison\comparison.json
+[2026-07-09 03:05:09,086][microgrid.rl.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_comparison_bars.png
+[2026-07-09 03:05:09,222][microgrid.rl.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_robustness.png
+[2026-07-09 03:05:09,222][__main__][INFO] - VERDICT (mean realized cost): rule=5317 nsga3=5456 rl=5220 | RL vs rule better by 1.8%
+[2026-07-09 10:14:18,579][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 10:14:18,740][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:14:18,898][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:14:18,939][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:14:19,083][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 10:14:19,088][__main__][INFO] - comparison: 180/241 work items pending (61 test days, 12 robustness subset x 5 seeds)
+[2026-07-09 10:14:19,089][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:14:30,054][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 543 non-dominated feasible solutions
+[2026-07-09 10:14:30,137][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:14:40,831][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 606 non-dominated feasible solutions
+[2026-07-09 10:14:40,895][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:14:53,685][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 932 non-dominated feasible solutions
+[2026-07-09 10:14:53,759][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:15:06,878][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 909 non-dominated feasible solutions
+[2026-07-09 10:15:06,949][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:15:18,056][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 605 non-dominated feasible solutions
+[2026-07-09 10:15:18,121][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:15:29,359][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 514 non-dominated feasible solutions
+[2026-07-09 10:15:29,434][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:15:40,946][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 487 non-dominated feasible solutions
+[2026-07-09 10:15:41,006][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:15:51,619][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 556 non-dominated feasible solutions
+[2026-07-09 10:15:51,677][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:16:02,229][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 505 non-dominated feasible solutions
+[2026-07-09 10:16:02,286][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:16:12,783][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 723 non-dominated feasible solutions
+[2026-07-09 10:16:12,837][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:16:23,344][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 701 non-dominated feasible solutions
+[2026-07-09 10:16:23,399][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:16:33,980][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 677 non-dominated feasible solutions
+[2026-07-09 10:16:34,038][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:16:45,157][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 616 non-dominated feasible solutions
+[2026-07-09 10:16:45,221][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:16:55,966][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 698 non-dominated feasible solutions
+[2026-07-09 10:16:56,031][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:17:06,760][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 842 non-dominated feasible solutions
+[2026-07-09 10:17:06,820][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:17:17,329][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 969 non-dominated feasible solutions
+[2026-07-09 10:17:17,381][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:17:28,252][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 512 non-dominated feasible solutions
+[2026-07-09 10:17:28,315][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:17:38,824][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 648 non-dominated feasible solutions
+[2026-07-09 10:17:38,885][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:17:50,120][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 593 non-dominated feasible solutions
+[2026-07-09 10:17:50,180][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:18:00,772][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 664 non-dominated feasible solutions
+[2026-07-09 10:18:00,824][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:18:11,304][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 652 non-dominated feasible solutions
+[2026-07-09 10:18:11,364][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:18:21,805][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 649 non-dominated feasible solutions
+[2026-07-09 10:18:21,859][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:18:32,436][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 617 non-dominated feasible solutions
+[2026-07-09 10:18:32,499][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:18:43,016][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 727 non-dominated feasible solutions
+[2026-07-09 10:18:43,074][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:18:54,059][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 617 non-dominated feasible solutions
+[2026-07-09 10:18:54,133][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:19:05,019][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 574 non-dominated feasible solutions
+[2026-07-09 10:19:05,080][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:19:15,592][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 971 non-dominated feasible solutions
+[2026-07-09 10:19:15,652][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:19:26,667][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 824 non-dominated feasible solutions
+[2026-07-09 10:19:26,730][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:19:37,473][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 613 non-dominated feasible solutions
+[2026-07-09 10:19:37,533][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:19:47,986][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 622 non-dominated feasible solutions
+[2026-07-09 10:19:48,044][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:19:58,739][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 595 non-dominated feasible solutions
+[2026-07-09 10:19:58,811][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:20:10,193][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 655 non-dominated feasible solutions
+[2026-07-09 10:20:10,254][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:20:20,751][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 588 non-dominated feasible solutions
+[2026-07-09 10:20:20,807][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:20:31,392][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 560 non-dominated feasible solutions
+[2026-07-09 10:20:31,449][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:20:41,954][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 598 non-dominated feasible solutions
+[2026-07-09 10:20:42,009][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:20:52,705][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 735 non-dominated feasible solutions
+[2026-07-09 10:20:52,760][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:21:03,461][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 704 non-dominated feasible solutions
+[2026-07-09 10:21:03,544][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:21:14,589][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 708 non-dominated feasible solutions
+[2026-07-09 10:21:14,648][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:21:25,127][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 823 non-dominated feasible solutions
+[2026-07-09 10:21:25,190][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:21:35,951][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 933 non-dominated feasible solutions
+[2026-07-09 10:21:36,010][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:21:46,829][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 664 non-dominated feasible solutions
+[2026-07-09 10:21:46,887][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:21:57,432][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 660 non-dominated feasible solutions
+[2026-07-09 10:21:57,492][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:22:08,508][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 656 non-dominated feasible solutions
+[2026-07-09 10:22:08,591][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:22:20,004][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 454 non-dominated feasible solutions
+[2026-07-09 10:22:20,065][__main__][INFO] - time budget 470s reached (44 items done this run); re-run to resume
+[2026-07-09 10:22:20,071][__main__][INFO] - 136 items still pending; re-run scripts/compare_dispatch.py to continue
+[2026-07-09 10:22:32,491][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 10:22:32,628][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:22:32,717][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:22:32,745][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:22:32,873][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 10:22:32,877][__main__][INFO] - comparison: 136/241 work items pending (61 test days, 12 robustness subset x 5 seeds)
+[2026-07-09 10:22:32,877][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:22:43,374][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 603 non-dominated feasible solutions
+[2026-07-09 10:22:43,433][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:22:53,789][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 625 non-dominated feasible solutions
+[2026-07-09 10:22:53,844][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:23:04,202][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 602 non-dominated feasible solutions
+[2026-07-09 10:23:04,259][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:23:14,934][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 784 non-dominated feasible solutions
+[2026-07-09 10:23:15,008][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:23:26,115][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 755 non-dominated feasible solutions
+[2026-07-09 10:23:26,174][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:23:36,895][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 693 non-dominated feasible solutions
+[2026-07-09 10:23:36,952][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:23:47,602][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 849 non-dominated feasible solutions
+[2026-07-09 10:23:47,662][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:23:58,177][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 839 non-dominated feasible solutions
+[2026-07-09 10:23:58,236][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:24:08,828][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 586 non-dominated feasible solutions
+[2026-07-09 10:24:08,887][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:24:19,420][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 569 non-dominated feasible solutions
+[2026-07-09 10:24:19,481][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:24:30,963][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 672 non-dominated feasible solutions
+[2026-07-09 10:24:31,019][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:24:41,615][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 688 non-dominated feasible solutions
+[2026-07-09 10:24:41,674][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:24:52,193][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 644 non-dominated feasible solutions
+[2026-07-09 10:24:52,251][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:25:03,015][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 520 non-dominated feasible solutions
+[2026-07-09 10:25:03,077][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:25:13,514][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 572 non-dominated feasible solutions
+[2026-07-09 10:25:13,573][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:25:26,326][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 708 non-dominated feasible solutions
+[2026-07-09 10:25:26,383][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:25:37,023][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 606 non-dominated feasible solutions
+[2026-07-09 10:25:37,081][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:25:47,063][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 663 non-dominated feasible solutions
+[2026-07-09 10:25:47,121][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:25:57,255][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1182 non-dominated feasible solutions
+[2026-07-09 10:25:57,310][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:26:07,331][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 867 non-dominated feasible solutions
+[2026-07-09 10:26:07,385][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:26:17,369][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 643 non-dominated feasible solutions
+[2026-07-09 10:26:17,425][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:26:27,388][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 620 non-dominated feasible solutions
+[2026-07-09 10:26:27,441][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:26:38,077][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 541 non-dominated feasible solutions
+[2026-07-09 10:26:38,130][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:26:48,154][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 575 non-dominated feasible solutions
+[2026-07-09 10:26:48,209][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:26:58,185][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 547 non-dominated feasible solutions
+[2026-07-09 10:26:58,240][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:27:08,202][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 495 non-dominated feasible solutions
+[2026-07-09 10:27:08,259][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:27:18,225][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 677 non-dominated feasible solutions
+[2026-07-09 10:27:18,285][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:27:28,428][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 755 non-dominated feasible solutions
+[2026-07-09 10:27:28,482][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:27:39,028][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 625 non-dominated feasible solutions
+[2026-07-09 10:27:39,082][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:27:49,332][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 710 non-dominated feasible solutions
+[2026-07-09 10:27:49,389][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:27:59,462][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 985 non-dominated feasible solutions
+[2026-07-09 10:27:59,520][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:28:09,588][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 921 non-dominated feasible solutions
+[2026-07-09 10:28:09,638][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:28:19,619][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 677 non-dominated feasible solutions
+[2026-07-09 10:28:19,672][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:28:29,599][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 563 non-dominated feasible solutions
+[2026-07-09 10:28:29,653][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:28:39,660][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 735 non-dominated feasible solutions
+[2026-07-09 10:28:39,762][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:28:50,408][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 627 non-dominated feasible solutions
+[2026-07-09 10:28:50,461][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:29:00,443][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 647 non-dominated feasible solutions
+[2026-07-09 10:29:00,497][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:29:10,466][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 583 non-dominated feasible solutions
+[2026-07-09 10:29:10,527][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:29:20,506][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 540 non-dominated feasible solutions
+[2026-07-09 10:29:20,562][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:29:30,974][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 686 non-dominated feasible solutions
+[2026-07-09 10:29:31,029][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:29:41,034][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 625 non-dominated feasible solutions
+[2026-07-09 10:29:41,088][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:29:51,686][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 653 non-dominated feasible solutions
+[2026-07-09 10:29:51,760][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:30:01,919][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1014 non-dominated feasible solutions
+[2026-07-09 10:30:01,976][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:30:12,072][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 867 non-dominated feasible solutions
+[2026-07-09 10:30:12,128][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:30:22,111][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 769 non-dominated feasible solutions
+[2026-07-09 10:30:22,164][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:30:32,213][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 590 non-dominated feasible solutions
+[2026-07-09 10:30:32,266][__main__][INFO] - time budget 470s reached (46 items done this run); re-run to resume
+[2026-07-09 10:30:32,270][__main__][INFO] - 90 items still pending; re-run scripts/compare_dispatch.py to continue
+[2026-07-09 10:30:50,545][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 10:30:50,680][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:30:50,768][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:30:50,792][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:30:50,912][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 10:30:50,916][__main__][INFO] - comparison: 90/241 work items pending (61 test days, 12 robustness subset x 5 seeds)
+[2026-07-09 10:30:50,917][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:31:01,350][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 540 non-dominated feasible solutions
+[2026-07-09 10:31:01,405][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:31:11,323][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 565 non-dominated feasible solutions
+[2026-07-09 10:31:11,377][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:31:21,392][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 568 non-dominated feasible solutions
+[2026-07-09 10:31:21,449][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:31:31,414][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 530 non-dominated feasible solutions
+[2026-07-09 10:31:31,469][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:31:41,418][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 633 non-dominated feasible solutions
+[2026-07-09 10:31:41,469][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:31:51,595][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 719 non-dominated feasible solutions
+[2026-07-09 10:31:51,654][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:32:02,012][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 697 non-dominated feasible solutions
+[2026-07-09 10:32:02,082][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:32:12,304][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 702 non-dominated feasible solutions
+[2026-07-09 10:32:12,356][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:32:22,339][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1119 non-dominated feasible solutions
+[2026-07-09 10:32:22,392][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:32:32,461][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 780 non-dominated feasible solutions
+[2026-07-09 10:32:32,516][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:32:42,524][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 550 non-dominated feasible solutions
+[2026-07-09 10:32:42,578][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:32:52,580][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 537 non-dominated feasible solutions
+[2026-07-09 10:32:52,637][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:33:02,589][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 556 non-dominated feasible solutions
+[2026-07-09 10:33:02,643][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:33:13,212][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 610 non-dominated feasible solutions
+[2026-07-09 10:33:13,270][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:33:23,251][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 648 non-dominated feasible solutions
+[2026-07-09 10:33:23,306][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:33:33,331][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 566 non-dominated feasible solutions
+[2026-07-09 10:33:33,390][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:33:43,406][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 602 non-dominated feasible solutions
+[2026-07-09 10:33:43,462][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:33:53,504][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 786 non-dominated feasible solutions
+[2026-07-09 10:33:53,560][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:34:03,536][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 663 non-dominated feasible solutions
+[2026-07-09 10:34:03,589][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:34:14,115][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 611 non-dominated feasible solutions
+[2026-07-09 10:34:14,178][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:34:24,320][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 1094 non-dominated feasible solutions
+[2026-07-09 10:34:24,374][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:34:34,475][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 702 non-dominated feasible solutions
+[2026-07-09 10:34:34,529][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:34:44,580][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 480 non-dominated feasible solutions
+[2026-07-09 10:34:44,636][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:34:54,626][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 673 non-dominated feasible solutions
+[2026-07-09 10:34:54,682][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:35:04,652][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 614 non-dominated feasible solutions
+[2026-07-09 10:35:04,709][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:35:14,972][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 657 non-dominated feasible solutions
+[2026-07-09 10:35:15,026][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:35:25,632][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 613 non-dominated feasible solutions
+[2026-07-09 10:35:25,691][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:35:35,765][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 491 non-dominated feasible solutions
+[2026-07-09 10:35:35,823][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:35:45,733][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 558 non-dominated feasible solutions
+[2026-07-09 10:35:45,789][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:35:55,737][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 808 non-dominated feasible solutions
+[2026-07-09 10:35:55,789][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:36:05,747][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 632 non-dominated feasible solutions
+[2026-07-09 10:36:05,799][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:36:21,198][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 612 non-dominated feasible solutions
+[2026-07-09 10:36:21,254][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:36:32,610][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 854 non-dominated feasible solutions
+[2026-07-09 10:36:32,665][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:36:43,840][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 826 non-dominated feasible solutions
+[2026-07-09 10:36:43,897][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:36:55,094][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 626 non-dominated feasible solutions
+[2026-07-09 10:36:55,157][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:37:06,583][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 576 non-dominated feasible solutions
+[2026-07-09 10:37:06,639][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:37:17,269][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 534 non-dominated feasible solutions
+[2026-07-09 10:37:17,327][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:37:28,565][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 619 non-dominated feasible solutions
+[2026-07-09 10:37:28,649][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:37:40,538][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 521 non-dominated feasible solutions
+[2026-07-09 10:37:40,596][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:37:51,271][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 529 non-dominated feasible solutions
+[2026-07-09 10:37:51,332][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:38:02,261][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 635 non-dominated feasible solutions
+[2026-07-09 10:38:02,317][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:38:13,252][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 658 non-dominated feasible solutions
+[2026-07-09 10:38:13,309][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:38:23,827][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 850 non-dominated feasible solutions
+[2026-07-09 10:38:23,885][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:38:35,165][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 576 non-dominated feasible solutions
+[2026-07-09 10:38:35,235][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:38:46,319][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 971 non-dominated feasible solutions
+[2026-07-09 10:38:46,377][__main__][INFO] - time budget 470s reached (45 items done this run); re-run to resume
+[2026-07-09 10:38:46,380][__main__][INFO] - 45 items still pending; re-run scripts/compare_dispatch.py to continue
+[2026-07-09 10:39:02,344][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 10:39:02,479][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:39:02,568][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:39:02,598][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:39:02,735][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 10:39:02,739][__main__][INFO] - comparison: 45/241 work items pending (61 test days, 12 robustness subset x 5 seeds)
+[2026-07-09 10:39:02,740][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:39:13,494][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 749 non-dominated feasible solutions
+[2026-07-09 10:39:13,557][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:39:23,931][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 445 non-dominated feasible solutions
+[2026-07-09 10:39:23,988][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:39:34,650][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 550 non-dominated feasible solutions
+[2026-07-09 10:39:34,712][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:39:46,237][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 643 non-dominated feasible solutions
+[2026-07-09 10:39:46,298][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:39:56,737][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 612 non-dominated feasible solutions
+[2026-07-09 10:39:56,794][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:40:07,482][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 630 non-dominated feasible solutions
+[2026-07-09 10:40:07,547][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:40:18,054][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 626 non-dominated feasible solutions
+[2026-07-09 10:40:18,112][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:40:28,740][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 704 non-dominated feasible solutions
+[2026-07-09 10:40:28,796][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:40:39,464][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 741 non-dominated feasible solutions
+[2026-07-09 10:40:39,519][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:40:50,952][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 543 non-dominated feasible solutions
+[2026-07-09 10:40:51,007][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:41:01,732][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 585 non-dominated feasible solutions
+[2026-07-09 10:41:01,791][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:41:12,434][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 929 non-dominated feasible solutions
+[2026-07-09 10:41:12,492][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:41:23,039][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 813 non-dominated feasible solutions
+[2026-07-09 10:41:23,094][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:41:33,858][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 533 non-dominated feasible solutions
+[2026-07-09 10:41:33,922][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:41:44,662][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 613 non-dominated feasible solutions
+[2026-07-09 10:41:44,716][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:41:56,046][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 579 non-dominated feasible solutions
+[2026-07-09 10:41:56,104][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:42:06,721][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 457 non-dominated feasible solutions
+[2026-07-09 10:42:06,779][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:42:17,332][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 639 non-dominated feasible solutions
+[2026-07-09 10:42:17,392][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:42:27,987][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 528 non-dominated feasible solutions
+[2026-07-09 10:42:28,048][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:42:38,751][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 552 non-dominated feasible solutions
+[2026-07-09 10:42:38,814][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:42:49,535][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 697 non-dominated feasible solutions
+[2026-07-09 10:42:49,598][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:43:01,023][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 716 non-dominated feasible solutions
+[2026-07-09 10:43:01,079][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:43:11,624][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 738 non-dominated feasible solutions
+[2026-07-09 10:43:11,680][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:43:22,352][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 771 non-dominated feasible solutions
+[2026-07-09 10:43:22,413][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:43:32,963][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 852 non-dominated feasible solutions
+[2026-07-09 10:43:33,020][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:43:43,813][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 527 non-dominated feasible solutions
+[2026-07-09 10:43:43,868][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:43:54,411][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 593 non-dominated feasible solutions
+[2026-07-09 10:43:54,471][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:44:05,692][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 568 non-dominated feasible solutions
+[2026-07-09 10:44:05,763][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:44:16,308][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 571 non-dominated feasible solutions
+[2026-07-09 10:44:16,367][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:44:27,024][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 621 non-dominated feasible solutions
+[2026-07-09 10:44:27,080][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:44:38,228][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 724 non-dominated feasible solutions
+[2026-07-09 10:44:38,285][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:44:48,885][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 628 non-dominated feasible solutions
+[2026-07-09 10:44:48,941][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:44:59,566][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 670 non-dominated feasible solutions
+[2026-07-09 10:44:59,631][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:45:10,880][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 433 non-dominated feasible solutions
+[2026-07-09 10:45:10,941][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:45:21,560][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 553 non-dominated feasible solutions
+[2026-07-09 10:45:21,621][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:45:32,349][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 901 non-dominated feasible solutions
+[2026-07-09 10:45:32,410][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:45:43,113][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 829 non-dominated feasible solutions
+[2026-07-09 10:45:43,169][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:45:53,888][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 679 non-dominated feasible solutions
+[2026-07-09 10:45:53,944][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:46:05,444][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 671 non-dominated feasible solutions
+[2026-07-09 10:46:05,501][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:46:18,378][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 552 non-dominated feasible solutions
+[2026-07-09 10:46:18,437][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:46:29,945][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 671 non-dominated feasible solutions
+[2026-07-09 10:46:30,003][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:46:40,660][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 552 non-dominated feasible solutions
+[2026-07-09 10:46:40,718][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:46:51,380][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 621 non-dominated feasible solutions
+[2026-07-09 10:46:51,435][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:47:02,129][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 534 non-dominated feasible solutions
+[2026-07-09 10:47:02,186][__main__][INFO] - time budget 470s reached (44 items done this run); re-run to resume
+[2026-07-09 10:47:02,190][__main__][INFO] - 1 items still pending; re-run scripts/compare_dispatch.py to continue
+[2026-07-09 10:47:14,259][__main__][INFO] - loaded RL policy D:\毕业设计\microgrid-project\models\rl_sac\best.zip
+[2026-07-09 10:47:14,395][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:47:14,482][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:47:14,510][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 10:47:14,658][microgrid.rl.data][INFO] - built 61 day profiles (forecast sources: {'lstm': 183})
+[2026-07-09 10:47:14,662][__main__][INFO] - comparison: 1/241 work items pending (61 test days, 12 robustness subset x 5 seeds)
+[2026-07-09 10:47:14,663][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-09 10:47:25,507][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 751 non-dominated feasible solutions
+[2026-07-09 10:47:26,895][__main__][INFO] - comparison -> D:\毕业设计\microgrid-project\models\comparison\comparison.json
+[2026-07-09 10:47:27,364][microgrid.rl.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_comparison_bars.png
+[2026-07-09 10:47:27,501][microgrid.rl.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_robustness.png
+[2026-07-09 10:47:27,501][__main__][INFO] - VERDICT (mean realized cost): rule=5317 nsga3=5456 rl=5220
+[2026-07-09 10:47:27,501][__main__][INFO] - PAIRED: RL vs rule  diff=-98±212 EUR/day, RL cheaper on 72% of days
+[2026-07-09 10:47:27,501][__main__][INFO] - PAIRED: RL vs nsga3 diff=-236±181 EUR/day, RL cheaper on 87% of days

@@ -1,14 +1,48 @@
 # Task 04 — DRL dispatch policy (SAC) vs NSGA-III
 
-**Status**: 🔄 active
+**Status**: ✅ done
 **Timebox**: 3 weeks. If the policy does not clearly beat the rule-based
 baseline by week 2, switch SAC→PPO; if still failing at timebox end, stop,
 keep the environment + comparison harness as the deliverable, and document
 the negative result honestly (that is an acceptable outcome).
 
-## Archive summary (fill when done)
+## Archive summary
 
-_(pending)_
+**Done.** Trained a SAC closed-loop dispatch policy and ran a rigorous three-way
+comparison (RL vs NSGA-III+TOPSIS vs rule-based) on the Nov–Dec test days. The
+selling point is the honest, well-instrumented comparison — and it delivered a
+clear division of labor rather than a blowout:
+
+| method | cost (EUR) | CO2 (t) | peak (MW) | term. SoC dev | tie viol (steps/day) | latency |
+|--------|:---:|:---:|:---:|:---:|:---:|:---:|
+| rule-based | 5317 | **16.9** | 2.97 | 0.113 | 4.6 | 0.04 ms/step |
+| NSGA-III+TOPSIS | 5456 | 18.6 | **1.90** | **0.00** | **0.0** | 10.3 s/day (solve) |
+| **RL (SAC)** | **5220** | 20.4 | 2.57 | 0.05 | 1.6 | 0.37 ms/step |
+
+- **RL wins realized cost** (−1.8% vs rule-based, −4.3% vs NSGA compromise on the
+  mean; paired per-day it is cheaper on **72% / 87%** of the 61 days, diff
+  −98±212 / −236±181 EUR — the paired std is ~8× tighter than the ±1700 marginal
+  day-to-day std, so the win holds up), latency, and forecast-error robustness
+  (flat ~6000 EUR as error scales 0→3×, because it's closed-loop). Cost: highest
+  CO2 (carbon price only 30 EUR/t, so the reward leans on money) and a black box.
+- **NSGA-III** owns the hard constraints (terminal SoC exactly 0, zero tie
+  violations, lowest peak) but is open-loop → degrades with forecast noise, and
+  costs ~10 s/day to solve.
+- **Rule-based** is the cheapest to reason about and lowest-CO2, but worst on
+  peak / terminal SoC / violations; forecast-free → flat robustness line.
+
+Key engineering choices: single-step physics primitives added *inside*
+`system.py` (unit-tested to equal the vectorized day functions — no duplicated
+physics); env + comparison share `advance`/`build_observation` so training and
+evaluation can't drift; feasibility by projection, not penalty. Non-obvious
+reward trap worth remembering: `w_soc` must exceed the arbitrage value of the
+initial charge (raised 500→1500) or the policy games cost by ending depleted. Training is time-boxed + resumable (replay buffer + checkpoints +
+incremental CSV), converged ~130k steps on CPU. Deps `gymnasium==1.3.0` /
+`stable-baselines3==2.9.0` install cleanly on Python 3.14 (no pins touched).
+
+Artifacts: `models/rl_sac/` (checkpoints, `eval.csv` learning curve),
+`models/comparison/comparison.json` (+ per-day cache), two figures in
+`reports/figures/dispatch_comparison_bars.png` / `dispatch_robustness.png`.
 
 ## Goal
 
@@ -32,6 +66,19 @@ well-instrumented comparison.
   fallbacks).
 - Follow CLAUDE.md global conventions (assembler/_target_, pure functions,
   scenario system, no git).
+- **Dependency gate (do this first)**: verify that `gymnasium` and
+  `stable-baselines3` install cleanly in the existing `.venv`
+  (Python 3.14, numpy 2.5, torch 2.13 — SB3 officially documents support
+  only up to Python 3.13) and that `SAC("MlpPolicy", env)` instantiates
+  and runs a few steps. If installation or import fails, STOP and report
+  to the owner; do NOT downgrade numpy/torch/python or change existing
+  pins as a workaround.
+- **Per-step physics**: `system.py` functions are vectorized over whole-day
+  arrays and there is no single-step incremental API. The env may either
+  call them on length-1 arrays, or add a small single-step helper INSIDE
+  `system.py` (unit-tested to match the vectorized version). Re-deriving
+  the formulas inside the env is what's forbidden, not adapting the call
+  granularity.
 
 ## Instruction
 
@@ -91,6 +138,11 @@ forecasts; execution is simulated against MEASURED actuals with system.py:
   consumes) and plot realized cost vs f.
 - Output: `models/comparison/comparison.json` + two figures in
   reports/figures/: metric bars per method, robustness curves.
+- Compute budget: the full comparison (61 test days × per-day NSGA-III
+  re-optimization × 4 robustness factors) must not exceed ~2h wall time.
+  If it would, run the main three-way comparison on all test days but the
+  robustness curve on a documented subset (e.g. 2 fixed days per week,
+  seeded selection recorded in comparison.json).
 
 ### Scenario integration
 
@@ -117,11 +169,22 @@ improves and the env invariants hold (SoC bounds, power balance identity).
 
 ## Progress checklist (keep updated as you work)
 
-- [ ] configs/rl/default.yaml + deps installed and pinned
-- [ ] MicrogridEnv + projection + env tests (fast, synthetic)
-- [ ] Rule-based baseline + unit test
-- [ ] SAC training runs, learning curve rising, checkpoints saved
-- [ ] Policy beats rule-based baseline on validation (Oct) days
-- [ ] Comparison harness + robustness curves on test days
-- [ ] Scenario smoke test (@slow) added and green
-- [ ] README + CLAUDE.md board + archive summary updated
+- [x] Dependency gate passed (SB3+gymnasium install & smoke-run on Py 3.14)
+      — gymnasium 1.3.0 + stable-baselines3 2.9.0 install cleanly; SB3 2.9
+      declares `torch<3.0,>=2.8`, satisfied by torch 2.13; `SAC("MlpPolicy",
+      env)` trains + predicts on Pendulum-v1. No numpy/torch/python pins touched.
+- [x] configs/rl/default.yaml (+ ppo.yaml fallback, smoke.yaml) + deps pinned
+      in requirements.txt (gymnasium==1.3.0, stable-baselines3==2.9.0)
+- [x] MicrogridEnv + projection + env tests (fast, synthetic) — passes
+      gymnasium.utils.env_checker; single-step physics added to system.py and
+      unit-tested to match the vectorized day functions (no duplicated physics)
+- [x] Rule-based baseline + unit test (feasible closed-loop rollout)
+- [x] SAC training runs, learning curve rising, checkpoints saved (models/rl_sac);
+      time-boxed + resumable (replay buffer + incremental CSV); val cost 5017→4826
+- [x] Policy beats rule-based baseline on validation (Oct: 4826 vs 4976) and on
+      the Nov–Dec test days (realized cost 5220 vs 5317, −1.8%)
+- [x] Comparison harness + robustness curves on all 61 test days (resumable
+      per-day cache); comparison.json + both figures produced
+- [x] Scenario smoke test (@slow) added and green (tiny SAC learns on a
+      synthetic day; SoC/power-balance invariants asserted)
+- [x] README + CLAUDE.md board + archive summary updated

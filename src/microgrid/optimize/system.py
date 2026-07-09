@@ -194,3 +194,86 @@ def constraint_vector(
 
 
 CONSTRAINT_NAMES = ["soc_upper", "soc_lower", "terminal_soc", "tie_line", "mt_ramp"]
+
+
+# --------------------------------------------------------------------------- #
+# Single-step primitives (for the closed-loop RL env)
+# --------------------------------------------------------------------------- #
+# The functions above are vectorized over a whole day and *sum* over the horizon
+# (fuel_cost etc. return one number per schedule). A closed-loop simulator needs
+# the same physics one step at a time, from a running battery-energy state rather
+# than always from e_init. These helpers are the per-step terms of the vectorized
+# functions: summing ``*_step`` over a day reproduces the vectorized value exactly
+# (asserted in tests/test_rl.py), so the physics stays defined in one place — the
+# RL env only changes the call granularity, it does not re-derive any formula.
+
+
+def soc_step(E_prev: float, P_bat_step: float, p: SystemParams) -> float:
+    """Battery energy after one step: E_prev minus the store energy drained.
+
+    Same asymmetric-efficiency accounting as :func:`soc_trajectory` (discharge
+    P_bat>0 removes ``P*dt/eta_dis``; charge P_bat<0 adds ``|P|*dt*eta_chg``),
+    applied once from an arbitrary running state ``E_prev``.
+    """
+    drained = (
+        P_bat_step * p.dt_h / p.eta_discharge
+        if P_bat_step > 0
+        else P_bat_step * p.dt_h * p.eta_charge
+    )
+    return E_prev - drained
+
+
+def soc_feasible_pbat_bounds(E_prev: float, p: SystemParams) -> tuple[float, float]:
+    """(lo, hi) battery-power window that keeps the *next* SoC inside [e_min, e_max].
+
+    Inverts :func:`soc_step`: the largest discharge (P>0) that does not drop the
+    store below ``e_min`` is ``(E_prev - e_min)*eta_dis/dt``; the largest charge
+    (P<0) that does not exceed ``e_max`` is ``(e_max - E_prev)/(dt*eta_chg)``.
+    Both are intersected with the converter power limits. The env projects the
+    agent's requested P_bat into this window (feasibility by projection, not
+    penalty) — the same SoC math task 03's repair uses, applied per step.
+    """
+    hi = min(p.bat_p_discharge_max, (E_prev - p.e_min) * p.eta_discharge / p.dt_h)
+    lo = -min(p.bat_p_charge_max, (p.e_max - E_prev) / (p.dt_h * p.eta_charge))
+    hi = max(hi, 0.0)          # at/below e_min: no discharge headroom
+    lo = min(lo, 0.0)          # at/above e_max: no charge headroom
+    return lo, hi
+
+
+def fuel_cost_step(P_mt_step: float, p: SystemParams) -> float:
+    """Turbine fuel cost [EUR] for one step (per-step term of :func:`fuel_cost`)."""
+    return (p.mt_a * P_mt_step**2 + p.mt_b * P_mt_step + p.mt_c) * p.dt_h
+
+
+def turbine_emissions_step(P_mt_step: float, p: SystemParams) -> float:
+    """Turbine CO2 [tCO2] for one step (per-step term of :func:`turbine_emissions`)."""
+    return p.mt_emis * P_mt_step * p.dt_h
+
+
+def battery_degradation_step(P_bat_step: float, p: SystemParams) -> float:
+    """Battery wear cost [EUR] for one step (per-step term of :func:`battery_degradation`)."""
+    return p.deg_cost * abs(P_bat_step) * p.dt_h
+
+
+def grid_cost_step(P_grid_step: float, price_buy: float, price_sell: float, p: SystemParams) -> float:
+    """Net grid cost [EUR] for one step (per-step term of :func:`grid_cost`)."""
+    price = price_buy if P_grid_step > 0 else price_sell
+    return P_grid_step * price * p.dt_h
+
+
+def grid_emissions_step(P_grid_step: float, p: SystemParams) -> float:
+    """Grid CO2 [tCO2] for one step (per-step term of :func:`grid_emissions`)."""
+    return p.grid_emis * max(P_grid_step, 0.0) * p.dt_h
+
+
+def min_avg_cost_setpoint(p: SystemParams) -> tuple[float, float]:
+    """Turbine setpoint [MW] minimizing fuel EUR/MWh, and that cost.
+
+    Average cost ``a·P + b + c/P`` is convex in P with minimum at ``P* =
+    sqrt(c/a)`` (clamped to the operating band). Returned so the rule-based
+    baseline can decide "run the turbine when the buy price beats this" without
+    re-deriving the turbine cost curve — that curve lives only here.
+    """
+    p_star = float(np.clip((p.mt_c / p.mt_a) ** 0.5, p.mt_p_min, p.mt_p_max))
+    avg_cost = p.mt_a * p_star + p.mt_b + p.mt_c / p_star   # EUR/MWh
+    return p_star, avg_cost

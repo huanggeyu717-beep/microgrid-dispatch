@@ -1,0 +1,129 @@
+[2026-07-09 01:38:43,627][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 01:38:44,544][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:38:44,677][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:38:44,742][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:38:45,362][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 01:38:45,377][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:38:45,402][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:38:45,425][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:38:45,494][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 01:38:47,151][microgrid.rl.train][INFO] - training stable_baselines3.SAC for 4000 timesteps -> D:\毕业设计\microgrid-project\models\rl_smoke
+[2026-07-09 01:39:03,053][microgrid.rl.train][INFO] - eval @ 2000 steps: val_cost=3994.8 soc_dev=0.177
+[2026-07-09 01:39:03,110][microgrid.rl.train][INFO] - new best validation cost 3994.8 -> best.zip
+[2026-07-09 01:39:20,008][microgrid.rl.train][INFO] - eval @ 4000 steps: val_cost=4299.4 soc_dev=0.350
+[2026-07-09 01:39:20,055][microgrid.rl.train][INFO] - training done: {'algo': 'stable_baselines3.SAC', 'total_timesteps': 4000, 'n_train_days': 274, 'n_val_days': 31, 'best_val_cost': 3994.82, 'final_eval': {'step': 4000, 'val_cost': 4299.4201387719795, 'val_co2': 17.161406380338747, 'val_peak': 1.805171215665944, 'val_soc_dev': 0.3499999999999999}, 'env_cfg': {'forecast_horizon_k': 8, 'power_scale': 4.0, 'price_scale': 200.0, 'reward': {'co2_price': 80.0, 'cost_scale': 100.0, 'w_soc': 500.0, 'w_peak': 100.0}}}
+[2026-07-09 01:43:49,055][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 01:43:49,425][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:43:49,478][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:43:49,519][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:43:50,057][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 01:43:50,070][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:43:50,091][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:43:50,114][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:43:50,181][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 01:43:51,361][microgrid.rl.train][INFO] - training stable_baselines3.SAC for 300000 timesteps -> D:\毕业设计\microgrid-project\models\rl_sac
+[2026-07-09 01:45:59,689][microgrid.rl.train][INFO] - eval @ 10000 steps: val_cost=5148.4 soc_dev=0.350
+[2026-07-09 01:45:59,769][microgrid.rl.train][INFO] - new best validation cost 5148.4 -> best.zip
+[2026-07-09 01:48:01,788][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 01:48:02,175][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:48:02,232][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:48:02,280][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:48:02,753][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 01:48:02,766][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:48:02,791][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:48:02,812][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:48:02,878][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 01:48:04,066][microgrid.rl.train][INFO] - training stable_baselines3.SAC for 300000 timesteps -> D:\毕业设计\microgrid-project\models\rl_sac
+[2026-07-09 01:49:56,217][microgrid.rl.train][INFO] - eval @ 10000 steps: val_cost=5211.1 soc_dev=0.183
+[2026-07-09 01:49:56,270][microgrid.rl.train][INFO] - new best validation cost 5211.1 -> best.zip
+[2026-07-09 01:52:22,015][microgrid.rl.train][INFO] - eval @ 20000 steps: val_cost=4947.2 soc_dev=0.028
+[2026-07-09 01:52:22,031][microgrid.rl.train][INFO] - new best validation cost 4947.2 -> best.zip
+[2026-07-09 01:54:44,932][microgrid.rl.train][INFO] - eval @ 30000 steps: val_cost=5213.7 soc_dev=0.038
+[2026-07-09 01:56:02,356][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 01:56:02,724][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:56:02,780][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:56:02,829][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:56:03,344][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 01:56:03,357][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:56:03,380][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:56:03,400][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 01:56:03,469][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 01:56:04,650][microgrid.rl.train][INFO] - training stable_baselines3.SAC for 300000 timesteps -> D:\毕业设计\microgrid-project\models\rl_sac
+[2026-07-09 01:57:53,379][microgrid.rl.train][INFO] - eval @ 10000 steps: val_cost=5017.5 soc_dev=0.175
+[2026-07-09 01:57:53,500][microgrid.rl.train][INFO] - new best validation cost 5017.5 -> best.zip
+[2026-07-09 02:00:12,522][microgrid.rl.train][INFO] - eval @ 20000 steps: val_cost=4928.9 soc_dev=0.022
+[2026-07-09 02:00:12,535][microgrid.rl.train][INFO] - new best validation cost 4928.9 -> best.zip
+[2026-07-09 02:02:33,360][microgrid.rl.train][INFO] - eval @ 30000 steps: val_cost=5053.8 soc_dev=0.038
+[2026-07-09 02:04:53,523][microgrid.rl.train][INFO] - eval @ 40000 steps: val_cost=4881.7 soc_dev=0.060
+[2026-07-09 02:04:53,537][microgrid.rl.train][INFO] - new best validation cost 4881.7 -> best.zip
+[2026-07-09 02:07:13,713][microgrid.rl.train][INFO] - eval @ 50000 steps: val_cost=4877.9 soc_dev=0.035
+[2026-07-09 02:07:13,727][microgrid.rl.train][INFO] - new best validation cost 4877.9 -> best.zip
+[2026-07-09 02:12:18,856][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 02:12:19,267][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:12:19,341][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:12:19,403][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:12:20,011][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 02:12:20,024][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:12:20,046][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:12:20,067][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:12:20,144][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 02:12:21,420][microgrid.rl.train][INFO] - training stable_baselines3.SAC for up to 300000 timesteps (max_seconds=470) -> D:\毕业设计\microgrid-project\models\rl_sac
+[2026-07-09 02:14:12,858][microgrid.rl.train][INFO] - eval @ 10000 steps: val_cost=5017.5 soc_dev=0.175
+[2026-07-09 02:14:12,979][microgrid.rl.train][INFO] - new best validation cost 5017.5 -> best.zip
+[2026-07-09 02:16:36,974][microgrid.rl.train][INFO] - eval @ 20000 steps: val_cost=4928.9 soc_dev=0.022
+[2026-07-09 02:16:36,988][microgrid.rl.train][INFO] - new best validation cost 4928.9 -> best.zip
+[2026-07-09 02:19:01,036][microgrid.rl.train][INFO] - eval @ 30000 steps: val_cost=5053.8 soc_dev=0.038
+[2026-07-09 02:20:11,433][microgrid.rl.train][INFO] - time budget 470s reached at 34967 steps; stopping
+[2026-07-09 02:20:11,560][microgrid.rl.train][INFO] - training done: {'algo': 'stable_baselines3.SAC', 'timesteps_this_run': 300000, 'cumulative_timesteps': 34967, 'n_train_days': 274, 'n_val_days': 31, 'best_val_cost': 4928.85, 'env_cfg': {'forecast_horizon_k': 8, 'power_scale': 4.0, 'price_scale': 200.0, 'reward': {'co2_price': 30.0, 'cost_scale': 100.0, 'w_soc': 1500.0, 'w_peak': 40.0}}}
+[2026-07-09 02:20:49,396][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 02:20:49,778][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:20:49,835][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:20:49,882][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:20:50,385][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 02:20:50,398][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:20:50,420][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:20:50,445][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:20:50,516][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 02:20:51,754][microgrid.rl.train][INFO] - resumed from D:\毕业设计\microgrid-project\models\rl_sac\last.zip at 34967 timesteps
+[2026-07-09 02:20:51,767][microgrid.rl.train][INFO] - training stable_baselines3.SAC for up to 300000 timesteps (max_seconds=470) -> D:\毕业设计\microgrid-project\models\rl_sac
+[2026-07-09 02:22:01,530][microgrid.rl.train][INFO] - eval @ 40000 steps: val_cost=4969.3 soc_dev=0.030
+[2026-07-09 02:24:25,499][microgrid.rl.train][INFO] - eval @ 50000 steps: val_cost=4894.4 soc_dev=0.036
+[2026-07-09 02:24:25,511][microgrid.rl.train][INFO] - new best validation cost 4894.4 -> best.zip
+[2026-07-09 02:26:49,021][microgrid.rl.train][INFO] - eval @ 60000 steps: val_cost=4856.5 soc_dev=0.027
+[2026-07-09 02:26:49,034][microgrid.rl.train][INFO] - new best validation cost 4856.5 -> best.zip
+[2026-07-09 02:28:41,779][microgrid.rl.train][INFO] - time budget 470s reached at 67825 steps; stopping
+[2026-07-09 02:28:41,938][microgrid.rl.train][INFO] - training done: {'algo': 'stable_baselines3.SAC', 'timesteps_this_run': 300000, 'cumulative_timesteps': 67825, 'n_train_days': 274, 'n_val_days': 31, 'best_val_cost': 4856.48, 'env_cfg': {'forecast_horizon_k': 8, 'power_scale': 4.0, 'price_scale': 200.0, 'reward': {'co2_price': 30.0, 'cost_scale': 100.0, 'w_soc': 1500.0, 'w_peak': 40.0}}}
+[2026-07-09 02:28:58,361][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 02:28:58,722][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:28:58,780][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:28:58,833][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:28:59,344][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 02:28:59,357][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:28:59,380][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:28:59,401][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:28:59,469][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 02:29:00,716][microgrid.rl.train][INFO] - resumed from D:\毕业设计\microgrid-project\models\rl_sac\last.zip at 67825 timesteps
+[2026-07-09 02:29:00,727][microgrid.rl.train][INFO] - training stable_baselines3.SAC for up to 300000 timesteps (max_seconds=470) -> D:\毕业设计\microgrid-project\models\rl_sac
+[2026-07-09 02:29:33,197][microgrid.rl.train][INFO] - eval @ 70000 steps: val_cost=4868.4 soc_dev=0.028
+[2026-07-09 02:32:03,136][microgrid.rl.train][INFO] - eval @ 80000 steps: val_cost=4901.2 soc_dev=0.019
+[2026-07-09 02:34:32,437][microgrid.rl.train][INFO] - eval @ 90000 steps: val_cost=4825.6 soc_dev=0.029
+[2026-07-09 02:34:32,450][microgrid.rl.train][INFO] - new best validation cost 4825.6 -> best.zip
+[2026-07-09 02:36:50,727][microgrid.rl.train][INFO] - time budget 470s reached at 99325 steps; stopping
+[2026-07-09 02:36:50,857][microgrid.rl.train][INFO] - training done: {'algo': 'stable_baselines3.SAC', 'timesteps_this_run': 300000, 'cumulative_timesteps': 99325, 'n_train_days': 274, 'n_val_days': 31, 'best_val_cost': 4825.58, 'env_cfg': {'forecast_horizon_k': 8, 'power_scale': 4.0, 'price_scale': 200.0, 'reward': {'co2_price': 30.0, 'cost_scale': 100.0, 'w_soc': 1500.0, 'w_peak': 40.0}}}
+[2026-07-09 02:37:03,363][microgrid.rl.train][INFO] - day counts: train=274 val=31
+[2026-07-09 02:37:03,733][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:37:03,790][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:37:03,841][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:37:04,349][microgrid.rl.data][INFO] - built 274 day profiles (forecast sources: {'tso': 3, 'lstm': 819})
+[2026-07-09 02:37:04,362][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:37:04,388][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:37:04,413][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-09 02:37:04,483][microgrid.rl.data][INFO] - built 31 day profiles (forecast sources: {'lstm': 93})
+[2026-07-09 02:37:05,710][microgrid.rl.train][INFO] - resumed from D:\毕业设计\microgrid-project\models\rl_sac\last.zip at 99325 timesteps
+[2026-07-09 02:37:05,721][microgrid.rl.train][INFO] - training stable_baselines3.SAC for up to 300000 timesteps (max_seconds=470) -> D:\毕业设计\microgrid-project\models\rl_sac
+[2026-07-09 02:37:16,228][microgrid.rl.train][INFO] - eval @ 100000 steps: val_cost=4853.1 soc_dev=0.028
+[2026-07-09 02:39:48,754][microgrid.rl.train][INFO] - eval @ 110000 steps: val_cost=4885.1 soc_dev=0.026
+[2026-07-09 02:42:19,476][microgrid.rl.train][INFO] - eval @ 120000 steps: val_cost=4882.5 soc_dev=0.026
+[2026-07-09 02:44:49,838][microgrid.rl.train][INFO] - eval @ 130000 steps: val_cost=4917.7 soc_dev=0.023
+[2026-07-09 02:44:55,730][microgrid.rl.train][INFO] - time budget 470s reached at 130401 steps; stopping
+[2026-07-09 02:44:55,851][microgrid.rl.train][INFO] - training done: {'algo': 'stable_baselines3.SAC', 'timesteps_this_run': 300000, 'cumulative_timesteps': 130401, 'n_train_days': 274, 'n_val_days': 31, 'best_val_cost': 4825.58, 'env_cfg': {'forecast_horizon_k': 8, 'power_scale': 4.0, 'price_scale': 200.0, 'reward': {'co2_price': 30.0, 'cost_scale': 100.0, 'w_soc': 1500.0, 'w_peak': 40.0}}}
