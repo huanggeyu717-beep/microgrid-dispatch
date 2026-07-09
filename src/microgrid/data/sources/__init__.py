@@ -1,4 +1,8 @@
-"""Source adapters. Importing this package registers all built-in sources."""
+"""Source adapters.
 
-from microgrid.data.sources.base import DataSource, get_source  # noqa: F401
-from microgrid.data.sources import elia, gefcom2014  # noqa: F401  (register)
+Concrete sources are built from yaml by :mod:`microgrid.assemble` (via each
+``configs/data/<name>.yaml``'s ``_target_``); they are not imported here for
+registration. Only the :class:`DataSource` interface is re-exported.
+"""
+
+from microgrid.data.sources.base import DataSource  # noqa: F401

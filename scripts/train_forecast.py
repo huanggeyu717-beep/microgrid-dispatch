@@ -17,9 +17,9 @@ from microgrid import hydra_compat
 hydra_compat.apply()  # hydra 1.3.4 x Python 3.14 argparse (see module docstring)
 
 from microgrid.paths import resolve  # noqa: E402
+from microgrid.assemble import build_model
 from microgrid.forecast import evaluate as E
 from microgrid.forecast import trainer
-from microgrid.forecast.models import get_model
 from microgrid.forecast.windows import future_columns, make_datasets
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s | %(message)s")
@@ -31,7 +31,7 @@ def main(cfg: DictConfig) -> None:
     df = pd.read_parquet(resolve(cfg.paths.processed_dir) / f"{cfg.data.name}_dataset.parquet")
     datasets, scaler = make_datasets(df, cfg.forecast)
 
-    model = get_model(
+    model = build_model(
         cfg.model,
         n_hist=len(cfg.forecast.history_columns),
         n_fut=len(future_columns(cfg.forecast)),

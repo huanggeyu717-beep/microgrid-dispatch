@@ -1,4 +1,4 @@
-"""DataSource abstraction + registry.
+"""DataSource abstraction.
 
 A source adapter has exactly two responsibilities:
 
@@ -7,14 +7,14 @@ A source adapter has exactly two responsibilities:
    (see :mod:`microgrid.schema`).
 
 Nothing else. Cleaning / alignment / features are source-agnostic stages.
-New sources (e.g. GEFCom2014) plug in by subclassing and registering —
-zero changes anywhere downstream.
+New sources (e.g. GEFCom2014) plug in by subclassing this ABC and naming the
+subclass in ``configs/data/<name>.yaml`` via ``_target_`` — the assembler
+(:mod:`microgrid.assemble`) builds it; zero changes anywhere downstream.
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Callable
 
 import pandas as pd
 from omegaconf import DictConfig
@@ -48,21 +48,3 @@ class DataSource(ABC):
         if df[schema.COL_TIME].dt.tz is None:
             raise ValueError("timestamp column must be tz-aware (UTC)")
         return df[schema.LONG_COLUMNS]
-
-
-_REGISTRY: dict[str, Callable[[DictConfig], DataSource]] = {}
-
-
-def register(name: str):
-    def deco(cls):
-        _REGISTRY[name] = cls
-        return cls
-    return deco
-
-
-def get_source(cfg: DictConfig) -> DataSource:
-    """Instantiate the source named by ``cfg.name``."""
-    name = cfg.name
-    if name not in _REGISTRY:
-        raise KeyError(f"Unknown data source '{name}'. Known: {list(_REGISTRY)}")
-    return _REGISTRY[name](cfg)

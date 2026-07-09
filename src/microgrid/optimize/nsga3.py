@@ -1,9 +1,12 @@
-"""NSGA-III wrapper: Das-Dennis reference directions on the 2-objective plane.
+"""NSGA-III wrapper: Das-Dennis reference directions over the objective simplex.
 
 All knobs (pop_size, n_gen, reference partitions, seed) come from the
-``optimize`` config group so runs are reproducible from the CLI. Three
-domain-specific pieces make the constrained 192-var problem tractable for a GA
-without touching the objectives or constraints:
+``optimize`` config group so runs are reproducible from the CLI. The number of
+objectives is read from the problem (``n_obj``); the Das-Dennis partition count
+is looked up per-dimension from ``cfg.ref_partitions`` because the direction
+count grows combinatorially with n_obj. Three domain-specific pieces make the
+constrained 192-var problem tractable for a GA without touching the objectives
+or constraints:
 
 * :class:`DispatchSampling` — heuristic, near-feasible warm-start population;
 * :class:`EnergyNeutralRepair` — projects each schedule onto the exact
@@ -17,7 +20,7 @@ from __future__ import annotations
 import logging
 
 import numpy as np
-from omegaconf import DictConfig
+from omegaconf import DictConfig, OmegaConf
 from pymoo.algorithms.moo.nsga3 import NSGA3
 from pymoo.core.callback import Callback
 from pymoo.core.repair import Repair
@@ -147,9 +150,31 @@ class EnergyNeutralRepair(Repair):
         return X
 
 
+def _das_dennis_partitions(cfg: DictConfig, n_obj: int) -> int:
+    """Partition count p for the current n_obj, from cfg.ref_partitions.
+
+    Accepts either a scalar (legacy single value) or a mapping n_obj -> p; falls
+    back to a sensible default so an unlisted dimension still runs.
+    """
+    raw = cfg.get("ref_partitions")
+    _default = {2: 199, 3: 12, 4: 7}
+    if raw is None:
+        return _default.get(n_obj, 12)
+    if isinstance(raw, (int, float)):
+        return int(raw)
+    parts = OmegaConf.to_container(raw, resolve=True)  # {int_or_str: int}
+    for key in (n_obj, str(n_obj)):
+        if key in parts:
+            return int(parts[key])
+    return _default.get(n_obj, 12)
+
+
 def make_algorithm(cfg: DictConfig, sampling: Sampling, repair: Repair, n_obj: int = 2) -> NSGA3:
-    """NSGA-III with Das-Dennis reference directions (n_partitions -> +1 dirs in 2-D)."""
-    ref_dirs = get_reference_directions("das-dennis", n_obj, n_partitions=int(cfg.ref_partitions))
+    """NSGA-III with Das-Dennis reference directions sized for ``n_obj``."""
+    p = _das_dennis_partitions(cfg, n_obj)
+    ref_dirs = get_reference_directions("das-dennis", n_obj, n_partitions=p)
+    log.info("NSGA-III: %d objectives, das-dennis p=%d -> %d reference directions",
+             n_obj, p, len(ref_dirs))
     pop_size = int(cfg.pop_size) if cfg.get("pop_size") else None
     return NSGA3(ref_dirs=ref_dirs, pop_size=pop_size, sampling=sampling, repair=repair)
 

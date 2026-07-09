@@ -1,0 +1,6 @@
+# GEFCom2014 backup source (stub — parser not implemented yet).
+# Selected with `python scripts/build_dataset.py data=gefcom2014`; the only
+# reference to microgrid.data.sources.gefcom2014.GefcomSource is this _target_.
+_target_: microgrid.data.sources.gefcom2014.GefcomSource
+name: gefcom2014
+raw_dir: data/raw/gefcom2014

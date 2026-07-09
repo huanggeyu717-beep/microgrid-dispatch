@@ -12,10 +12,7 @@ import torch
 import torch.nn as nn
 from omegaconf import DictConfig
 
-from microgrid.forecast.models import register
 
-
-@register("lstm")
 class LSTMForecaster(nn.Module):
     def __init__(self, cfg: DictConfig, n_hist: int, n_fut: int, n_quantiles: int, horizon: int):
         super().__init__()

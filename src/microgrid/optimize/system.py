@@ -11,8 +11,11 @@ Sign conventions
 ``P_grid`` = load - wind - solar - P_mt - P_bat  is the power-balance slack:
 > 0 import from grid, < 0 export. It is *derived*, never a decision variable.
 
-The two objectives (cost, CO2) and the constraint vector ``G`` (pymoo
-convention: ``g <= 0`` feasible) are the only things the optimizer sees.
+This module holds the reusable physics/cost/emission primitives and the
+constraint vector ``G`` (pymoo convention: ``g <= 0`` feasible). The optimizer's
+objectives are composed from these primitives by the pluggable pure functions in
+:mod:`microgrid.optimize.objectives`, selected via the ``objectives:`` config
+list — so the objective *count* is data, not code.
 """
 
 from __future__ import annotations
@@ -159,23 +162,6 @@ def grid_emissions(P_grid: np.ndarray, p: SystemParams) -> np.ndarray:
     """Grid CO2 [tCO2] = emis * imported energy only (exports earn no credit)."""
     imported = np.clip(np.asarray(P_grid, dtype=float), 0.0, None)
     return p.grid_emis * (imported * p.dt_h).sum(axis=-1)
-
-
-def objectives(
-    P_mt: np.ndarray,
-    P_bat: np.ndarray,
-    load: np.ndarray,
-    wind: np.ndarray,
-    solar: np.ndarray,
-    price_buy: np.ndarray,
-    price_sell: np.ndarray,
-    p: SystemParams,
-) -> tuple[np.ndarray, np.ndarray]:
-    """(cost [EUR], emissions [tCO2]) for each schedule in the batch."""
-    P_grid = grid_power(P_mt, P_bat, load, wind, solar)
-    cost = fuel_cost(P_mt, p) + battery_degradation(P_bat, p) + grid_cost(P_grid, price_buy, price_sell, p)
-    emis = turbine_emissions(P_mt, p) + grid_emissions(P_grid, p)
-    return cost, emis
 
 
 def constraint_vector(

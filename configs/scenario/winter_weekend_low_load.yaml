@@ -1,0 +1,26 @@
+# Winter weekend, reduced load. A Sunday with a lower, flatter demand profile —
+# less turbine/grid energy is needed, so cost and emissions should sit below the
+# weekday baseline. No system-parameter overrides; the lower load is expressed
+# through the test profile.
+name: winter_weekend_low_load
+day: "2024-11-17"        # Sunday
+
+overrides:
+  system: {}
+  optimize: {}
+
+test:
+  pop_size: 100
+  n_gen: 30
+  profile:
+    load_peak_mw: 1.9
+    load_base_mw: 1.1
+    wind_mean_mw: 0.55
+    solar_peak_mw: 0.35
+
+assertions:
+  terminal_soc_dev_max: 0.05
+  max_constraint_violation: 1.0e-6
+  cost_eur: {min: 1500.0, max: 3500.0}    # below the weekday baseline
+  emissions_tco2: {min: 2.0, max: 15.0}
+  peak_grid_mw: {min: 0.0, max: 3.0}

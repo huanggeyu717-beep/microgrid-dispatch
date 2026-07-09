@@ -1,0 +1,3 @@
+# Daily CO2 emissions [tCO2]. Built to a pure function by microgrid.assemble.
+_target_: microgrid.optimize.objectives.co2
+_partial_: true

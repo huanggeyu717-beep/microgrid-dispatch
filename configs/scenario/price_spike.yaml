@@ -1,0 +1,29 @@
+# Price-spike stress test. Same day and load as the weekday baseline, but the
+# peak time-of-use tariff is tripled (0.20 -> 0.60 EUR/kWh). The optimizer must
+# still return a feasible, energy-neutral schedule; cost rises well above the
+# baseline while the physical constraints hold.
+name: price_spike
+day: "2024-11-15"        # Friday, same as winter_weekday
+
+overrides:
+  system:
+    grid:
+      tou_price_eur_per_kwh:
+        peak: 0.60       # 3x the 0.20 baseline peak tariff
+  optimize: {}
+
+test:
+  pop_size: 100
+  n_gen: 30
+  profile:
+    load_peak_mw: 2.7
+    load_base_mw: 1.6
+    wind_mean_mw: 0.55
+    solar_peak_mw: 0.35
+
+assertions:
+  terminal_soc_dev_max: 0.05
+  max_constraint_violation: 1.0e-6
+  cost_eur: {min: 3000.0, max: 9000.0}    # tripled peak tariff lifts cost above baseline
+  emissions_tco2: {min: 3.0, max: 30.0}
+  peak_grid_mw: {min: 0.0, max: 3.0}

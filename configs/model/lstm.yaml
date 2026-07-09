@@ -1,6 +1,7 @@
 # Seq2seq LSTM baseline — sized for CPU training (2 cores):
 # 1x64 keeps epoch time ~15s; the TSO forecast decoder input carries much
 # of the signal, so capacity matters less than clean inputs here.
+_target_: microgrid.forecast.models.lstm.LSTMForecaster   # built by microgrid.assemble.build_model
 name: lstm
 hidden_size: 64
 num_layers: 1

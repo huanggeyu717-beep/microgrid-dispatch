@@ -48,18 +48,23 @@ def _day_slice(df: pd.DataFrame, day: str) -> pd.DatetimeIndex:
     return times
 
 
-def _lstm_median(df: pd.DataFrame, models_dir: Path, target: str, day: str) -> np.ndarray:
+def _lstm_median(
+    df: pd.DataFrame, models_dir: Path, target: str, day: str, model_cfg: DictConfig
+) -> np.ndarray:
     """LSTM median forecast for the day (national MW). Raises on any failure."""
     import torch  # local import: only needed on the preferred path
 
+    from microgrid.assemble import build_model
     from microgrid.forecast.evaluate import predict
-    from microgrid.forecast.models import get_model
     from microgrid.forecast.scaling import Scaler
     from microgrid.forecast.windows import ForecastWindows, future_columns
 
     ckpt = torch.load(models_dir / f"{target}_lstm" / "best.pt", weights_only=False)
     fcfg = OmegaConf.create(ckpt["forecast_cfg"])
-    mcfg = OmegaConf.create(ckpt["model_cfg"])
+    # Base is the live model group (carries the `_target_` the assembler needs);
+    # the checkpoint's saved hyperparameters (hidden_size, ...) win, so a legacy
+    # checkpoint written before `_target_` existed still loads correctly.
+    mcfg = OmegaConf.merge(model_cfg, OmegaConf.create(ckpt["model_cfg"]))
     scaler = Scaler.from_dict(ckpt["scaler"])
 
     ds = ForecastWindows(df, fcfg, "test", scaler)   # builds full-length scaled arrays
@@ -68,7 +73,13 @@ def _lstm_median(df: pd.DataFrame, models_dir: Path, target: str, day: str) -> n
         raise ValueError(f"day {day}: no leakage-free window (need {fcfg.context_steps} steps of context)")
     ds.starts = np.array([t0])                        # single day-ahead window at day 00:00
 
-    model = get_model(mcfg, len(fcfg.history_columns), len(future_columns(fcfg)), len(fcfg.quantiles), H)
+    model = build_model(
+        mcfg,
+        n_hist=len(fcfg.history_columns),
+        n_fut=len(future_columns(fcfg)),
+        n_quantiles=len(fcfg.quantiles),
+        horizon=H,
+    )
     model.load_state_dict(ckpt["state_dict"])
     pred = predict(model, ds)[0]                       # [H, Q] physical MW
     qi_med = list(fcfg.quantiles).index(0.5)
@@ -76,12 +87,18 @@ def _lstm_median(df: pd.DataFrame, models_dir: Path, target: str, day: str) -> n
 
 
 def _series_for_day(
-    df: pd.DataFrame, models_dir: Path, target: str, day: str, times: pd.DatetimeIndex, source_pref: str
+    df: pd.DataFrame,
+    models_dir: Path,
+    target: str,
+    day: str,
+    times: pd.DatetimeIndex,
+    source_pref: str,
+    model_cfg: DictConfig,
 ) -> tuple[np.ndarray, str]:
     """National-MW profile for one target with the LSTM -> TSO -> measured cascade."""
     if source_pref in ("auto", "lstm"):
         try:
-            return _lstm_median(df, models_dir, target, day), "lstm"
+            return _lstm_median(df, models_dir, target, day, model_cfg), "lstm"
         except Exception as e:  # noqa: BLE001 — any failure falls back
             log.warning("%s: LSTM forecast unavailable (%s); falling back to TSO day-ahead", target, e)
     tso_col = schema.wide_column(target, schema.KIND_FORECAST_DA)
@@ -92,7 +109,13 @@ def _series_for_day(
     return df.loc[times, schema.wide_column(target, schema.KIND_MEASURED)].to_numpy(float), "measured"
 
 
-def build_day_inputs(df: pd.DataFrame, sys_cfg: DictConfig, opt_cfg: DictConfig, models_dir: Path) -> DayInputs:
+def build_day_inputs(
+    df: pd.DataFrame,
+    sys_cfg: DictConfig,
+    opt_cfg: DictConfig,
+    models_dir: Path,
+    model_cfg: DictConfig,
+) -> DayInputs:
     """Scaled microgrid load/wind/solar + TOU prices for ``opt_cfg.day``."""
     day = str(opt_cfg.day)
     times = _day_slice(df, day)
@@ -100,7 +123,7 @@ def build_day_inputs(df: pd.DataFrame, sys_cfg: DictConfig, opt_cfg: DictConfig,
 
     profiles, sources = {}, {}
     for target in (schema.SERIES_LOAD, schema.SERIES_WIND, schema.SERIES_SOLAR):
-        national, src = _series_for_day(df, models_dir, target, day, times, pref)
+        national, src = _series_for_day(df, models_dir, target, day, times, pref, model_cfg)
         factor = float(sys_cfg.scaling[target].factor)
         profiles[target] = np.clip(national * factor, 0.0, None)   # MW, non-negative
         sources[target] = src

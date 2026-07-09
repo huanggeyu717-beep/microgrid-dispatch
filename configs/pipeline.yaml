@@ -10,6 +10,7 @@ defaults:
   - model: lstm
   - system: default
   - optimize: default
+  - scenario: winter_weekday    # named dispatch scenario; swap with scenario=price_spike
   - _self_
 
 alignment:

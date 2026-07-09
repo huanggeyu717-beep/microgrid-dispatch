@@ -18,7 +18,7 @@ from omegaconf import DictConfig
 
 from microgrid import schema
 from microgrid.paths import resolve
-from microgrid.data.sources import get_source
+from microgrid.assemble import build_source
 from microgrid.data import cleaning, alignment, features
 
 log = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ def quality_report(wide: pd.DataFrame) -> dict:
 
 
 def run(cfg: DictConfig) -> pd.DataFrame:
-    src = get_source(cfg.data)
+    src = build_source(cfg.data)
 
     log.info("=== stage 1/4: load raw (%s) ===", cfg.data.name)
     long_df = src.load_raw()

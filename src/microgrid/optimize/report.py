@@ -1,7 +1,9 @@
 """Figures for the dispatch result -> reports/figures/.
 
 Two plots:
-  * Pareto front scatter (cost vs CO2), TOPSIS pick highlighted in red;
+  * Pareto front — for 2 objectives a scatter with the knee point; for 3 (the
+    intended regime) a 3-D scatter plus three pairwise projections coloured by
+    the third objective. The entropy-TOPSIS pick is marked on every panel.
   * the selected 24 h schedule as a stacked dispatch plot (renewables / turbine /
     battery / grid) with the battery SoC curve and TOU price bands underneath.
 """
@@ -23,32 +25,105 @@ log = logging.getLogger(__name__)
 # TOU period -> background shade (dispatch panel)
 _BAND_COLORS = {"off_peak": "#e8f2e8", "shoulder": "#fbf6e5", "peak": "#f6e3e3"}
 
+# objective name -> axis label (units); unknown names fall back to the raw name
+_OBJ_LABELS = {
+    "cost": "operating cost [EUR]",
+    "co2": "CO2 emissions [tCO2]",
+    "peak_grid": "peak grid power [MW]",
+}
 
-def plot_pareto_front(F: np.ndarray, topsis_idx: int, knee_idx: int, out_path: Path, day: str) -> None:
-    """Scatter the non-dominated front; mark the entropy-TOPSIS pick and the knee."""
+
+def _label(name: str) -> str:
+    return _OBJ_LABELS.get(name, name)
+
+
+def plot_pareto_front(
+    F: np.ndarray,
+    names: list[str],
+    topsis_idx: int,
+    knee_idx: int | None,
+    out_path: Path,
+    day: str,
+) -> None:
+    """Dispatch to the 2-D or 3-D Pareto view based on the number of objectives."""
     F = np.atleast_2d(F)
+    m = F.shape[1]
+    if m == 2:
+        _plot_pareto_2d(F, names, topsis_idx, knee_idx, out_path, day)
+    else:
+        _plot_pareto_3d(F, names, topsis_idx, out_path, day)
+
+
+def _plot_pareto_2d(
+    F: np.ndarray, names: list[str], topsis_idx: int, knee_idx: int | None, out_path: Path, day: str
+) -> None:
+    """Scatter the front; mark the entropy-TOPSIS pick and (if given) the knee."""
     order = np.argsort(F[:, 0])
     fig, ax = plt.subplots(figsize=(7, 5))
     ax.plot(F[order, 0], F[order, 1], "-", color="#9bbedb", lw=1.0, zorder=1)
     ax.scatter(F[:, 0], F[:, 1], s=28, color="#4a7fb5", edgecolor="white", lw=0.5, zorder=2, label="Pareto front")
-    ax.scatter(
-        F[knee_idx, 0], F[knee_idx, 1], s=120, color="#2ca25f", edgecolor="black", lw=1.0,
-        marker="D", zorder=3, label="knee point",
-    )
+    if knee_idx is not None:
+        ax.scatter(
+            F[knee_idx, 0], F[knee_idx, 1], s=120, color="#2ca25f", edgecolor="black", lw=1.0,
+            marker="D", zorder=3, label="knee point",
+        )
     ax.scatter(
         F[topsis_idx, 0], F[topsis_idx, 1], s=180, color="#d43d3d", edgecolor="black", lw=1.0,
         marker="*", zorder=4, label="TOPSIS pick",
     )
     ax.annotate(
-        f"  cost {F[topsis_idx, 0]:.1f} EUR\n  CO2 {F[topsis_idx, 1]:.3f} t",
+        f"  {names[0]} {F[topsis_idx, 0]:.1f}\n  {names[1]} {F[topsis_idx, 1]:.3f}",
         (F[topsis_idx, 0], F[topsis_idx, 1]), fontsize=9, color="#d43d3d", va="center",
     )
-    ax.set_xlabel("daily operating cost [EUR]")
-    ax.set_ylabel("daily CO2 emissions [tCO2]")
+    ax.set_xlabel(_label(names[0]))
+    ax.set_ylabel(_label(names[1]))
     ax.set_title(f"Day-ahead dispatch Pareto front — {day}  ({len(F)} solutions)")
     ax.legend(loc="upper right")
     ax.grid(alpha=0.25)
     fig.tight_layout()
+    fig.savefig(out_path, dpi=150)
+    plt.close(fig)
+    log.info("figure -> %s", out_path)
+
+
+def _plot_pareto_3d(
+    F: np.ndarray, names: list[str], topsis_idx: int, out_path: Path, day: str
+) -> None:
+    """3-D scatter + three pairwise projections (coloured by the third objective).
+
+    The projections make the trade-offs legible where the 3-D view is ambiguous;
+    each panel colours points by the objective *not* on its axes, and the
+    entropy-TOPSIS pick is starred on all four so it can be read consistently.
+    """
+    star = F[topsis_idx]
+    fig = plt.figure(figsize=(13, 10))
+
+    ax3d = fig.add_subplot(2, 2, 1, projection="3d")
+    ax3d.scatter(F[:, 0], F[:, 1], F[:, 2], s=18, color="#4a7fb5", alpha=0.7, edgecolor="none")
+    ax3d.scatter(*star, s=200, color="#d43d3d", edgecolor="black", lw=1.0, marker="*", depthshade=False)
+    ax3d.set_xlabel(_label(names[0]), fontsize=8)
+    ax3d.set_ylabel(_label(names[1]), fontsize=8)
+    ax3d.set_zlabel(_label(names[2]), fontsize=8)
+    ax3d.set_title("Pareto front (3-D)", fontsize=10)
+
+    # three pairwise panels: (i, j) axes, coloured by the remaining objective k
+    pairs = [(0, 1, 2), (0, 2, 1), (1, 2, 0)]
+    for panel, (i, j, k) in enumerate(pairs, start=2):
+        ax = fig.add_subplot(2, 2, panel)
+        sc = ax.scatter(F[:, i], F[:, j], c=F[:, k], cmap="viridis", s=26, edgecolor="white", lw=0.4)
+        ax.scatter(star[i], star[j], s=200, color="#d43d3d", edgecolor="black", lw=1.0, marker="*", zorder=5)
+        ax.set_xlabel(_label(names[i]), fontsize=9)
+        ax.set_ylabel(_label(names[j]), fontsize=9)
+        cb = fig.colorbar(sc, ax=ax, fraction=0.046, pad=0.04)
+        cb.set_label(_label(names[k]), fontsize=8)
+        ax.grid(alpha=0.2)
+
+    fig.suptitle(
+        f"Day-ahead dispatch Pareto front — {day}  ({len(F)} solutions, {F.shape[1]} objectives; "
+        f"red ★ = entropy-TOPSIS pick)",
+        fontsize=12,
+    )
+    fig.tight_layout(rect=(0, 0, 1, 0.97))
     fig.savefig(out_path, dpi=150)
     plt.close(fig)
     log.info("figure -> %s", out_path)

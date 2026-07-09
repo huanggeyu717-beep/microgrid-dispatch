@@ -14,4 +14,8 @@ where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-q"
+# Default run excludes slow scenario solves; full run: `pytest -m slow`.
+addopts = "-q -m 'not slow'"
+markers = [
+    "slow: heavy end-to-end runs (full/reduced NSGA-III solves); excluded by default",
+]

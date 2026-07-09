@@ -23,9 +23,11 @@ from microgrid import hydra_compat
 
 hydra_compat.apply()  # hydra 1.3.4 x Python 3.14 argparse (see module docstring)
 
+from microgrid.assemble import build_objectives  # noqa: E402
 from microgrid.optimize import nsga3, report, system  # noqa: E402
 from microgrid.optimize.inputs import build_day_inputs
 from microgrid.optimize.problem import DispatchProblem
+from microgrid.optimize.scenario import apply_overrides
 from microgrid.optimize.topsis import knee_point, topsis
 from microgrid.paths import resolve
 
@@ -66,45 +68,70 @@ def _device_summary(P_mt, P_bat, P_grid, di, p) -> dict:
 
 @hydra.main(config_path="../configs", config_name="pipeline", version_base=None)
 def main(cfg: DictConfig) -> None:
+    # Fold the selected scenario's day + parameter overrides onto the config
+    # (full NSGA-III budget at runtime; the scenario's `test` budget is tests-only).
+    # An explicit CLI `optimize.day=` takes precedence over the scenario's day.
+    from hydra.core.hydra_config import HydraConfig
+
+    task_overrides = HydraConfig.get().overrides.task
+    day_from_cli = any(o.split("=", 1)[0].lstrip("+~") == "optimize.day" for o in task_overrides)
+    cfg = apply_overrides(cfg, cfg.get("scenario"), set_day=not day_from_cli)
+    if cfg.get("scenario") and cfg.scenario.get("name"):
+        log.info("scenario: %s (day=%s)", cfg.scenario.name, cfg.optimize.day)
+
     df = pd.read_parquet(resolve(cfg.paths.processed_dir) / f"{cfg.data.name}_dataset.parquet")
     models_dir = resolve(cfg.paths.models_dir)
     day = str(cfg.optimize.day)
 
-    di = build_day_inputs(df, cfg.system, cfg.optimize, models_dir)
+    di = build_day_inputs(df, cfg.system, cfg.optimize, models_dir, cfg.model)
     p = system.params_from_cfg(cfg.system)
 
-    problem = DispatchProblem(di.load, di.wind, di.solar, di.price_buy, di.price_sell, p)
-    log.info("solving NSGA-III: %d vars, pop=%s, n_gen=%s", problem.n_var, cfg.optimize.pop_size, cfg.optimize.n_gen)
+    objectives = build_objectives(cfg.optimize)   # [(name, fn), ...]; n_obj = len
+    names = [name for name, _ in objectives]
+    problem = DispatchProblem(di.load, di.wind, di.solar, di.price_buy, di.price_sell, p, objectives)
+    log.info("solving NSGA-III: %d vars, %d objectives %s, pop=%s, n_gen=%s",
+             problem.n_var, problem.n_obj, names, cfg.optimize.pop_size, cfg.optimize.n_gen)
     X, F = nsga3.solve(problem, cfg.optimize)
     if F is None or len(F) == 0:
         raise RuntimeError("NSGA-III returned no feasible solutions; loosen constraints or increase n_gen")
 
     pick = topsis(F)
-    knee_idx = knee_point(F)
+    vals = {name: float(F[pick.index, i]) for i, name in enumerate(names)}
+    weights = {name: round(float(pick.weights[i]), 4) for i, name in enumerate(names)}
     P_mt, P_bat = X[pick.index, : problem.H], X[pick.index, problem.H :]
     P_grid = system.grid_power(P_mt, P_bat, di.load, di.wind, di.solar)
     E = system.soc_trajectory(P_bat, p)
     soc = E / cfg.system.battery.capacity_mwh
-    cost, emis = float(F[pick.index, 0]), float(F[pick.index, 1])
 
-    log.info("TOPSIS pick: cost=%.2f EUR, CO2=%.4f t (weights cost=%.3f, CO2=%.3f)",
-             cost, emis, pick.weights[0], pick.weights[1])
-    log.info("knee point:  cost=%.2f EUR, CO2=%.4f t", F[knee_idx, 0], F[knee_idx, 1])
+    log.info("TOPSIS pick: %s (entropy weights %s)",
+             {k: round(v, 4) for k, v in vals.items()}, weights)
+
+    # Knee point is a 2-D construction (max distance from the endpoint chord); it
+    # is only meaningful — and only reported — for a 2-objective front.
+    knee = None
+    knee_idx = None
+    if problem.n_obj == 2:
+        knee_idx = knee_point(F)
+        knee = {
+            "note": "knee reported for 2-objective fronts only",
+            "index": int(knee_idx),
+            **{name: round(float(F[knee_idx, i]), 4) for i, name in enumerate(names)},
+        }
+        log.info("knee point:  %s", {name: round(float(F[knee_idx, i]), 4) for i, name in enumerate(names)})
+    else:
+        log.info("knee point:  skipped (only defined for 2-objective fronts)")
 
     out_dir = models_dir / f"dispatch_{day}"
     out_dir.mkdir(parents=True, exist_ok=True)
     solution = {
         "day": day,
         "forecast_sources": di.sources,
+        "objective_names": names,
         "n_pareto_solutions": int(len(F)),
-        # dispatched schedule below is the TOPSIS pick; knee reported for comparison
-        "objectives": {"cost_eur": round(cost, 2), "emissions_tco2": round(emis, 4)},
-        "topsis_weights": {"cost": round(float(pick.weights[0]), 4), "emissions": round(float(pick.weights[1]), 4)},
-        "knee_point": {
-            "index": int(knee_idx),
-            "cost_eur": round(float(F[knee_idx, 0]), 2),
-            "emissions_tco2": round(float(F[knee_idx, 1]), 4),
-        },
+        # dispatched schedule below is the TOPSIS pick
+        "objectives": {name: round(vals[name], 4) for name in names},
+        "topsis_weights": weights,
+        "knee_point": knee,   # null for >2 objectives (see note when present)
         "devices": _device_summary(P_mt, P_bat, P_grid, di, p),
         "schedule": {
             "P_mt_mw": [round(float(v), 4) for v in P_mt],
@@ -117,7 +144,7 @@ def main(cfg: DictConfig) -> None:
     log.info("solution -> %s", out_dir / "solution.json")
 
     fig_dir = resolve(cfg.paths.figures_dir)
-    report.plot_pareto_front(F, pick.index, knee_idx, fig_dir / "dispatch_pareto.png", day)
+    report.plot_pareto_front(F, names, pick.index, knee_idx, fig_dir / "dispatch_pareto.png", day)
     report.plot_dispatch(
         di.times, di.load, di.wind, di.solar, P_mt, P_bat, P_grid, soc[1:], di.price_buy,
         cfg.system.battery.soc_min, cfg.system.battery.soc_max, fig_dir / "dispatch_schedule.png", day,

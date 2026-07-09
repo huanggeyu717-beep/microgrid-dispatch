@@ -99,3 +99,48 @@
 [2026-07-08 22:37:00,535][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
 [2026-07-08 22:37:00,746][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
 [2026-07-08 22:37:01,152][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 23:30:13,270][__main__][INFO] - scenario: winter_weekday
+[2026-07-08 23:30:14,903][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 23:30:14,956][microgrid.optimize.inputs][INFO] - load  source=lstm     peak=3.388 MW (scale x3.01e-04)
+[2026-07-08 23:30:14,972][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 23:30:14,977][microgrid.optimize.inputs][INFO] - wind  source=lstm     peak=0.378 MW (scale x4.38e-04)
+[2026-07-08 23:30:14,994][microgrid.forecast.windows][INFO] - test windows: 721 (context=96, horizon=96, stride=8)
+[2026-07-08 23:30:15,001][microgrid.optimize.inputs][INFO] - solar source=lstm     peak=0.469 MW (scale x3.99e-04)
+[2026-07-08 23:30:15,004][__main__][INFO] - solving NSGA-III: 192 vars, 3 objectives ['cost', 'co2', 'peak_grid'], pop=200, n_gen=400
+[2026-07-08 23:30:15,004][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-08 23:30:25,290][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 650 non-dominated feasible solutions
+[2026-07-08 23:30:25,303][__main__][INFO] - TOPSIS pick: {'cost': 7395.7665, 'co2': 25.9273, 'peak_grid': 2.0435} (entropy weights {'cost': 0.4034, 'co2': 0.3146, 'peak_grid': 0.2821})
+[2026-07-08 23:30:25,304][__main__][INFO] - knee point:  skipped (only defined for 2-objective fronts)
+[2026-07-08 23:30:25,305][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\models\dispatch_2024-11-15\solution.json
+[2026-07-08 23:30:25,954][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_pareto.png
+[2026-07-08 23:30:26,287][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\reports\figures\dispatch_schedule.png
+[2026-07-08 23:35:39,303][__main__][INFO] - scenario: winter_weekend_low_load (day=2024-11-17)
+[2026-07-08 23:35:40,919][microgrid.optimize.inputs][WARNING] - load: LSTM forecast unavailable ([Errno 2] No such file or directory: 'D:\\毕业设计\\microgrid-project\\_smoke\\load_lstm\\best.pt'); falling back to TSO day-ahead
+[2026-07-08 23:35:40,921][microgrid.optimize.inputs][INFO] - load  source=tso      peak=3.093 MW (scale x3.01e-04)
+[2026-07-08 23:35:40,921][microgrid.optimize.inputs][WARNING] - wind: LSTM forecast unavailable ([Errno 2] No such file or directory: 'D:\\毕业设计\\microgrid-project\\_smoke\\wind_lstm\\best.pt'); falling back to TSO day-ahead
+[2026-07-08 23:35:40,921][microgrid.optimize.inputs][INFO] - wind  source=tso      peak=1.191 MW (scale x4.38e-04)
+[2026-07-08 23:35:40,922][microgrid.optimize.inputs][WARNING] - solar: LSTM forecast unavailable ([Errno 2] No such file or directory: 'D:\\毕业设计\\microgrid-project\\_smoke\\solar_lstm\\best.pt'); falling back to TSO day-ahead
+[2026-07-08 23:35:40,922][microgrid.optimize.inputs][INFO] - solar source=tso      peak=0.871 MW (scale x3.99e-04)
+[2026-07-08 23:35:40,924][__main__][INFO] - solving NSGA-III: 192 vars, 3 objectives ['cost', 'co2', 'peak_grid'], pop=100, n_gen=10
+[2026-07-08 23:35:40,924][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-08 23:35:41,095][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 79 non-dominated feasible solutions
+[2026-07-08 23:35:41,097][__main__][INFO] - TOPSIS pick: {'cost': 3887.7511, 'co2': 11.9205, 'peak_grid': 2.0603} (entropy weights {'cost': 0.4144, 'co2': 0.4235, 'peak_grid': 0.162})
+[2026-07-08 23:35:41,097][__main__][INFO] - knee point:  skipped (only defined for 2-objective fronts)
+[2026-07-08 23:35:41,098][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\_smoke\dispatch_2024-11-17\solution.json
+[2026-07-08 23:35:41,699][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\_smoke\dispatch_pareto.png
+[2026-07-08 23:35:42,009][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\_smoke\dispatch_schedule.png
+[2026-07-08 23:35:44,220][__main__][INFO] - scenario: price_spike (day=2024-12-01)
+[2026-07-08 23:35:45,783][microgrid.optimize.inputs][WARNING] - load: LSTM forecast unavailable ([Errno 2] No such file or directory: 'D:\\毕业设计\\microgrid-project\\_smoke\\load_lstm\\best.pt'); falling back to TSO day-ahead
+[2026-07-08 23:35:45,784][microgrid.optimize.inputs][INFO] - load  source=tso      peak=3.200 MW (scale x3.01e-04)
+[2026-07-08 23:35:45,785][microgrid.optimize.inputs][WARNING] - wind: LSTM forecast unavailable ([Errno 2] No such file or directory: 'D:\\毕业设计\\microgrid-project\\_smoke\\wind_lstm\\best.pt'); falling back to TSO day-ahead
+[2026-07-08 23:35:45,785][microgrid.optimize.inputs][INFO] - wind  source=tso      peak=1.289 MW (scale x4.38e-04)
+[2026-07-08 23:35:45,785][microgrid.optimize.inputs][WARNING] - solar: LSTM forecast unavailable ([Errno 2] No such file or directory: 'D:\\毕业设计\\microgrid-project\\_smoke\\solar_lstm\\best.pt'); falling back to TSO day-ahead
+[2026-07-08 23:35:45,786][microgrid.optimize.inputs][INFO] - solar source=tso      peak=1.206 MW (scale x3.99e-04)
+[2026-07-08 23:35:45,788][__main__][INFO] - solving NSGA-III: 192 vars, 3 objectives ['cost', 'co2', 'peak_grid'], pop=100, n_gen=10
+[2026-07-08 23:35:45,789][microgrid.optimize.nsga3][INFO] - NSGA-III: 3 objectives, das-dennis p=12 -> 91 reference directions
+[2026-07-08 23:35:45,965][microgrid.optimize.nsga3][INFO] - NSGA-III finished: 135 non-dominated feasible solutions
+[2026-07-08 23:35:45,966][__main__][INFO] - TOPSIS pick: {'cost': 3769.5032, 'co2': 20.1314, 'peak_grid': 1.1087} (entropy weights {'cost': 0.4445, 'co2': 0.1945, 'peak_grid': 0.361})
+[2026-07-08 23:35:45,966][__main__][INFO] - knee point:  skipped (only defined for 2-objective fronts)
+[2026-07-08 23:35:45,967][__main__][INFO] - solution -> D:\毕业设计\microgrid-project\_smoke\dispatch_2024-12-01\solution.json
+[2026-07-08 23:35:46,574][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\_smoke\dispatch_pareto.png
+[2026-07-08 23:35:46,883][microgrid.optimize.report][INFO] - figure -> D:\毕业设计\microgrid-project\_smoke\dispatch_schedule.png

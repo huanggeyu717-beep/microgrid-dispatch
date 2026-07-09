@@ -8,7 +8,7 @@
 flowchart LR
     A[Elia 开放数据<br>风/光/负荷 15min] --> B[数据管线<br>清洗·对齐·特征]
     B --> C[预测模块<br>PatchTST / LSTM 基线<br>分位数区间预测]
-    C --> D[优化模块<br>NSGA-III pymoo<br>成本 vs 碳排放]
+    C --> D[优化模块<br>NSGA-III pymoo<br>成本/碳排/峰值 三目标]
     C --> E[DRL 模块<br>SAC/PPO 调度策略]
     D <-.对比基线.-> E
     D --> F[熵权TOPSIS选点<br>调度方案]
@@ -38,13 +38,19 @@ flowchart LR
 
 ![负荷日前分位数预测](reports/figures/forecast_load.png)
 
-### 日前多目标优化调度（NSGA-III，成本 vs 碳排放）
+### 日前多目标优化调度（NSGA-III，成本 / 碳排放 / 电网峰值三目标）
 
-把全国尺度预测**下采样**成一个 notional 微电网（负荷峰值 4 MW、风电装机 2 MW、光伏装机 3 MW；缩放因子按各序列最大值反推，写在 `configs/system/default.yaml`），对某一天 96×15min 求解**运行成本 vs CO₂ 排放**的日前 Pareto 前沿。决策变量为微燃机与电池每步出力 `x = [P_mt(96), P_bat(96)]`（`P_bat>0` 放电、`<0` 充电）；电网联络线功率是功率平衡的**松弛量**，不进决策向量。SoC 上下限、终端 SoC（日内能量中性）、联络线 ±3 MW、微燃机爬坡 ±0.5 MW/步等约束进入 pymoo 的**约束向量 G**（不折叠成惩罚项）。设备/成本/排放全部是纯函数、由 `system.yaml` 驱动：微燃机二次燃料成本 + 排放因子、电池充放不对称效率 + 吞吐折旧、分时电价购/售电、仅对**购入**电量计碳。用 Das-Dennis 参考方向的 NSGA-III 搜索；为让种群摆脱"终端 SoC 等式"这道薄可行流形，加了**能量中性修复算子**（把充/放能量缩放到平衡）与启发式暖启动，并用外部存档汇集各代可行非支配解。最后用**熵权 TOPSIS** 选折中点：两目标先按**前沿各自 min-max 归一到 [0,1]** 再算熵权，避免成本因绝对基线大（≈7500 EUR、相对幅度仅约 5%）而被误判为"几乎恒定"从而权重塌缩到碳排；同时另报一个**膝点**（front 两端连线的最大垂距点）作为无权重的对照。整条 `python scripts/optimize_dispatch.py optimize.day=2024-11-15` CPU 上约 15 秒。
+把全国尺度预测**下采样**成一个 notional 微电网（负荷峰值 4 MW、风电装机 2 MW、光伏装机 3 MW；缩放因子按各序列最大值反推，写在 `configs/system/default.yaml`），对某一天 96×15min 求解**运行成本 / CO₂ 排放 / 电网峰值功率**三目标的日前 Pareto 前沿。决策变量为微燃机与电池每步出力 `x = [P_mt(96), P_bat(96)]`（`P_bat>0` 放电、`<0` 充电）；电网联络线功率是功率平衡的**松弛量**，不进决策向量。SoC 上下限、终端 SoC（日内能量中性）、联络线 ±3 MW、微燃机爬坡 ±0.5 MW/步等约束进入 pymoo 的**约束向量 G**（不折叠成惩罚项）。
 
-以 2024-11-15 为例（风/光/负荷取各自 LSTM 中位数预测）：前沿含 **92 个清晰非支配解**，成本约 7.3k–7.7k EUR/日、碳排 20.3–28.3 tCO₂/日。归一化后熵权为成本 0.16 / 碳排 0.84（碳排相对幅度更大、故权重更高，但成本不再被清零），TOPSIS 选出的是**前沿内部的折中点：成本约 7508 EUR、碳排约 20.9 tCO₂**（红星），而**膝点**落在拐点附近的 **7427 EUR、21.4 tCO₂**（绿菱）——两者都在权衡区内，而非端点。
+**目标是可插拔的**：每个目标是一个纯函数（`src/microgrid/optimize/objectives.py`），由 `configs/optimize/default.yaml` 的 `objectives: [cost, co2, peak_grid]` 列表选定，pymoo 问题的 `n_obj` 直接取列表长度——删掉一项即得到更低维的可行运行，**零代码改动**（`optimize.objectives=[cost,co2]` 即退化为两目标）。设备/成本/排放全部由 `system.yaml` 驱动：微燃机二次燃料成本 + 排放因子、电池充放不对称效率 + 吞吐折旧、分时电价购/售电、仅对**购入**电量计碳；`peak_grid = max_t |P_grid(t)|`（削峰、缓解公共连接点压力，与钱/碳正交，故单列一维）。
 
-![日前调度 Pareto 前沿（红星=熵权TOPSIS选点，绿菱=膝点）](reports/figures/dispatch_pareto.png)
+**为什么用三目标？** NSGA-III 的核心是 Das-Dennis **参考方向**：它把目标单纯形均匀铺点，用参考点做环境选择来在 **≥3 维**保持前沿的分布均匀——这正是它相对 NSGA-II 的价值所在。两目标时仅靠拥挤距离（NSGA-II）就够了，NSGA-III 并无优势；因此本项目把三目标（成本/碳排/峰值）作为主用场景。参考方向密度随目标数自适应（`ref_partitions` 按目标数配置，三目标默认 `p=12` → 91 个方向）。为让种群摆脱"终端 SoC 等式"这道薄可行流形，加了**能量中性修复算子**（把充/放能量缩放到平衡）与启发式暖启动，并用外部存档汇集各代可行非支配解。
+
+最后用**熵权 TOPSIS** 选折中点：先按**前沿各目标各自 min-max 归一到 [0,1]** 再算熵权（避免成本因绝对基线大、相对幅度小而被误判为"几乎恒定"导致权重塌缩），该方法天然推广到 m 个目标。**膝点**（front 两端连线的最大垂距点）仅在两目标时有明确几何意义，故只对两目标运行输出、并在 `solution.json` 中注明。整条 `python scripts/optimize_dispatch.py optimize.day=2024-11-15` CPU 上约 15 秒。
+
+以 2024-11-15 为例（风/光/负荷取各自 LSTM 中位数预测）：前沿含 **650 个非支配解**，成本约 7.3k–8.0k EUR/日、碳排 21–29 tCO₂/日、电网峰值 1.6–3.0 MW。三目标呈清晰权衡（更便宜 ⇒ 碳排更高、峰值更高）。归一化后熵权为成本 0.40 / 碳排 0.31 / 峰值 0.28（三者幅度相当，权重较均衡），TOPSIS 选出**前沿内部的折中点：成本约 7396 EUR、碳排约 25.9 tCO₂、电网峰值约 2.04 MW**（下图各面板红星）。
+
+![日前调度 Pareto 前沿（3D 散点 + 三个两两投影，颜色=第三目标，红星=熵权TOPSIS选点）](reports/figures/dispatch_pareto.png)
 
 ![选定调度方案：叠加供给/消纳 + 分时电价带 + SoC 曲线](reports/figures/dispatch_schedule.png)
 
@@ -70,36 +76,44 @@ python scripts/train_forecast.py forecast.target=load
 python scripts/train_forecast.py forecast.target=wind
 python scripts/train_forecast.py forecast.target=solar
 
-# 5. 日前多目标调度（NSGA-III，成本 vs 碳排放；熵权 TOPSIS 选点）
+# 5. 日前多目标调度（NSGA-III，成本/碳排/电网峰值三目标；熵权 TOPSIS 选点）
 #    -> reports/figures/dispatch_*.png + models/dispatch_<day>/solution.json
 python scripts/optimize_dispatch.py optimize.day=2024-11-15
+python scripts/optimize_dispatch.py scenario=price_spike       # 命名场景（峰价×3）
 
-# 运行单元测试（无需真实数据）
-pytest
+# 运行单元测试（无需真实数据；默认排除重场景解）
+pytest              # 快速套件（-m "not slow" 已在 pyproject 配置）
+pytest -m slow      # 场景端到端：缩减预算 NSGA-III + 断言校验
 ```
 
 ## 设计要点
 
-- **规范数据模式作为解耦边界**：所有数据源适配器输出统一的长表 schema（`src/microgrid/schema.py`），下游清洗/对齐/特征模块完全不感知数据来自哪里；新增数据源只需实现 `DataSource` 接口并注册。
-- **配置驱动**：hydra 组合式 yaml（`configs/`），数据源字段名、清洗阈值、特征参数全部外置；换参数、换数据源不改代码，如 `python scripts/build_dataset.py cleaning.interpolate_gaps.max_gap_steps=16`。
+- **规范数据模式作为解耦边界**：所有数据源适配器输出统一的长表 schema（`src/microgrid/schema.py`），下游清洗/对齐/特征模块完全不感知数据来自哪里。
+- **组合靠配置，不靠注册表**：可插拔组件（数据源、预测模型、调度目标）在 yaml 里用导入路径 `_target_: microgrid.x.y.Class` 声明，由**唯一的装配器中间件** `src/microgrid/assemble.py`（`hydra.utils.instantiate` 的薄封装）实例化——无装饰器注册表、无 `名字→类` 字典、无导入副作用。新增组件 = 一个新模块 + 一行 yaml。脚本/管线只调用装配器，模块之间从不互相 import 具体类。
+- **配置驱动**：hydra 组合式 yaml（`configs/`），数据源字段名、清洗阈值、特征参数、目标列表、场景定义全部外置；换参数、换数据源不改代码，如 `python scripts/build_dataset.py cleaning.interpolate_gaps.max_gap_steps=16`、`optimize.objectives=[cost,co2]`。
 - **管线各阶段为纯函数**：清洗规则、特征构造均为 `(df, cfg) -> df`，独立可测；特征全部因果（仅用过去信息），滚动统计显式 `shift(1)` 防标签泄漏，并有对应单元测试。
+- **场景系统**：`configs/scenario/*.yaml` 定义命名场景（日期、系统参数覆写、期望性质断言）。运行时 `python scripts/optimize_dispatch.py scenario=price_spike`；测试端 `tests/test_scenarios.py` 自动发现每个 yaml 并参数化（用例 id = 文件名），跑缩减预算的优化并校验断言，新增场景 = 新增一个 yaml、零测试代码增长。
 - **数据质量可审计**：长间隔缺失不静默填充，管线随数据集输出 `quality_report.json`（缺失率、最长缺失段、数值范围）。
 
 ## 目录结构
 
 ```
-configs/            # hydra 配置组：pipeline / data / cleaning / features / system / optimize
+configs/            # hydra 配置组：pipeline / data / cleaning / features / system
+  optimize/         #   优化设置 + objectives/（cost·co2·peak_grid 各一 _target_ 文件）
+  scenario/         #   命名场景（winter_weekday / winter_weekend_low_load / price_spike）
 src/microgrid/
   schema.py         # 规范数据模式（模块间契约）
-  data/sources/     # 数据源适配器（elia / gefcom2014 + 注册表）
+  assemble.py       # 唯一的“配置→实例”装配器（build_source / build_model / build_objectives）
+  data/sources/     # 数据源适配器（elia / gefcom2014，由 yaml 的 _target_ 装配）
   data/             # cleaning / alignment / features（纯函数阶段）
   forecast/         # 窗口数据集 / 分位数损失 / 指标 / 基线 / 训练器 / 评估
-  forecast/models/  # 模型注册表（lstm；PatchTST 预留同一接口）
-  optimize/         # 设备模型(纯函数) / pymoo问题 / NSGA-III / 熵权TOPSIS / 报告
+  forecast/models/  # 模型（lstm；PatchTST 预留同一 forward 契约，_target_ 装配）
+  optimize/         # 设备物理(纯函数) / objectives(可插拔目标) / pymoo问题 / NSGA-III /
+                    #   熵权TOPSIS / 场景覆写(scenario) / 报告
   pipeline/         # 阶段编排 + 质量报告
   viz/              # 探索性可视化
 scripts/            # CLI 入口（hydra）
-tests/              # 单元测试（合成数据，不依赖下载）
+tests/              # 单元测试（合成数据，不依赖下载）；重场景解标 @slow
 data/               # raw / interim / processed（git 忽略）
 ```
 
@@ -108,5 +122,5 @@ data/               # raw / interim / processed（git 忽略）
 1. ✅ 数据管线：Elia 风/光/负荷，清洗、15min 对齐、因果特征
 2. ✅ 预测（一期）：seq2seq LSTM 基线，分位数区间预测，无泄漏窗口切分，时间盒断点续训
 3. ⬜ 预测（二期）：PatchTST 接入同一框架，NWP 气象特征，SHAP 可解释性
-4. ✅ 优化：pymoo NSGA-III 日前调度（成本 vs 碳排放），熵权 TOPSIS 选点
+4. ✅ 优化：pymoo NSGA-III 日前调度（成本/碳排/电网峰值三目标，可插拔），熵权 TOPSIS 选点，命名场景系统
 5. ⬜ DRL：SAC/PPO 调度策略，与 NSGA-III 对比（成本 / 决策时延 / 预测误差鲁棒性）

@@ -1,0 +1,3 @@
+# Daily operating cost [EUR]. Built to a pure function by microgrid.assemble.
+_target_: microgrid.optimize.objectives.cost
+_partial_: true

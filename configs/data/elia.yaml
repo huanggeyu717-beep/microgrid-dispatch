@@ -1,6 +1,7 @@
 # Elia (Belgian TSO) open data — all source-specific knowledge lives here.
 # Column names follow the portal's field ids (verified against 2024 exports);
 # if the portal renames a field the fix is a one-line edit here, no code change.
+_target_: microgrid.data.sources.elia.EliaSource   # built by microgrid.assemble.build_source
 name: elia
 raw_dir: data/raw/elia
 csv_sep: ";"

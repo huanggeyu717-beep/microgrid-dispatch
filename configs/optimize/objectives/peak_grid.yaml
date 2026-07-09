@@ -1,0 +1,3 @@
+# Peak tie-line power [MW] = max_t |P_grid(t)|. Pure function via microgrid.assemble.
+_target_: microgrid.optimize.objectives.peak_grid
+_partial_: true

@@ -1,11 +1,32 @@
 # NSGA-III day-ahead dispatch settings.
 #   python scripts/optimize_dispatch.py optimize.day=2024-11-15
+
+# Compose every objective definition into `objective_defs.<name>` (name -> {_target_}).
+# The `objectives:` list below picks which ones are active; drop an entry there to
+# run a lower-dimensional problem with no code change (defs may stay fully listed).
+defaults:
+  - objectives@objective_defs.cost: cost
+  - objectives@objective_defs.co2: co2
+  - objectives@objective_defs.peak_grid: peak_grid
+  - _self_
+
 day: "2024-11-15"          # any date in the forecast test period (Nov/Dec 2024)
 
 forecast_source: auto      # auto = LSTM median -> TSO day-ahead -> measured (fallbacks)
 
-# NSGA-III (Das-Dennis reference directions on the 2-objective plane)
+# Active objectives (pure functions in microgrid.optimize.objectives), in order.
+# n_obj = len(this list). Three objectives is the intended regime — see below.
+objectives: [cost, co2, peak_grid]
+
+# NSGA-III with Das-Dennis reference directions. Reference points are the reason
+# NSGA-III exists: they tile the objective simplex so selection keeps a spread
+# front in >=3 dimensions (with 2 objectives it has no edge over NSGA-II). The
+# partition count p sets density and must scale down with n_obj (points grow
+# combinatorially): C(p+n_obj-1, n_obj-1) directions.
+ref_partitions:
+  2: 199                   # 2 objectives -> 200 directions (dense 1-D front)
+  3: 12                    # 3 objectives -> C(14,2)=91 directions
+  4: 7                     # 4 objectives -> C(10,3)=120 directions
 pop_size: 200
 n_gen: 400
-ref_partitions: 199        # das-dennis partitions -> ref_partitions+1 directions
 seed: 42

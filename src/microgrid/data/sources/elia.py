@@ -18,12 +18,11 @@ from omegaconf import DictConfig
 
 from microgrid import schema
 from microgrid.paths import resolve
-from microgrid.data.sources.base import DataSource, register
+from microgrid.data.sources.base import DataSource
 
 log = logging.getLogger(__name__)
 
 
-@register("elia")
 class EliaSource(DataSource):
 
     # ------------------------------------------------------------------ #

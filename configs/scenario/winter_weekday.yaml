@@ -1,0 +1,28 @@
+# Baseline winter weekday (also the default dispatch scenario). No parameter
+# overrides — validates the system under nominal settings on a Friday with a
+# normal daytime load double-hump.
+name: winter_weekday
+day: "2024-11-15"        # Friday
+
+overrides:
+  system: {}
+  optimize: {}
+
+# Reduced NSGA-III budget + synthetic day profile for the test suite only.
+# pop_size >= the 3-objective reference-direction count (91) so selection behaves.
+test:
+  pop_size: 100
+  n_gen: 30
+  profile:
+    load_peak_mw: 2.7
+    load_base_mw: 1.6
+    wind_mean_mw: 0.55
+    solar_peak_mw: 0.35
+
+# Declared expected properties (checked by tests/test_scenarios.py).
+assertions:
+  terminal_soc_dev_max: 0.05      # |soc_final - soc_init| as a fraction of capacity
+  max_constraint_violation: 1.0e-6
+  cost_eur: {min: 3000.0, max: 6000.0}
+  emissions_tco2: {min: 3.0, max: 25.0}
+  peak_grid_mw: {min: 0.0, max: 3.0}

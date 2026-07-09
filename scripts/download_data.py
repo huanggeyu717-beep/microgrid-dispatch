@@ -13,14 +13,14 @@ from microgrid import hydra_compat
 
 hydra_compat.apply()  # hydra 1.3.4 x Python 3.14 argparse (see module docstring)
 
-from microgrid.data.sources import get_source  # noqa: E402
+from microgrid.assemble import build_source  # noqa: E402
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s | %(message)s")
 
 
 @hydra.main(config_path="../configs", config_name="pipeline", version_base=None)
 def main(cfg: DictConfig) -> None:
-    get_source(cfg.data).download()
+    build_source(cfg.data).download()
 
 
 if __name__ == "__main__":
