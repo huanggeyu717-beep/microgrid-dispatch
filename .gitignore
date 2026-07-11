@@ -32,4 +32,4 @@ models/**/*.pkl
 models/**/*.zip
 models/**/*.zip          # SB3 RL checkpoints (best/last)
 models/**/*.pkl          # SB3 replay buffer (large; only needed to resume training)
-models/comparison/cache/ # per-(day,factor) comparison cache; comparison.json is kept
+.claude/

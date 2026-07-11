@@ -54,11 +54,16 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 02 | Day-ahead quantile forecasting (LSTM baseline) | ✅ done | [docs/tasks/02-forecast-lstm.md](docs/tasks/02-forecast-lstm.md) |
 | 03 | NSGA-III dispatch (3 objectives, TOPSIS) + config-driven architecture | ✅ done | [docs/tasks/03-nsga3-dispatch.md](docs/tasks/03-nsga3-dispatch.md) |
 | 04 | DRL dispatch policy (SAC) vs NSGA-III + rule-based | ✅ done | [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md) |
-| 05 | PatchTST forecaster + NWP features | 🔄 **ACTIVE** | [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md) |
+| 05 | PatchTST forecaster + NWP features | ⬜ pending (main line) | [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md) |
+| S1 | SQL layer (5 tables, idempotent load, 8 analysis queries) | ✅ done (branch `feat/sql-layer`) | no spec file; see 求职素材_微电网SQL层 doc |
+| 06 | Data agent: NL Q&A over the SQL layer (this branch) | ✅ done | [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md) |
 
 ## ACTIVE TASK
 
-> **Before doing anything, read [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md).**
+> **Task 06 (data agent) is done — archive summary at the top of
+> [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md). No active
+> task on this branch; the next planned work is task 05 (PatchTST) on the
+> main line, currently paused while the owner focuses on job applications.**
 > It is the complete instruction for the current work: goal, design
 > decisions, acceptance criteria, and a progress checklist you must keep
 > updated. When the task completes, flip its board row to ✅, point this
@@ -67,3 +72,5 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 >
 > Task 04 (DRL dispatch) is done — archive summary at the top of
 > [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md).
+> Task 05 (PatchTST) continues on the main line; this branch
+> (`feat/data-agent`) carries task 06 on top of the SQL layer.

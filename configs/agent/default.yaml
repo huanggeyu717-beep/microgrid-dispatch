@@ -1,0 +1,12 @@
+# Data agent (task 06): natural-language Q&A over the SQL layer.
+# Any OpenAI-compatible endpoint works — swap provider by changing model /
+# base_url / api_key_env. The API key itself is NEVER stored here: only the
+# NAME of the environment variable that holds it (same 12-factor rule as the
+# PG* database credentials).
+model: deepseek-chat
+base_url: https://api.deepseek.com
+api_key_env: DEEPSEEK_API_KEY
+
+max_steps: 12               # completion rounds before the agent gives up loudly
+row_limit: 50               # max rows any query returns to the model (context budget)
+statement_timeout_ms: 5000  # per-query DB timeout; kills accidental full scans
