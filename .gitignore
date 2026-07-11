@@ -4,6 +4,9 @@ data/interim/*
 data/processed/*
 !data/**/.gitkeep
 
+# secrets (local DB credentials etc.; never commit)
+.env
+
 # python
 __pycache__/
 *.pyc
