@@ -18,4 +18,5 @@ testpaths = ["tests"]
 addopts = "-q -m 'not slow'"
 markers = [
     "slow: heavy end-to-end runs (full/reduced NSGA-III solves); excluded by default",
+    "db: SQL-layer tests needing a live PostgreSQL; self-skip when no DB is reachable",
 ]
