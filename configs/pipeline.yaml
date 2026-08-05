@@ -4,6 +4,7 @@
 #   python scripts/train_forecast.py forecast.target=wind model=lstm
 defaults:
   - data: elia
+  - data@nwp: nwp_openmeteo   # NWP side-table under cfg.nwp; only loaded when features.steps includes 'nwp'
   - cleaning: default
   - features: default
   - forecast: default

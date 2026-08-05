@@ -14,7 +14,7 @@ import json
 import logging
 
 import pandas as pd
-from omegaconf import DictConfig
+from omegaconf import DictConfig, open_dict
 
 from microgrid import schema
 from microgrid.paths import resolve
@@ -67,6 +67,16 @@ def run(cfg: DictConfig) -> pd.DataFrame:
     wide = alignment.align(long_df, cfg.alignment)
 
     log.info("=== stage 4/4: features ===")
+    if "nwp" in (cfg.features.get("steps") or []):
+        # Loading the NWP frame is I/O and belongs here, not in the feature
+        # step: features.add_nwp stays a pure (df, cfg) -> df and receives the
+        # already-loaded hourly frame through its config node. A default build
+        # (no 'nwp' in features.steps) therefore never reads data/raw/nwp.
+        nwp_frame = build_source(cfg.nwp).load_raw()
+        node = cfg.features.nwp
+        node._set_flag("allow_objects", True)  # a DataFrame is not yaml
+        with open_dict(node):
+            node.frame = nwp_frame
     dataset = features.build_features(wide, cfg.features)
 
     out_dir = resolve(cfg.paths.processed_dir)
@@ -75,6 +85,13 @@ def run(cfg: DictConfig) -> pd.DataFrame:
     dataset.to_parquet(out)
 
     rep = quality_report(wide)
+    nwp_cols = [c for c in dataset.columns if c.startswith("nwp_")]
+    if nwp_cols:
+        # The NWP archive starts inside 2024-02 while the dataset starts in
+        # 2019, so the NWP columns are mostly-NaN by construction. Recording
+        # each column's first valid timestamp and post-start coverage here
+        # keeps the boundary visible in the artifact, not only in a log line.
+        rep["nwp_columns"] = features.nwp_coverage(dataset[nwp_cols])
     rep_path = out_dir / f"{cfg.data.name}_quality_report.json"
     rep_path.write_text(json.dumps(rep, indent=2, ensure_ascii=False))
 

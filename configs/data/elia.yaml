@@ -5,16 +5,30 @@ _target_: microgrid.data.sources.elia.EliaSource   # built by microgrid.assemble
 name: elia
 raw_dir: data/raw/elia
 csv_sep: ";"
-date_start: "2024-01-01"
+
+# Full available history. The downloader chunks this by calendar year into
+# data/raw/elia/<stem>_<year>.csv and SKIPS years already on disk, so an
+# existing wind_2024.csv is reused and only 2019-2023 get fetched.
+# date_end is exclusive.
+#   python scripts/download_data.py                                   # 2019-2024
+#   python scripts/download_data.py data.date_start=2024-01-01        # 2024 only
+#   python scripts/download_data.py data.overwrite=true               # force refetch
+date_start: "2019-01-01"
 date_end: "2025-01-01"
+overwrite: false
 
 api:
   base_url: https://opendata.elia.be/api/explore/v2.1/catalog/datasets
 
+# Observed archive coverage (checked 2026-08): wind and load have data from
+# 2019-01, but solar (ods032) only from ~2020-07 — solar_2019.csv comes back
+# header-only and is skipped at parse time. Since forecast.history_columns
+# includes solar_measured and any window containing a NaN is dropped, forecast
+# windows before mid-2020 are dropped for ALL three targets.
 datasets:
   wind:
     dataset_id: ods031
-    file: wind_2024.csv
+    file: wind.csv            # stem only; real files are wind_<year>.csv
     datetime_col: datetime
     measured_col: measured
     forecast_da_col: dayaheadforecast
@@ -23,7 +37,7 @@ datasets:
     filters: {}
   solar:
     dataset_id: ods032
-    file: solar_2024.csv
+    file: solar.csv
     datetime_col: datetime
     measured_col: measured
     forecast_da_col: dayaheadforecast
@@ -32,7 +46,7 @@ datasets:
       region: Belgium        # dataset carries a pre-aggregated national row
   load:
     dataset_id: ods001
-    file: load_2024.csv
+    file: load.csv
     datetime_col: datetime
     measured_col: totalload   # Elia names the measured national load 'totalload'
     forecast_da_col: dayaheadforecast

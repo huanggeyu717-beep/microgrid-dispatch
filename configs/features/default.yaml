@@ -14,3 +14,12 @@ lags:                   # in steps of alignment.freq (15 min): 1h, 24h, 168h
 rolling:                # past-only rolling stats: 4h and 24h windows
   columns: [wind_measured, solar_measured, load_measured]
   windows: [16, 96]
+
+# NWP join (task 05 phase 2) — deliberately NOT in the default steps list:
+# enabling it makes pipeline/build_dataset.py load the Open-Meteo frame from
+# disk (I/O a default build must never do), inject it into this node as
+# `frame`, and features.add_nwp joins it onto the 15-min grid. Enable with:
+#   python scripts/build_dataset.py 'features.steps=[calendar,lags,rolling,nwp]'
+nwp:
+  wind_sites: [offshore, coast]   # sites that get v^3 and direction sin/cos
+  min_coverage: 0.995             # post-first-valid coverage floor (features.add_nwp asserts)

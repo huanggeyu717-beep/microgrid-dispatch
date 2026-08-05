@@ -1,0 +1,63 @@
+# Open-Meteo "Previous Runs" NWP forecasts — known-future weather covariates
+# for task 05 phase 2. All source-specific knowledge lives here; the leakage
+# reasoning (why Previous Runs day-1 and not the Historical Forecast API or
+# reanalysis) is in src/microgrid/data/sources/openmeteo.py's docstring.
+#
+# Licence: non-commercial use, < 10,000 API calls/day. This design makes one
+# request per (site, year) = ~3 requests per year of range — nowhere near the
+# limit, and year files already on disk are skipped on re-runs.
+_target_: microgrid.data.sources.openmeteo.OpenMeteoNWP   # built by microgrid.assemble.build_source
+name: nwp_openmeteo
+raw_dir: data/raw/nwp
+
+api:
+  base_url: https://previous-runs-api.open-meteo.com/v1/forecast
+
+# Archive coverage measured by direct probing (2026-08-04), NOT the documented
+# "January 2024": at 51.6N/2.9E wind_speed_100m is all-null through 2024-02-01
+# and real from 2024-03-01. Starting a month before the observed boundary pins
+# it exactly — expect February to come back (partly) null and be logged, not
+# treated as an error. Re-probe if the coordinate set changes. date_end is
+# exclusive, matching the Elia config.
+date_start: "2024-02-01"
+date_end: "2025-01-02"   # one day PAST the electricity data's end, on purpose:
+                         # the hourly NWP value at 2024-12-31 23:00 cannot be
+                         # interpolated onto the 15-min slots 23:15/23:30/23:45
+                         # without a bracketing value, so those slots would be NaN
+                         # and the final test window would be dropped (721 -> 720),
+                         # breaking the identical-windows guarantee the whole model
+                         # comparison rests on. The extra 2025 chunk is one tiny
+                         # request per site and exists only to supply that bracket.
+overwrite: false
+
+# Variables carry a _previous_dayN suffix: "the value predicted N x 24 h before
+# valid time". lead_day 1 = rolling ~24 h lead — for the late hours of D those
+# values are issued AFTER a real day-ahead gate closure (~12:00 on D-1), so
+# day1 is optimistic. lead_day 2 = fixed ~48 h lead, unambiguously legal; quote
+# day2 numbers as headline. Full audit in sources/openmeteo.py's docstring.
+# Day2 raw files live in data/raw/nwp_day2 (override raw_dir together with
+# lead_day so the two archives never overwrite each other).
+lead_day: 1
+
+# Responses are HOURLY (the project grid is 15 min; the join task reindexes).
+variables:
+  - wind_speed_100m
+  - wind_direction_100m
+  - shortwave_radiation
+  - cloud_cover
+  - temperature_2m
+
+# Three sites only, deliberately not six: ~2,500 NWP-covered fine-tuning
+# windows cannot support 6 coordinates x 7 variables = 42 features.
+# Coordinates snap to the model grid (51.6 -> 51.592); the served point and
+# elevation are logged at download time so both intent and reality are on file.
+sites:
+  offshore:            # Belgian offshore wind zone
+    latitude: 51.6
+    longitude: 2.9
+  coast:               # onshore coastal
+    latitude: 51.25
+    longitude: 3.0
+  central:             # Brussels — population-weighted proxy for load/solar
+    latitude: 50.85
+    longitude: 4.35
