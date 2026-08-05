@@ -13,6 +13,14 @@ number there, this file wins and the other document is wrong.
 > transcription caveat (values marked `~`, read from a truncated console paste)
 > is resolved and removed. That pass also corrected three figures; they are
 > listed in §8.
+>
+> **§11 (Phase 6, 2026-08-05, later the same day) is instrument work**, not
+> modelling: three-seed baselines at full scale, the validation-window decision,
+> and per-architecture learning-rate selection. It supersedes §4's single-seed
+> A0 figures as the bar for the architecture comparison and adds a third split
+> configuration whose naming rule is binding — read §11's header before quoting
+> any standalone number. Validation losses are the minimum of the `val_pinball`
+> column in `models/<run>/history.csv`.
 
 ---
 
@@ -67,6 +75,10 @@ so the mapping is recorded here.
 | A1 standalone, recent, no NWP | `{target}_standalone_recent{,_s43,_s44}` | see §5 |
 | A2 standalone, recent, NWP day1 | `{target}_standalone_recent_nwp{,_s43,_s44}` | 42/43/44 |
 | A2 standalone, recent, NWP day2 | `{target}_standalone_recent_nwp_day2{,_s43,_s44}` | 42/43/44 |
+| A0 standalone, split A, 3 seeds (§11.1) | `{target}_standalone_full{,_s43,_s44}` | 42/43/44 |
+| A0 standalone, **split A-wide**, 3 seeds (§11.2) | `{target}_standalone_valwide_s{42,43,44}` | 42/43/44 |
+| LSTM learning-rate sweep, split A-wide (§11.3) | `{target}_lstm_lr{5e-4,1e-4}_s42` | 42 |
+| PatchTST learning-rate sweep, split A-wide (§11.3) | `{target}_patchtst_lr{2e-3,5e-4,1e-4}_s42` | 42 |
 
 The three `_nwp_*` suffixes are the values of `forecast.finetune.freeze`
 (`none` / `encoder` / `encoder+decoder`), not three different feature sets —
@@ -207,6 +219,14 @@ Arms (all single seed at this stage; superseded for A1/A2 by §5):
 
 Skill vs persistence — wind 0.357 / −0.264 / **0.723**; solar 0.230 /
 −0.016 / 0.191; load 0.350 / 0.116 / 0.181.
+
+> **A0 is single-seed and is no longer the Phase 3 bar.** 702.96 / 132.43 /
+> 334.29 are one draw each (`seed=42`; `{target}_standalone_full_s43/_s44` did
+> not exist when this section was written). §11.1 adds the two missing seeds and
+> §11.2 changes the validation window the checkpoint is selected on. The bar the
+> PatchTST comparison is judged against is in §11.2, not here. These three
+> figures remain correct as what they are — a single seed under split A — and
+> are kept for provenance.
 
 Window-count note (verified 2026-08-05, not a typo): A0 has 17,847 wind windows
 against 18,198 for solar and load. Two separate gaps produce the difference.
@@ -420,7 +440,7 @@ with no radiation at all, which is not worth a multi-year download.
 |---|---|---|
 | full history (17.8k windows) + NWP | **untested** | archive depth (§6); this is very likely the best deployable model |
 | ERA5 reanalysis as an oracle upper bound | not run | none — ERA5 is free back to 1940, but it is *reanalysis*, so it is leakage as a deployed feature and may only be reported as an explicitly-labelled upper bound, never as a model score |
-| PatchTST vs LSTM | not run | see §9 |
+| PatchTST vs LSTM | **answered** (§11.4) | LSTM wins on wind with non-overlapping three-seed ranges (699.95 vs 724.28); load indistinguishable; solar likely LSTM. Only the sample-size scaling curve remains |
 | season-conditioned training (per-season models, or a season-dependent quantile spread) | planned, gated on the full-year test split below | see §7.1 for the measured seasonality this rests on |
 | **split B — full-year test split** | planned, additive; does **not** replace split A | train 2019-01 → 2023-10, val 2023-11..12, test 2024 full year (~4,380 windows vs 721 today). Buys a test set that covers four seasons and a 6× larger evaluation sample. Usable **only by arms that need no NWP** — the Open-Meteo archive begins 2024-02, so putting all of 2024 in test leaves the NWP arms with no training data. Requires re-running the LSTM standalone baselines under split B; **split A and split B numbers must never appear in the same table.** |
 | Elia publication-time leakage audit (ods001/031/032 day-ahead publication schedule) | open | desk research; result belongs in the `data/sources/elia.py` docstring |
@@ -490,6 +510,9 @@ Anything in this list that still appears in a README or task file is a bug.
 | "NWP is worth −20.3% on solar" | **corrected** | best-of-three seed draw; −9.6% at the legal lead (§5). |
 | "NWP is worth −7.4% on load" | **retracted** | ranges overlap at the legal lead; no demonstrable benefit (§5). |
 | `previous_day1` "cannot inflate results" | **wrong, retracted in place** in `src/microgrid/data/sources/openmeteo.py` | it is issued after gate closure for the late hours of D. Still present in docs/tasks/05-patchtst.md §2.1 — remove it there. |
+| "the LSTM bar for the architecture comparison is 702.96 / 132.43 / 334.29" | **corrected** | single-seed. Three seeds under split A give medians 702.96 / 136.26 / **305.56** — load's original figure was the *worst* of three draws, overstating the LSTM's error by 9.4% and handing PatchTST that much free margin. The bar actually used is the split A-wide median (§11.2). |
+| "seed noise is ~10% of MAE **at the ~2,700-window scale**" — implied to shrink with more data | **corrected, and the qualifier was doing no work** | measured at 17,847 windows: 10.2% / 7.7% / 12.2% (§11.1). 6.5× the training data did not reduce it. The ~10% figure is right; the implied mechanism (too few training samples) was wrong. |
+| docs/tasks/05-patchtst.md: "Two real points already exist on the standalone LSTM line (2,724 recent and the full history)" | **wrong, must be removed** | A1's 2,724 windows are the most *recent* windows; the scaling curve subsamples uniformly over the whole training period (`forecast.train_window_fraction`). The two rules produce different quantities and A1 is not a point on that curve. |
 
 ### Corrections made to this log itself (2026-08-05 metrics.json pass)
 
@@ -510,18 +533,22 @@ regime in which this project has now observed **three separate times** that
 more trainable parameters means worse results. A larger model there will
 lose, and the loss will teach nothing.
 
-The **full standalone no-NWP dataset (17,847 windows)** is the only fair
-architecture testbed available, and its LSTM baselines are known (wind
-702.96, solar 132.43, load 334.29). Running PatchTST there completes a
-features-versus-architecture comparison:
+The **full standalone no-NWP dataset** is the only fair architecture testbed
+available. Its LSTM baselines were originally single-seed under split A (wind
+702.96, solar 132.43, load 334.29); **the bar actually used for the comparison
+is the three-seed median under split A-wide, in §11.2.** Running PatchTST there
+completes a features-versus-architecture comparison:
 
 > On the same data, changing the architecture from seq2seq LSTM to PatchTST
-> bought *X*%. On 1/6.5 of the data, adding a freely available 48-hour-lead
-> weather forecast bought 75%. Features set the ceiling; architecture
+> bought *X*%. On the same 2,724 windows, adding a freely available 48-hour-lead
+> weather forecast bought 75.3%. Features set the ceiling; architecture
 > determines how close you get to it.
 
 That statement is worth more than either number alone, and it is only
-available because both halves were measured.
+available because both halves were measured. **Answered in §11.4: X = −3.5%,
+i.e. the architecture change made wind worse.** Read §11.4's Finding 18 for the
+scopes each number carries — the architecture and feature comparisons are run on
+different training-set sizes and must not be quoted as if they shared one.
 
 **The bar for this arm is the LSTM, not Elia.** In the standalone
 configuration the model consumes no NWP and no TSO forecast, so it cannot
@@ -552,3 +579,316 @@ comparison on identical windows.
 - The standalone forecaster is ~1.85× Elia's wind error (341.62 vs 185.08).
   The honest framing is that it uses **none of Elia's outputs**, only public
   weather and its own history.
+- **Validation cannot rank models on solar under either validation window.**
+  See §11.2 and §11.3: the best-validation seed is not the best-test seed, and
+  PatchTST beats the LSTM by 25% on validation while losing by 4.6% on test.
+  Any solar architecture verdict must carry this caveat.
+
+---
+
+## 11. Phase 6 — measurement precision
+
+Phase 6 is not a modelling experiment. It exists because the Phase 3
+architecture comparison (§9) turned out to be **unmeasurable with the instrument
+this project had**: the LSTM bar was a single draw, and the seed spread around
+it was wider than the effect the comparison was meant to detect. Everything
+below is instrument work. Every figure is read from `models/<run>/metrics.json`
+or the minimum of `val_pinball` in `models/<run>/history.csv`.
+
+### Split naming — binding
+
+Three configurations now exist and **must be named whenever a number is quoted**:
+
+| name | train | val | test |
+|---|---|---|---|
+| **split A** | → 2024-10-01 (17,847 wind / 18,198 solar+load) | Oct 2024, **372** win | Nov–Dec 2024, 721 win |
+| **split A-wide** | → 2024-07-01 (16,743 / 17,094) | Jul–Oct 2024, **1,476** win | Nov–Dec 2024, 721 win |
+| split B (planned, §7) | 2019-01 → 2023-10 | 2023-11..12 | all of 2024, ~4,380 win |
+
+A and A-wide are evaluated on **byte-identical 721 test windows**, so their test
+numbers may appear in the same table *provided the configuration is named*.
+Split B may not — its test set is a different set of windows, and that rule from
+§7 is unchanged. What differs between A and A-wide is the training set (6%
+smaller) and the checkpoint-selection procedure, never the evaluation.
+
+A-wide is not claimed to be a *better* configuration in any modelling sense. Its
+medians differ from A's by 0.4% / 0.1% / 3.1%, all inside seed noise. It is
+chosen only because it measures more precisely on the target that matters
+(§11.2).
+
+---
+
+### 11.1 Seed noise does not shrink with 6.5× the training data
+
+Setting: A0 standalone (no TSO input, no NWP), split A, three seeds. The two
+missing seeds of §4's single-seed A0 arms were run.
+
+| target | seeds 42 / 43 / 44 (MAE) | median | (max−min)/median |
+|---|---|---:|---:|
+| wind | 702.96 / 764.65 / 692.95 | **702.96** | **10.2%** |
+| solar | 132.43 / 136.26 / 142.91 | **136.26** | 7.7% |
+| load | 334.29 / 305.56 / 296.90 | **305.56** | 12.2% |
+
+At 2,724 training windows the eight three-seed arms of §5 spanned 0.95%–19.16%,
+median 6.3%. **At 17,847 windows the spread is 7.7%–12.2%. There is no evidence
+that 6.5× the training data reduced it.** Stated conservatively because three
+arms are being compared against eight, each estimated from three draws: the
+claim is "no reduction observed", not "the noise increased".
+
+Two consequences, both material:
+
+1. **The ~10% figure in CLAUDE.md's protocol holds at this scale too** and does
+   not need re-estimating for Phase 3.
+2. **The load bar was the worst of three draws.** 334.29 versus a median of
+   305.56 — using it would have given PatchTST 9.4% of free margin. This is the
+   single most concrete thing these six runs bought.
+
+**Finding 10 — the noise is in model selection, not in what the model learns.**
+Wind's three best-validation losses were **0.17451 / 0.17943 / 0.17950** — a
+spread of 2.9% — while the corresponding test MAEs spread 10.2%. Worse, the two
+runs whose validation losses differ by 0.04% (0.17943 vs 0.17950) differ by
+**8.8% on test** (764.65 vs 702.96). The validation set assigns effectively
+identical scores to two models that are not equally good.
+
+The mechanism this points at: `forecast.splits` fixes validation at **372
+windows regardless of training-set size**. Growing the training set improves
+what a model can learn; it does nothing for the sample the best-checkpoint
+decision is made on. That was a hypothesis at this point, and §11.2 is the test
+of it.
+
+---
+
+### 11.2 Widening the validation window: the decision, and what it cost
+
+`forecast.splits.train_end` moved 2024-10-01 → 2024-07-01. Validation goes from
+Oct only (372 windows) to Jul–Oct (1,476, **4×**); training loses 1,104 windows
+(**6%**); `val_end` is untouched so the test split is unchanged. Three seeds per
+target.
+
+| target | split A median [min, max] | split A-wide median [min, max] | spread A → A-wide |
+|---|---|---|---|
+| wind | 702.96 [692.95, 764.65] | **699.95** [688.94, 700.97] | 10.2% → **1.7%** |
+| solar | 136.26 [132.43, 142.91] | **136.44** [133.00, 148.86] | 7.7% → **11.6%** |
+| load | 305.56 [296.90, 334.29] | **296.03** [286.71, 309.60] | 12.2% → 7.7% |
+
+**Finding 11 — the hypothesis is supported: the medians barely move, only the
+spread does.** 0.4% / 0.1% / 3.1% on the medians, all inside noise. Had the
+variance come from insufficient training data, removing 6% of it would have
+moved the medians; it did not. The variance is a model-selection effect.
+
+The 6% training-data loss costing nothing measurable also re-confirms Phase 0's
+result from the opposite direction: 5.4× *more* data moved wind by 0.08%, and
+6% *less* moves it by 0.4%.
+
+**Finding 12 — the cost lands exactly where it was predicted to, and it scales
+with how calendar-determined the target is.** The risk was recorded in advance
+of the run: Jul–Oct is more summer-weighted than Oct alone, while the test split
+is Nov–Dec, so the change trades sampling noise against a validation
+distribution further from the test distribution. Against §7.1's measured share
+of variance explained by calendar position:
+
+| target | variance explained by (day-of-year, hour) | spread A → A-wide |
+|---|---:|---|
+| wind | 25.4% (≈21% adjusted) | 10.2% → **1.7%** |
+| load | 70.5% | 12.2% → 7.7% |
+| solar | **79.8%** | 7.7% → **11.6%** |
+
+The ordering is monotone. The more a target's value is fixed by where it sits in
+the year, the more a four-month validation window costs it. Wind, whose calendar
+explains ~11% of variance (§7.1) with the rest being day-to-day weather, gains
+almost freely.
+
+Three data points, so this is **a hypothesis with a pre-registered direction and
+a mechanism, not a finding**. What raises it above pattern-matching is that the
+direction was written down before the run, and that it corresponds to a quantity
+measured independently in §7.1.
+
+**Solar's failure changed character, which is worse than it getting noisier.**
+Under split A the validation ordering inverted between two runs whose validation
+losses differ by 0.28% — indistinguishable, so the inversion carries no
+information. Under split A-wide it inverts between runs 3.4% apart on validation
+(seed 44 at 0.15177 → 136.44 versus seed 42 at 0.15699 → **133.00**). That is
+not imprecision, it is **bias**: the wider validation window prefers models that
+are worse on the test period.
+
+**Decision, and the reason it cannot bias the architecture comparison.**
+Phase 3 uses **split A-wide for all three targets**. Per-target validation
+windows were considered and rejected: choosing a configuration per target after
+seeing which one gives the nicer number is not defensible, whatever the stated
+rationale. The choice is safe for the comparison because **both architectures
+train on the same windows and select on the same validation set**, so the
+configuration cannot favour either one; it only sets how precisely the
+difference can be measured. On wind that precision went from ±10.2% to ±1.7%,
+which is the difference between an experiment that can resolve the intended
+effect and one that cannot.
+
+**Solar's architecture verdict carries the §11.2 caveat and cannot be stated as
+cleanly as wind's.** Recorded in §10.
+
+---
+
+### 11.3 Learning-rate selection, per architecture, on validation only
+
+Motivation: `forecast.train.lr = 0.002`, `patience = 4` and `max_epochs = 30`
+were settled when the repository contained only the LSTM (38,531 parameters).
+PatchTST has 536,652 — 14× — and `trainer.py` runs plain Adam with **no warmup
+and no learning-rate schedule**. Training a transformer on a schedule tuned for
+a much smaller recurrent model risks a result that cannot be attributed:
+"the architecture is worse" and "the architecture was never trained" look
+identical in the metric.
+
+Protocol: three learning rates × three targets × seed 42, split A-wide,
+selection **on validation loss only**. PatchTST additionally got
+`max_epochs=60, patience=8`; the LSTM kept `patience=4` so its `2e-3` row stays
+comparable with the §11.2 runs it is taken from, and got `max_epochs=60` for the
+two new rates. Raising that cap cannot have disturbed the `2e-3` reference
+point, which stopped at epoch 13 / 10 / 8 — the 30-epoch cap it ran under never
+bound. Test MAE is recorded below but took no part in the selection; it is there
+to show whether validation tracked test.
+
+**PatchTST**
+
+| target | lr | best val | test MAE | stop |
+|---|---|---:|---:|---|
+| wind | **2e-3** | **0.15701** | 716.23 | epoch 21 (best 13) |
+| wind | 5e-4 | 0.15785 | 730.23 | epoch 21 (best 13) |
+| wind | 1e-4 | 0.16305 | 723.64 | epoch 32 (best 24) |
+| solar | **2e-3** | **0.11800** | 145.29 | epoch 28 (best 20) |
+| solar | 5e-4 | 0.11895 | 140.40 | epoch 35 (best 27) |
+| solar | 1e-4 | 0.12006 | 139.08 | epoch 45 (best 37) |
+| load | 2e-3 | 0.06546 | 310.11 | epoch 13 (best 5) |
+| load | **5e-4** | 0.06326 | 307.10 | epoch 21 (best 13) |
+| load | 1e-4 | **0.06325** | 304.84 | epoch 48 (best 40) |
+
+**LSTM**
+
+| target | lr | best val | test MAE | stop |
+|---|---|---:|---:|---|
+| wind | **2e-3** | **0.15502** | 700.97 | epoch 13 (best 9) |
+| wind | 5e-4 | 0.15552 | 695.06 | epoch 26 (best 22) |
+| wind | 1e-4 | 0.15582 | 713.38 | epoch 40 (best 36) |
+| solar | **2e-3** | **0.15699** | 133.00 | epoch 10 (best 6) |
+| solar | 5e-4 | 0.16405 | 145.21 | epoch 9 (best 5) |
+| solar | 1e-4 | 0.16773 | 160.28 | epoch 18 (best 14) |
+| load | 2e-3 | 0.06005 | 309.60 | epoch 8 (best 4) |
+| load | **5e-4** | **0.05884** | 299.38 | epoch 13 (best 9) |
+| load | 1e-4 | 0.06532 | 331.55 | epoch 22 (best 18) |
+
+**Finding 13 — the schedule was not disadvantaging PatchTST, and that is the
+whole result.** No learning-rate gap exceeded the measured seed spread of the
+validation loss for either architecture (wind 0.6%, load 6.2%, solar 10.4%,
+computed on the §11.2 three-seed runs). So the honest statement is **not** "a better learning rate
+was found" but "**the default 2e-3 is not why PatchTST loses**". That was the
+question the sweep was run to answer.
+
+**Finding 14 — no run was cut off by its epoch cap.** All 18 runs early-stopped
+naturally; the longest was `load_patchtst_lr1e-4_s42` at epoch 48 against a cap
+of 60. **A "PatchTST underperforms" result therefore cannot be explained by
+insufficient training.**
+
+**Selected, and applied identically to both architectures:**
+
+| target | learning rate | why |
+|---|---|---|
+| wind | **2e-3** | best validation for both architectures; all three within noise |
+| solar | **2e-3** | best validation for both; the LSTM's test MAE tracks its validation ordering exactly here |
+| load | **5e-4** | best validation for the LSTM; a tie for PatchTST (0.06326 vs 0.06325). **Both architectures independently ranked the lower rate first**, which is why this one deviates from the default despite the gap being inside single-seed noise |
+
+Using the same rate for both architectures on each target means the choice is
+arithmetically incapable of favouring either.
+
+---
+
+### 11.4 Architecture comparison — PatchTST vs LSTM
+
+Three seeds (42/43/44) per target per architecture, split A-wide, no TSO input,
+no NWP, identical windows, at the learning rates selected in §11.3 (wind and
+solar 2e-3, load 5e-4 — the same rate for both architectures on each target).
+Medians with the full min–max range, per the binding protocol.
+
+**Wind** — `{wind_patchtst_lr2e-3_s42,_s43,_s44}` vs `wind_standalone_valwide_s{42,43,44}`
+
+| | LSTM | PatchTST |
+|---|---:|---:|
+| MAE median | **699.95** | 724.28 |
+| MAE per seed (42 / 43 / 44) | 700.97 / 699.95 / 688.94 | 716.23 / 748.39 / 724.28 |
+| MAE range | **[688.94, 700.97]** | [716.23, 748.39] |
+| coverage_80 median | 0.810 | 0.792 |
+
+**Solar** — coverage is all-hours and therefore inflated (§10); read the MAE row.
+
+| | LSTM | PatchTST |
+|---|---:|---:|
+| MAE median | **136.44** | 150.35 |
+| MAE per seed | 133.00 / 148.86 / 136.44 | 145.29 / 155.02 / 150.35 |
+| MAE range | [133.00, 148.86] | [145.29, 155.02] |
+| coverage_80 median (all-hours) | 0.916 | 0.841 |
+
+**Load** — `{load_patchtst,load_lstm}_lr5e-4_s{42,43,44}`
+
+| | LSTM | PatchTST |
+|---|---:|---:|
+| MAE median | 312.59 | **299.81** |
+| MAE per seed | 299.38 / 312.59 / 324.36 | 307.10 / 299.81 / 288.96 |
+| MAE range | [299.38, 324.36] | [288.96, 307.10] |
+| coverage_80 median | 0.794 | **0.799** |
+
+**Finding 15 — on wind the LSTM wins outright, and the ranges do not overlap.**
+The LSTM's *worst* draw (700.97) still beats PatchTST's *best* (716.23), by
+15.26 MW. Every LSTM draw beats every PatchTST draw — the same standard applied
+in §5 Finding 8. On medians the transformer costs **+3.5%**.
+
+**Finding 16 — solar goes the same way but not cleanly; load is a tie.**
+Solar's median gap is **10.2%** in the LSTM's favour, but the ranges overlap
+over [145.29, 148.86], so this is "likely worse", not "worse". It also carries
+the §11.2 caveat: solar model selection is biased under this validation window,
+and PatchTST is the architecture more exposed to that bias (§11.3 — it beat the
+LSTM by 25% on validation and lost by 4.6% on test at seed 42). On load
+PatchTST's median is 4.1% better, the ranges overlap heavily, and the honest
+statement is **indistinguishable**.
+
+**Finding 17 — the one thing PatchTST is measurably better at is interval
+calibration on load.** Its three coverage values are 0.796 / 0.799 / 0.805
+against a nominal 0.80 — a spread of 1.1% and every draw within 0.5 percentage
+points of target. The LSTM's are 0.766 / 0.794 / 0.811, a spread of 5.9%. Point
+forecasts are indistinguishable on this target; the intervals are not. Worth
+carrying into any chance-constrained dispatch work, which consumes q10/q90
+rather than the median.
+
+**536,652 parameters lose to 38,531 on the target that matters.** This is the
+fourth observation in this project of more trainable parameters performing worse
+at this data scale (§9 lists the first three), and it is the first one measured
+with three seeds and a non-overlapping range rather than inferred.
+
+**Finding 18 — the features-versus-architecture statement, completed.** Both
+halves were measured on this project's own data, and the two comparisons must be
+quoted with their scopes attached:
+
+- **Architecture, controlled**: identical 16,743 training windows, identical 721
+  test windows, split A-wide, three seeds. Replacing the seq2seq LSTM with
+  PatchTST **costs 3.5% on wind**, is indistinguishable on load, and is likely
+  worse on solar.
+- **Features, controlled**: identical 2,724 training windows, identical 721 test
+  windows, single model, the only difference being the presence of NWP channels.
+  Adding a freely available 48-hour-lead weather forecast is worth **−75.3% on
+  wind** (1381.87 → 341.62, §5 Finding 7).
+- **Across data scales, for scale**: the best NWP arm at 2,724 windows (341.62)
+  against the best no-NWP arm at 17,847 windows under split A (702.96) is
+  **−51.4%**. This is a different comparison from the −75.3% and the two must
+  not be conflated — a reader who sees "1/6.5 of the data, 75%" next to a
+  full-data number will take the wrong one.
+
+> Features set the ceiling; architecture determines how close you get to it. On
+> this dataset the architecture term is worth −3.5% and the feature term is
+> worth −75.3%.
+
+The bar was the LSTM, never Elia — §9, unchanged. In this configuration the
+model consumes no NWP and no TSO forecast, so neither architecture can approach
+Elia's 185.08, and neither was asked to.
+
+**Still outstanding for Phase 3**: the sample-size scaling curve
+(`forecast.train_window_fraction`, both architectures at 10/25/50/100%). Without
+it the result above is "the transformer lost"; with it the result is either "it
+lost and its curve is still falling, so it would win with more data" or "both
+curves are flat, so more data of this kind helps neither". Those are different
+conclusions and only the curve separates them.
