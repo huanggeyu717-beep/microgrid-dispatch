@@ -183,7 +183,8 @@ def main(cfg: DictConfig) -> None:
     if max_days:
         test_days = test_days[:max_days]
     profiles = data.build_day_profiles(df, test_days, cfg.system, models_dir, cfg.model,
-                                       str(cfg.rl.train.forecast_source))
+                                       str(cfg.rl.train.forecast_source),
+                                       run_name=cfg.forecast.get("run_name"))
     by_day = {p.day: p for p in profiles}
 
     # Robustness subset (seeded, deterministic across resumes)

@@ -26,15 +26,45 @@ from microgrid.forecast.windows import ForecastWindows, target_column
 log = logging.getLogger(__name__)
 
 
+# Targets clamped to >= 0 MW by default: generation cannot be negative.
+_NON_NEGATIVE_TARGETS = ("wind", "solar")
+
+
+def clamp_non_negative(cfg) -> bool:
+    """Whether predicted quantiles are clamped to >= 0 in physical MW.
+
+    ``cfg.non_negative`` forces it either way; absent or null means the
+    default: true for wind and solar (physically non-negative), false for
+    load (which never hits zero in this dataset anyway).
+    """
+    flag = cfg.get("non_negative")
+    return cfg.target in _NON_NEGATIVE_TARGETS if flag is None else bool(flag)
+
+
 @torch.no_grad()
 def predict(model: torch.nn.Module, ds: ForecastWindows, batch_size: int = 128) -> np.ndarray:
-    """[N, H, Q] quantile predictions in physical MW."""
+    """[N, H, Q] quantile predictions in physical MW.
+
+    For non-negative targets (see :func:`clamp_non_negative`) quantiles are
+    clamped to >= 0 *after* the scaler's inverse transform — in physical MW,
+    not scaled space. This is a physical constraint (solar/wind output cannot
+    be negative), not a calibration trick: the raw multi-year solar model
+    emitted q10 > 0 on 71% of night steps where the truth is exactly 0, so
+    the true value fell below the lower bound and all-hours coverage dropped
+    to 0.417 vs 0.646 in daylight. Clamping makes night coverage trivially
+    1.0, so judge solar intervals by ``coverage_daylight`` in
+    diagnosis_{split}.json, not ``coverage_all_hours``. max(x, 0) is
+    monotone, so quantile ordering is preserved.
+    """
     model.eval()
     preds = []
     for x_hist, x_fut, _ in DataLoader(ds, batch_size=batch_size):
         preds.append(model(x_hist, x_fut).numpy())
     pred_q = np.concatenate(preds)
-    return ds.scaler.inverse_values(pred_q, ds.tgt_col)
+    pred_q = ds.scaler.inverse_values(pred_q, ds.tgt_col)
+    if clamp_non_negative(ds.cfg):
+        pred_q = np.maximum(pred_q, 0.0)
+    return pred_q
 
 
 def evaluate(model, df: pd.DataFrame, ds: ForecastWindows, cfg: DictConfig, out_dir: Path) -> dict:

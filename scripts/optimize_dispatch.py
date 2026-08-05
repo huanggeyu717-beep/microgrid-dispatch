@@ -83,7 +83,8 @@ def main(cfg: DictConfig) -> None:
     models_dir = resolve(cfg.paths.models_dir)
     day = str(cfg.optimize.day)
 
-    di = build_day_inputs(df, cfg.system, cfg.optimize, models_dir, cfg.model)
+    di = build_day_inputs(df, cfg.system, cfg.optimize, models_dir, cfg.model,
+                          run_name=cfg.forecast.get("run_name"))
     p = system.params_from_cfg(cfg.system)
 
     objectives = build_objectives(cfg.optimize)   # [(name, fn), ...]; n_obj = len

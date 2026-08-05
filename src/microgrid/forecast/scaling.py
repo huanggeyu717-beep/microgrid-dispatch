@@ -18,8 +18,15 @@ class Scaler:
 
     @classmethod
     def fit(cls, df: pd.DataFrame, columns: list[str]) -> "Scaler":
-        mean = {c: float(df[c].mean()) for c in columns}
-        std = {c: float(df[c].std()) or 1.0 for c in columns}
+        mean: dict[str, float] = {}
+        std: dict[str, float] = {}
+        for c in columns:
+            m, s = float(df[c].mean()), float(df[c].std())
+            # NOT `s or 1.0`: NaN is truthy, so an all-NaN column would yield a
+            # NaN scaler that silently NaNs every window. Constant or all-NaN
+            # columns get a finite identity-ish scaler instead.
+            mean[c] = m if np.isfinite(m) else 0.0
+            std[c] = s if np.isfinite(s) and s > 0.0 else 1.0
         return cls(mean, std)
 
     def transform(self, df: pd.DataFrame) -> pd.DataFrame:

@@ -1,7 +1,7 @@
-"""Export per-timestamp LSTM day-ahead forecasts to parquet for the SQL layer.
+"""Export per-timestamp day-ahead model forecasts to parquet for the SQL layer.
 
 This runs INFERENCE ONLY (no training) with the trained checkpoints in
-models/{target}_lstm/best.pt. The forecaster was trained on sliding windows
+models/{target}_{model.name}/best.pt. The forecaster was trained on sliding windows
 issued every 2h, so each 15-min slot is predicted by several overlapping
 windows; to get one clean, honest forecast per slot we keep only the window
 issued at 00:00 UTC that forecasts that whole day — a leakage-free day-ahead
@@ -69,7 +69,7 @@ def _forecast_rows(target: str, df: pd.DataFrame, cfg: DictConfig, models_dir: P
                 rows.append({
                     "target_time": t,
                     "series": target,
-                    "model": "lstm",
+                    "model": cfg.model.name,
                     "quantile": float(q),
                     "value_mw": float(pred_q[i, step, qi]),
                     "issued_at": issued,

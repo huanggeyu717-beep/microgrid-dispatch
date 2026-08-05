@@ -63,6 +63,13 @@ def fit(
 
     Returns True if training is complete (DONE written), False if a resume
     is needed.
+
+    Not bit-reproducible across a resume: ``torch.manual_seed`` is called
+    only on the fresh-start branch and the RNG state is not stored in
+    last.pt, so a run that stops and resumes explores a different random
+    stream than an uninterrupted one. Accepted by design (see CLAUDE.md —
+    reproducibility is not a project goal): the checkpoint kept is the
+    best-validation one, so model selection never depends on the seed.
     """
     t_cfg = cfg.forecast.train
     torch.set_num_threads(t_cfg.get("num_threads", 2))

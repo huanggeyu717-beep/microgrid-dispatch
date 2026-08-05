@@ -1,9 +1,9 @@
-"""Assemble :class:`DayProfile` objects: measured actuals + LSTM forecasts + prices.
+"""Assemble :class:`DayProfile` objects: measured actuals + model forecasts + prices.
 
 The RL env needs, per day, BOTH the measured actuals it executes against and the
-LSTM-median forecasts the agent observes for the future. The forecasts come from
+model-median forecasts the agent observes for the future. The forecasts come from
 exactly the same checkpoints and cascade as task 03
-(:mod:`microgrid.optimize.inputs`): LSTM median → TSO day-ahead → measured. To
+(:mod:`microgrid.optimize.inputs`): model median → TSO day-ahead → measured. To
 stay fast over hundreds of days, all day-ahead windows for a target are predicted
 in a single batched pass (one ``ForecastWindows`` build, not one per day).
 
@@ -22,6 +22,7 @@ import pandas as pd
 from omegaconf import DictConfig, OmegaConf
 
 from microgrid import schema
+from microgrid.forecast.checkpoints import CheckpointMismatchError, load_checkpoint
 from microgrid.optimize.system import tou_prices
 from microgrid.rl.env import DayProfile
 
@@ -44,22 +45,28 @@ def list_days(df: pd.DataFrame, start: str, end: str) -> list[str]:
     return days
 
 
-def _lstm_medians(
-    df: pd.DataFrame, models_dir: Path, target: str, day_starts: dict[str, int], model_cfg: DictConfig
+def _model_medians(
+    df: pd.DataFrame,
+    models_dir: Path,
+    target: str,
+    day_starts: dict[str, int],
+    model_cfg: DictConfig,
+    run_name: str | None,
 ) -> dict[str, np.ndarray]:
-    """Batched LSTM-median day-ahead forecasts (national MW) for every leakage-free day.
+    """Batched model-median day-ahead forecasts (national MW) for every leakage-free day.
 
     Returns ``{day: median[H]}`` only for days with enough context; days without
     are simply absent and fall back to TSO/measured in :func:`build_day_profiles`.
+    The checkpoint's identity (architecture + target) is verified by
+    :func:`microgrid.forecast.checkpoints.load_checkpoint`.
     """
-    import torch
-
     from microgrid.assemble import build_model
     from microgrid.forecast.evaluate import predict
     from microgrid.forecast.scaling import Scaler
     from microgrid.forecast.windows import ForecastWindows, future_columns
 
-    ckpt = torch.load(models_dir / f"{target}_lstm" / "best.pt", weights_only=False)
+    ckpt, ckpt_path = load_checkpoint(models_dir, target, model_cfg, run_name)
+    log.info("%s: forecasts from %s", target, ckpt_path)
     fcfg = OmegaConf.create(ckpt["forecast_cfg"])
     mcfg = OmegaConf.merge(model_cfg, OmegaConf.create(ckpt["model_cfg"]))
     scaler = Scaler.from_dict(ckpt["scaler"])
@@ -85,9 +92,9 @@ def _national_forecast(
     df: pd.DataFrame, times: pd.DatetimeIndex, target: str, day: str,
     lstm: dict[str, np.ndarray], pref: str,
 ) -> tuple[np.ndarray, str]:
-    """One target's national-MW forecast via the LSTM → TSO → measured cascade."""
-    if pref in ("auto", "lstm") and day in lstm:
-        return lstm[day], "lstm"
+    """One target's national-MW forecast via the model → TSO → measured cascade."""
+    if pref in ("auto", "lstm", "model") and day in lstm:
+        return lstm[day], "model"
     tso = df.loc[times, schema.wide_column(target, schema.KIND_FORECAST_DA)].to_numpy(float)
     if not np.isnan(tso).any():
         return tso, "tso"
@@ -101,18 +108,23 @@ def build_day_profiles(
     models_dir: Path,
     model_cfg: DictConfig,
     forecast_source: str = "auto",
+    run_name: str | None = None,
 ) -> list[DayProfile]:
     """Build one :class:`DayProfile` per day (measured actuals + forecasts + TOU prices)."""
     idx = df.index
     day_starts = {d: int(idx.get_loc(pd.Timestamp(d, tz="UTC"))) for d in days}
 
     lstm: dict[str, dict[str, np.ndarray]] = {}
-    if forecast_source in ("auto", "lstm"):
+    if forecast_source in ("auto", "lstm", "model"):
         for target in _SERIES:
             try:
-                lstm[target] = _lstm_medians(df, models_dir, target, day_starts, model_cfg)
-            except Exception as e:  # noqa: BLE001 — any failure falls back to TSO/measured
-                log.warning("%s: batched LSTM forecast unavailable (%s); TSO fallback", target, e)
+                lstm[target] = _model_medians(df, models_dir, target, day_starts, model_cfg, run_name)
+            except CheckpointMismatchError:
+                raise  # a wrong checkpoint must never be silently replaced by a fallback
+            except Exception as e:  # noqa: BLE001 — unloadable checkpoint
+                if forecast_source != "auto":
+                    raise  # the model source was requested explicitly — do not fall back
+                log.warning("%s: batched model forecast unavailable (%s); TSO fallback", target, e)
                 lstm[target] = {}
     else:
         lstm = {t: {} for t in _SERIES}

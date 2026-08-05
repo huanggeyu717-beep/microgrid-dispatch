@@ -1,10 +1,14 @@
 """Assemble the chosen day's microgrid inputs: load / wind / solar + TOU prices.
 
 Per target the wind/solar/load profile comes from, in order of preference:
-  1. the LSTM median forecast in ``models/<target>_lstm/best.pt`` (day-ahead,
-     leakage-free — the window's context is the previous day), via the same
-     ``predict()`` used at evaluation time;
-  2. the TSO day-ahead forecast column, if the checkpoint won't load / predict;
+  1. the trained model's median forecast in ``models/<run>/best.pt`` (run
+     directory resolved by :mod:`microgrid.forecast.checkpoints`, which also
+     verifies the checkpoint matches the requested architecture and target;
+     day-ahead, leakage-free — the window's context is the previous day), via
+     the same ``predict()`` used at evaluation time;
+  2. the TSO day-ahead forecast column, if the checkpoint won't load / predict
+     — only when ``optimize.forecast_source`` is left on ``auto``; an explicit
+     source raises instead of falling back;
   3. the measured value, logged as a warning (last resort).
 
 National Elia series (GW-scale) are downscaled to the notional microgrid by the
@@ -22,6 +26,7 @@ import pandas as pd
 from omegaconf import DictConfig, OmegaConf
 
 from microgrid import schema
+from microgrid.forecast.checkpoints import CheckpointMismatchError, load_checkpoint
 from microgrid.optimize.system import tou_prices
 
 log = logging.getLogger(__name__)
@@ -37,7 +42,7 @@ class DayInputs:
     solar: np.ndarray
     price_buy: np.ndarray     # EUR/MWh
     price_sell: np.ndarray
-    sources: dict             # target -> "lstm" | "tso" | "measured"
+    sources: dict             # target -> checkpoint path (model) | "tso" | "measured"
 
 
 def _day_slice(df: pd.DataFrame, day: str) -> pd.DatetimeIndex:
@@ -48,18 +53,22 @@ def _day_slice(df: pd.DataFrame, day: str) -> pd.DatetimeIndex:
     return times
 
 
-def _lstm_median(
-    df: pd.DataFrame, models_dir: Path, target: str, day: str, model_cfg: DictConfig
-) -> np.ndarray:
-    """LSTM median forecast for the day (national MW). Raises on any failure."""
-    import torch  # local import: only needed on the preferred path
-
+def _model_median(
+    df: pd.DataFrame,
+    models_dir: Path,
+    target: str,
+    day: str,
+    model_cfg: DictConfig,
+    run_name: str | None,
+) -> tuple[np.ndarray, Path]:
+    """Checkpointed model's median forecast for the day (national MW) plus the
+    resolved checkpoint path. Raises on any failure."""
     from microgrid.assemble import build_model
     from microgrid.forecast.evaluate import predict
     from microgrid.forecast.scaling import Scaler
     from microgrid.forecast.windows import ForecastWindows, future_columns
 
-    ckpt = torch.load(models_dir / f"{target}_lstm" / "best.pt", weights_only=False)
+    ckpt, ckpt_path = load_checkpoint(models_dir, target, model_cfg, run_name)
     fcfg = OmegaConf.create(ckpt["forecast_cfg"])
     # Base is the live model group (carries the `_target_` the assembler needs);
     # the checkpoint's saved hyperparameters (hidden_size, ...) win, so a legacy
@@ -83,7 +92,7 @@ def _lstm_median(
     model.load_state_dict(ckpt["state_dict"])
     pred = predict(model, ds)[0]                       # [H, Q] physical MW
     qi_med = list(fcfg.quantiles).index(0.5)
-    return pred[:, qi_med]
+    return pred[:, qi_med], ckpt_path
 
 
 def _series_for_day(
@@ -94,13 +103,19 @@ def _series_for_day(
     times: pd.DatetimeIndex,
     source_pref: str,
     model_cfg: DictConfig,
+    run_name: str | None,
 ) -> tuple[np.ndarray, str]:
-    """National-MW profile for one target with the LSTM -> TSO -> measured cascade."""
-    if source_pref in ("auto", "lstm"):
+    """National-MW profile for one target with the model -> TSO -> measured cascade."""
+    if source_pref in ("auto", "lstm", "model"):
         try:
-            return _lstm_median(df, models_dir, target, day, model_cfg), "lstm"
-        except Exception as e:  # noqa: BLE001 — any failure falls back
-            log.warning("%s: LSTM forecast unavailable (%s); falling back to TSO day-ahead", target, e)
+            vals, ckpt_path = _model_median(df, models_dir, target, day, model_cfg, run_name)
+            return vals, str(ckpt_path)
+        except CheckpointMismatchError:
+            raise  # a wrong checkpoint must never be silently replaced by a fallback
+        except Exception as e:  # noqa: BLE001 — unloadable checkpoint
+            if source_pref != "auto":
+                raise  # the model source was requested explicitly — do not fall back
+            log.warning("%s: model forecast unavailable (%s); falling back to TSO day-ahead", target, e)
     tso_col = schema.wide_column(target, schema.KIND_FORECAST_DA)
     vals = df.loc[times, tso_col].to_numpy(float)
     if not np.isnan(vals).any():
@@ -115,15 +130,21 @@ def build_day_inputs(
     opt_cfg: DictConfig,
     models_dir: Path,
     model_cfg: DictConfig,
+    run_name: str | None = None,
 ) -> DayInputs:
-    """Scaled microgrid load/wind/solar + TOU prices for ``opt_cfg.day``."""
+    """Scaled microgrid load/wind/solar + TOU prices for ``opt_cfg.day``.
+
+    ``run_name`` (``forecast.run_name``) overrides the ``<target>_<model.name>``
+    checkpoint-directory convention; the loaded checkpoint's identity is
+    verified either way (see :mod:`microgrid.forecast.checkpoints`).
+    """
     day = str(opt_cfg.day)
     times = _day_slice(df, day)
     pref = str(opt_cfg.get("forecast_source", "auto"))
 
     profiles, sources = {}, {}
     for target in (schema.SERIES_LOAD, schema.SERIES_WIND, schema.SERIES_SOLAR):
-        national, src = _series_for_day(df, models_dir, target, day, times, pref, model_cfg)
+        national, src = _series_for_day(df, models_dir, target, day, times, pref, model_cfg, run_name)
         factor = float(sys_cfg.scaling[target].factor)
         profiles[target] = np.clip(national * factor, 0.0, None)   # MW, non-negative
         sources[target] = src

@@ -172,8 +172,11 @@ def train(cfg: DictConfig, df: pd.DataFrame, models_dir: Path) -> dict:
     log.info("day counts: train=%d val=%d", len(train_days), len(val_days))
 
     src = str(rl.train.forecast_source)
-    train_profiles = data.build_day_profiles(df, train_days, cfg.system, models_dir, cfg.model, src)
-    val_profiles = data.build_day_profiles(df, val_days, cfg.system, models_dir, cfg.model, src)
+    run_name = cfg.forecast.get("run_name")
+    train_profiles = data.build_day_profiles(df, train_days, cfg.system, models_dir, cfg.model, src,
+                                             run_name=run_name)
+    val_profiles = data.build_day_profiles(df, val_days, cfg.system, models_dir, cfg.model, src,
+                                           run_name=run_name)
 
     env = MicrogridEnv(train_profiles, params, env_cfg)
     env.reset(seed=int(rl.train.seed))

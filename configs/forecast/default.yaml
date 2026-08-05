@@ -3,18 +3,78 @@
 target: load               # wind | solar | load
 context_steps: 96          # 24h of 15-min history for the encoder
 horizon_steps: 96          # 24h day-ahead horizon
-stride: 8                  # window every 2h -> ~3.3k train samples
+stride: 8                  # window every 2h -> ~3.3k train samples per year of data
 quantiles: [0.1, 0.5, 0.9]
+# Clamp predicted quantiles to >= 0 in physical MW (after the scaler's inverse
+# transform). A physical constraint — generation cannot be negative — not a
+# calibration trick. null -> auto: on for wind/solar, off for load. Clamping
+# makes solar night coverage trivially 1.0, so judge solar intervals by
+# coverage_daylight in the diagnosis, not coverage_all_hours.
+non_negative: null
+# Run directory under models/; null -> "{target}_{model.name}". Set it so two
+# ablation runs of the same target+model don't overwrite each other.
+run_name: null
+# Which split scripts/diagnose_forecast.py evaluates: train | val | test.
+diagnose_split: test
+# Month bins for the seasonal breakdown in forecast/diagnose.py. Wind's
+# monthly mean spans 763-1865 MW over 2019-2024; these three bins are the
+# tightest 3-way grouping measured on that (within-bin mean range 261 MW).
+# Setting it to null skips the breakdown.
+diagnose_season_bins:
+  oct_feb: [10, 11, 12, 1, 2]
+  mar_apr: [3, 4]
+  may_sep: [5, 6, 7, 8, 9]
 
 # encoder sees all three measured series (cross-series information helps)
 history_columns: [wind_measured, solar_measured, load_measured]
 # decoder inputs, all known at issue time (leakage-free)
 calendar_columns: [tod_sin, tod_cos, dow_sin, dow_cos, is_weekend, doy_sin, doy_cos]
 use_tso_forecast_input: true   # feed Elia's DA forecast to the decoder
+# Extra known-future covariates (e.g. NWP weather forecasts) appended to the
+# decoder input AFTER the calendar block and the TSO column — the order is a
+# contract, see forecast/windows.py::future_columns. Listed columns are also
+# scaled with train-only statistics (they are physical units, not [-1, 1]).
+# MUST stay empty by default: the NWP columns are NaN from 2019-01 to 2024-02
+# (Open-Meteo archive boundary), and ForecastWindows drops any window touching
+# a NaN — listing them here would silently discard every pre-2024 window for
+# every target and every split, destroying the ~17.8k-window multiyear
+# training set that pretraining and the PatchTST comparison depend on.
+# NWP runs set the list via a CLI override instead.
+future_covariate_columns: []
 
-splits:                    # chronological; horizon decides membership
+# Chronological; the horizon decides split membership. Deliberately UNCHANGED
+# when the dataset was extended back to 2019: train simply grows backwards
+# (2019-01 .. 2024-10, ~20k windows instead of ~3.3k) while val (Oct 2024) and
+# test (Nov-Dec 2024) stay byte-identical — so every downstream dispatch / RL /
+# comparison result computed on the 61 Nov-Dec days remains directly comparable
+# with the single-year runs. Change these only for a deliberate multi-season
+# test experiment, and re-run the whole downstream chain when you do.
+splits:
   train_end: "2024-10-01"
-  val_end: "2024-11-01"    # test = Nov + Dec
+  val_end: "2024-11-01"    # test = Nov + Dec 2024
+
+# Periods dropped from every split: any window whose context OR horizon touches
+# a range here is discarded, and the scaler is fitted without those rows. The
+# dataset on disk is untouched, so the exclusion stays an auditable experiment.
+# Empty by default on purpose: the 2020 COVID lockdown is a genuine distribution
+# shift in the load series, but whether dropping it helps is a question to
+# measure, not to assume. Run it both ways and report the difference.
+#   forecast.exclude_ranges='[["2020-03-14","2020-07-01"]]'
+exclude_ranges: []
+
+# Pretrain-and-extend fine-tuning (task 05 phase 2.4/2.5). When from_run is
+# set, models/<from_run>/best.pt is loaded, the model built from its saved
+# model_cfg, and its future-input module widened with ZERO-initialised
+# channels for the newly listed future_covariate_columns — numerically
+# identical to the pretrained model at step 0 (see forecast/extend.py), so
+# fine-tuning starts at the checkpoint's exact metrics. Existing columns keep
+# the checkpoint's scaler statistics; only new columns are fit. run_name MUST
+# be set to a fresh directory so the source run is never overwritten.
+# from_run: null (the default) leaves the normal training path untouched.
+finetune:
+  from_run: null      # run_name of the checkpoint to start from
+  lr: 2.0e-4          # an order below train.lr: ~2.7k NWP windows, not 17.8k
+  freeze: none        # none | encoder | encoder+decoder (the last trains only the head)
 
 train:
   batch_size: 128
