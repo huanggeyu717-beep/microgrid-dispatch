@@ -1,0 +1,17 @@
+{
+  "target": "wind",
+  "model": "lstm",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 695.06,
+    "rmse": 971.8,
+    "pinball": 215.17,
+    "coverage_80": 0.786
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 1093.26,
+    "tso_dayahead": 185.08
+  },
+  "skill_vs_persistence": 0.364,
+  "skill_vs_tso": -2.756
+}
