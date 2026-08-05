@@ -1,9 +1,9 @@
 {
   "day": "2024-11-15",
   "forecast_sources": {
-    "load": "lstm",
-    "wind": "lstm",
-    "solar": "lstm"
+    "load": "/Users/00x/Projects/microgrid-dispatch/models/load_lstm/best.pt",
+    "wind": "/Users/00x/Projects/microgrid-dispatch/models/wind_lstm/best.pt",
+    "solar": "/Users/00x/Projects/microgrid-dispatch/models/solar_lstm/best.pt"
   },
   "objective_names": [
     "cost",
@@ -12,7 +12,7 @@
   ],
   "n_pareto_solutions": 650,
   "objectives": {
-    "cost": 7395.7665,
+    "cost": 7395.7666,
     "co2": 25.9273,
     "peak_grid": 2.0435
   },

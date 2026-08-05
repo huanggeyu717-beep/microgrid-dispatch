@@ -1,0 +1,17 @@
+{
+  "target": "solar",
+  "model": "lstm",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 91.36,
+    "rmse": 278.06,
+    "pinball": 31.35,
+    "coverage_80": 0.807
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 172.05,
+    "tso_dayahead": 95.14
+  },
+  "skill_vs_persistence": 0.469,
+  "skill_vs_tso": 0.04
+}
