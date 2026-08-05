@@ -1,7 +1,13 @@
 # Task 05 — Transferable day-ahead forecaster: diagnose → NWP → architecture
 
-**Status**: 🔄 active — Phase 0 complete; Phase 1 code items (1.1–1.5) done,
-0.4 publication-time leakage audit still open; Phase 2 next
+**Status**: 🔄 active — Phases 0–2 of this file complete, including the
+standalone arms, the multi-seed lead-time audit and the archive-extension
+probe (experiment phases 3–5 in the log's own numbering — the two schemes
+differ, always say which document a phase number belongs to); the 0.4
+publication-time leakage audit is still open. Phase 3 (PatchTST) is next.
+All result numbers live in
+[docs/experiments/05-forecast-experiment-log.md](../experiments/05-forecast-experiment-log.md)
+— that file is the single source of truth; this one plans work.
 **Timebox**: 4 weeks from the start of Phase 1.
 
 ## Archive summary (fill when done, keep ≤15 lines)
@@ -36,7 +42,13 @@ substitutes for it. Phase 2 supplies it.
 - **Multi-year Elia data.** `configs/data/elia.yaml` covers 2019-01 → 2025-01;
   `EliaSource` downloads year-by-year, resumable, skipping years on disk. Solar
   (ods032) only begins 2020-07, so windows before then are dropped for every
-  target. Splits are deliberately unchanged (`train_end 2024-10-01`,
+  target — all three measured series are encoder inputs, so a NaN in any of
+  them inside a window's *context* drops that window for every target. Counts
+  still differ per target, because a NaN inside the *horizon* is checked
+  against the target series only: `wind_measured` has 448 NaN slots after
+  2020-07 (solar and load have none), which is why the standalone runs train
+  on 17,847 wind windows vs 18,198 for solar and load (log §4).
+  Splits are deliberately unchanged (`train_end 2024-10-01`,
   `val_end 2024-11-01`): train grew backwards to ~18k windows while val (372)
   and test (721) stayed byte-identical, so every number below is comparable
   across runs and with the downstream dispatch/RL results.
@@ -52,7 +64,7 @@ substitutes for it. Phase 2 supplies it.
 | | model | Elia DA | persistence | bias-corrected Elia |
 |---|---:|---:|---:|---:|
 | load  | **256.05** | 256.59 | 514.23 | 259.31 |
-| solar |  **92.16** |  95.14 | 172.05 |  98.60 |
+| solar |  **92.17** |  95.14 | 172.05 |  98.60 |
 | wind  | **225.06** | 185.08 | 1093.26 | 239.79 |
 
 Checkpoints: `models/{load,solar,wind}_lstm_multiyear/`. **These three MAEs are
@@ -182,7 +194,8 @@ overwrites the first's. Use `cfg.model.name` and `run_name` respectively.
 and a shape test parametrised over every `configs/model/*.yaml`. A wrong output
 rank currently broadcasts silently inside `pinball_loss`.
 
-### Phase 2 — NWP weather features, by pretrain-and-extend
+### Phase 2 — NWP weather features, by pretrain-and-extend ✅ complete
+(results, standalone arms, lead-time audit and retractions: log §§2–6)
 
 **What NWP is, for the record.** Numerical weather prediction: a physics
 simulation of the atmosphere on a 3-D grid, integrated forward from observed
@@ -194,18 +207,20 @@ origin of the −21.6% gap.
 
 #### 2.1 Source and the lead-time decision
 
-**Use the Previous Runs API** (`https://previous-runs-api.open-meteo.com/v1/forecast`)
-with the `_previous_day1` suffix. Each variable then carries a **fixed 24 h
-lead time**: the value for valid time *T* is what was predicted 24 h before *T*.
+**Use the Previous Runs API** (`https://previous-runs-api.open-meteo.com/v1/forecast`).
+The `_previous_day1` suffix carries a **fixed 24 h lead time**: the value for
+valid time *T* is what was predicted 24 h before *T*; `_previous_day2` is the
+48 h analogue.
 
-Why this is the right choice, and why it is *conservative* rather than
-optimistic — this belongs in the source docstring and the README:
-
-The model issues at 00:00 and predicts 96 steps forward. Its real available
-lead time therefore ranges from ~0 h at step 1 to ~24 h at step 96.
-`_previous_day1` supplies 24 h everywhere: correct at the far end, **worse than
-reality at the near end**. The bias is in the safe direction — it cannot
-inflate results.
+**Correction (log §5).** The claim originally recorded here — that
+`previous_day1`'s fixed 24 h lead is conservative and "cannot inflate
+results" — was wrong and is retracted (also retracted in place in
+`src/microgrid/data/sources/openmeteo.py`). A real day-ahead product closes
+at ~12:00 on D−1 and covers all of D, so its operational lead runs 13–37 h;
+for the late hours of D, `previous_day1` is issued *after* gate closure.
+Published headline numbers therefore use `_previous_day2` (48 h lead,
+unambiguously issued before any day-ahead gate closure), with day1 reported
+only as a footnote; the measured cost of the switch on wind is +8.5% MAE.
 
 The **Historical Forecast API** stitches the first hours of successive model
 runs, giving an effective lead time of ~0–6 h. For valid times within ~6 h of
@@ -276,7 +291,7 @@ For `LSTMForecaster` the decoder is `nn.LSTM(input_size=n_fut, hidden_size=H)`;
 **Acceptance test for this function**: on the same batch with the new channels
 set to any values, the extended model's output equals the original model's
 output to 1e-6. This is the property the whole phase rests on — fine-tuning
-starts exactly at 225.06 / 256.05 / 92.16, so any improvement is attributable
+starts exactly at 225.06 / 256.05 / 92.17, so any improvement is attributable
 and the worst case is a tie.
 
 **Scaler provenance.** The pretrained weights were learned under statistics fit
@@ -296,7 +311,7 @@ Run all three freeze settings — it is a 3-point ablation costing minutes, and
 with 2,500 windows against ~40k parameters the right answer is not obvious.
 Early-stop on the October validation split, which is fully NWP-covered.
 
-**Criterion**: beat **225.06 / 256.05 / 92.16**. Report the delta per target
+**Criterion**: beat **225.06 / 256.05 / 92.17**. Report the delta per target
 and the per-horizon curve; the specific expectation recorded in advance is that
 **wind's error should start varying with the period the way Elia's does**
 instead of sitting at its ~225 MW floor. A flat curve after NWP means the
@@ -309,15 +324,33 @@ real multi-year coverage: NOAA GFS archived forecasts on AWS
 Cost is GRIB2 parsing (`cfgrib`/`eccodes`) and roughly a week. Do not start it
 before Phase 2 reports.
 
-### Phase 3 — Architecture: PatchTST, without NWP
+### Phase 3 — Architecture: PatchTST vs LSTM on the full standalone dataset
 
-Independent of Phase 2 and runnable in parallel; the only shared prerequisite
-is Phase 1.
+(This is *planned-work* Phase 3; the log's "Phase 3" is the standalone
+experiment set, already run. See the numbering note in log §4.)
 
-**Train on the full 17,847 windows without NWP.** This is the fair comparison
-against `*_lstm_multiyear` — same windows, same features, same splits — and it
-simultaneously produces the **pretraining base Phase 4 needs**. LSTM weights
-cannot transfer into a transformer, so PatchTST must earn its own base here.
+**The testbed is the full standalone no-NWP dataset — no TSO input, no NWP:
+17,847 wind / 18,198 solar and load training windows, 3 seeds, medians with
+min–max ranges** (the binding protocol in CLAUDE.md and log §5). The NWP arms
+are capped at ~2,700 windows, a regime where this project has observed three
+separate times that more trainable parameters lose — a transformer there
+would lose and teach nothing (log §9). The full standalone dataset is the
+only fair architecture testbed available, and its LSTM bars are known:
+**wind 702.96 / solar 132.43 / load 334.29** (`{target}_standalone_full`,
+log §4).
+
+**The bar is the LSTM, explicitly NOT Elia.** In the standalone configuration
+the model consumes no NWP and no TSO forecast, so it cannot approach Elia's
+185.08 on wind — the LSTM base is 3.8× Elia and even the best NWP arm is
+1.85× Elia. Judging this arm against Elia would guarantee a failure verdict
+on a run whose purpose is a controlled architecture comparison on identical
+windows.
+
+**Framing: features versus architecture.** On the same data, swapping the
+seq2seq LSTM for PatchTST buys *X*%; on 1/6.5 of the data, adding a freely
+available 48 h weather forecast bought 75%. Features set the ceiling;
+architecture determines how close you get to it. That paired statement is the
+deliverable, whichever way the comparison goes (log §9).
 
 `src/microgrid/forecast/models/patchtst.py`, named honestly in the docstring as
 a **PatchTST-style encoder with a future-covariate head** — vanilla PatchTST
@@ -334,8 +367,8 @@ where much of the signal lives, so they must be fused.
   shared linear → `[B·n_hist, horizon]` → reshape `[B, horizon, n_hist]`.
 - Fuse: `x_future [B, 96, n_fut]` → per-step linear → concatenate → final
   linear → `[B, horizon, Q]`. **Keep this fusion layer a single `nn.Linear` on
-  the future-covariate axis** so Phase 4 can widen it the same way 2.4 widens
-  the LSTM decoder.
+  the future-covariate axis** so a later PatchTST + NWP extension (open list
+  below) can widen it the same way 2.4 widens the LSTM decoder.
 - `revin: true` config flag (per-window instance normalisation, undone at the
   head), ablated. The framework already applies a global train-fit scaler, so
   RevIN here is per-window centring — do not double-normalise silently.
@@ -345,30 +378,48 @@ where much of the signal lives, so they must be fused.
 
 **Sample-size scaling curve.** Train both architectures on 10 / 25 / 50 / 100%
 of the training windows (subsample `ds.starts` by a fixed rule; val and test
-untouched) and plot test MAE vs window count. Two real points already exist
-(3,276 and 17,847). This is what converts the likely outcome — the transformer
-does not win at this scale — from a failure into a statement with a mechanism.
+untouched) and plot test MAE vs window count. Two real points already exist on
+the standalone LSTM line (2,724 recent and the full history — log §4). This is
+what converts the likely outcome — the transformer does not win at this scale —
+from a failure into a statement with a mechanism.
 
 **Honest expectation**: a tie or a small loss. 17.8k windows is small for a
-transformer, and Phase 0 showed the signal is dominated by one input feature
-that an LSTM passes through adequately. Budget the effort for explaining the
-result, not for winning.
+transformer, and in the standalone configuration the wind signal without
+weather is thin no matter the architecture (log Finding 5.2). Budget the
+effort for explaining the result, not for winning.
 
-### Phase 4 — PatchTST + NWP
+### Phase 4 — Split B: the full-year test split (additive)
 
-Apply 2.4's zero-init extension to the Phase 3 checkpoint and fine-tune on the
-NWP window exactly as in 2.5. This is the configuration expected to be best,
-and by this point it has a pretraining base, an attributable comparison against
-both Phase 2 and Phase 3, and a documented fallback if it regresses.
+Derived from log §7. Split A (train → 2024-10, test = Nov–Dec 2024) stays
+frozen so every existing forecast/dispatch/RL number remains comparable.
+Split B adds: train 2019-01 → 2023-10, val 2023-11..12, **test = all of 2024**
+(~4,380 windows vs 721 today) — a test set that covers four seasons and a 6×
+larger evaluation sample.
 
-Final comparison table, all on the same 721 test windows:
+- **Only models that need no NWP can use it**: the Open-Meteo archive begins
+  2024-02, so putting all of 2024 in test leaves the NWP arms with no
+  training data.
+- Requires re-running the LSTM standalone baselines under split B.
+- **Split A and split B numbers must never appear in the same table.**
+- Season-conditioned training/intervals (log §7.1: within-month std swings
+  746 → 1369 MW across the year while the model learns one global quantile
+  spread) is **gated on this split** and remains an untested hypothesis with
+  a plausible mechanism, not a finding, until it exists.
 
-| configuration | NWP | training windows | init |
-|---|---|---:|---|
-| LSTM multi-year (done) | no | 17,847 | random |
-| LSTM + NWP | yes | 17,847 pretrain + 2,500 fine-tune | pretrained |
-| PatchTST | no | 17,847 | random |
-| PatchTST + NWP | yes | 17,847 pretrain + 2,500 fine-tune | pretrained |
+### Open list (not scheduled)
+
+- **Full history (17.8k windows) + NWP** — very likely the best deployable
+  model; blocked on NWP archive depth (log §6 probed and closed the JMA
+  route with a 2024 control).
+- **PatchTST + NWP fine-tune** — de-motivated while the NWP window is capped
+  at ~2,700 windows (more parameters lose there, observed three times);
+  reopens only if the archive-depth cell opens.
+- **ERA5 reanalysis as an oracle upper bound** — ERA5 is *reanalysis*, not a
+  forecast: as a deployed feature it is leakage, and it may only ever be
+  reported as an explicitly-labelled upper bound, never as a model score
+  (log §7).
+- **Elia publication-time leakage audit (0.4)** — desk research; the result
+  belongs in `data/sources/elia.py`'s docstring.
 
 ### Appendix A — TSO post-processing (optional configuration, off the main line)
 
@@ -402,14 +453,16 @@ input" an affine map the network must learn rather than the identity.
 5. `extend_future_inputs` passes the numerical-identity test (extended model
    equals its input to 1e-6), and a test asserts the checkpoint's scaler
    statistics for existing columns survive extension unchanged.
-6. Phase 2 reports, per target, the delta against 225.06 / 256.05 / 92.16, the
+6. Phase 2 reports, per target, the delta against 225.06 / 256.05 / 92.17, the
    three freeze settings, and the per-horizon curve. For wind, whether the
    error started tracking Elia's across periods is stated explicitly.
-7. PatchTST passes the contract shape test, is compared to the LSTM on
-   identical windows (`ds.starts` equality asserted), and the sample-size
-   scaling curve exists for both architectures with the verdict stated **with
-   its mechanism**.
-8. Phase 4's four-row comparison table in both READMEs.
+7. PatchTST passes the contract shape test, is compared to the standalone
+   LSTM on identical windows (`ds.starts` equality asserted) with **3 seeds,
+   medians and min–max ranges**, and the sample-size scaling curve exists for
+   both architectures with the verdict stated **with its mechanism**.
+8. The Phase 3 architecture comparison (vs 702.96 / 132.43 / 334.29, never vs
+   Elia) lands in both READMEs; if split B exists, its numbers never share a
+   table with split A's.
 9. Daylight-only solar coverage reported alongside all-hours; load's interval
    under-coverage stated plainly.
 10. pytest green (fast + slow). Both READMEs updated; task board flipped; this
@@ -430,9 +483,19 @@ input" an affine map the network must learn rather than the identity.
 - [x] 2.2 NWP join step + 15-min reindex + coverage assertion
 - [x] 2.3 minimal feature set (4 for wind, 2 for solar, 1–3 for load)
 - [x] 2.4 `extend_future_inputs` + numerical-identity test + scaler provenance
-- [ ] 2.5 fine-tune, 3 freeze settings, 3 targets; delta vs the three bars
-- [ ] Phase 3: `patchtst.py` + `configs/model/patchtst.yaml`, trained on 17.8k
-- [ ] Phase 3: sample-size scaling curve, both architectures
-- [ ] Phase 4: extend + fine-tune PatchTST with NWP
-- [ ] Final four-row comparison; both READMEs; board; archive summary
+- [x] 2.5 fine-tune, 3 freeze settings, 3 targets; delta vs the three bars
+      (log §2: with the TSO input present, NWP is inert — the recorded wind
+      expectation was not met, and the mechanism is documented there)
+- [x] Standalone arms A0/A1/A2 — TSO input removed (log §4, experiment
+      numbering "Phase 3")
+- [x] Lead-time audit: `previous_day2` (48 h legal lead) re-run, 3 seeds ×
+      {day1, day2}; multi-seed protocol adopted; two retractions (log §5)
+- [x] Archive-extension attempt: 2021–23 shells confirmed empty; JMA GSM
+      probed with a 2024 control and closed (log §6)
+- [ ] Phase 3 (this file): `patchtst.py` + `configs/model/patchtst.yaml`,
+      trained on the full standalone no-NWP dataset, 3 seeds
+- [ ] Phase 3 (this file): sample-size scaling curve, both architectures
+- [ ] Phase 4 (this file): split B — re-run standalone LSTM baselines,
+      full-year 2024 test
+- [ ] Architecture comparison in both READMEs; board; archive summary
 - [ ] (optional) Appendix A: residual + shared (target, TSO) scaling

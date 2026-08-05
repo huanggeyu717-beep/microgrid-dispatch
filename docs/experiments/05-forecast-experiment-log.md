@@ -208,6 +208,17 @@ Arms (all single seed at this stage; superseded for A1/A2 by §5):
 Skill vs persistence — wind 0.357 / −0.264 / **0.723**; solar 0.230 /
 −0.016 / 0.191; load 0.350 / 0.116 / 0.181.
 
+Window-count note (verified 2026-08-05, not a typo): A0 has 17,847 wind windows
+against 18,198 for solar and load. Two separate gaps produce the difference.
+Solar's ods032 coverage begins 2020-07, and since all three measured series are
+`history_columns`, that gap sits in the *context* of every pre-2020-07 window
+and drops it for **every** target. Wind then has 36 further short outages after
+2020-07 (448 fifteen-minute slots, longest 38); those fall in the *horizon*, and
+`ForecastWindows` checks horizon NaNs against the target series only, so they
+drop windows **only when wind is the target**. Counted directly on
+`data/processed/elia_dataset.parquet`: wind 448 NaN slots after 2020-07, solar
+and load 0.
+
 **Finding 4 — the headline result of task 05: NWP's value is conditional on
 what else is in the input.** A1 and A2 are a controlled pair — identical
 2,724 windows, identical model, identical split, the only difference being

@@ -23,8 +23,8 @@ flowchart LR
 |-------|--------|
 | Data pipeline — Elia 2019–2024, cleaning, alignment, causal features | Complete |
 | Day-ahead probabilistic forecasting — seq2seq LSTM, quantile intervals | Complete |
-| NWP weather features | In progress |
-| PatchTST forecaster, SHAP attribution | Planned |
+| NWP weather features — 48 h lead; value shown to be conditional on the input set | Complete |
+| PatchTST vs LSTM architecture comparison | Planned (next) |
 | NSGA-III multi-objective dispatch + entropy-weighted TOPSIS | Complete |
 | DRL dispatch policy (SAC) + three-way comparison | Complete |
 | PostgreSQL data layer | Complete |
@@ -132,35 +132,154 @@ above Elia's curve for the remaining 23 h.
 Post-processing an NWP-based forecast with power history and calendar features
 alone extracts what is extractable — the residual is genuine weather
 uncertainty, which is simply not present in the electricity time series. The
-next step is therefore numerical weather prediction features, with a
-falsifiable expectation recorded in advance: *if NWP is genuinely used, wind
-MAE should start varying with the period the way Elia's does, instead of
-sitting at its ~225 MW floor.*
+next lever was therefore numerical weather prediction (NWP) features — NWP is
+a physics simulation of the atmosphere, integrated forward from observed
+initial conditions on a supercomputer; its outputs (future wind speed,
+radiation, temperature) are consumed here as model inputs. A falsifiable
+expectation was recorded in advance: *if NWP is genuinely used, wind MAE
+should start varying with the period the way Elia's does, instead of sitting
+at its ~225 MW floor.*
+
+#### The recorded prediction failed — and the failure is the finding
+
+With Elia's forecast still in the inputs, adding NWP changed nothing. Nine
+runs (3 targets × 3 fine-tuning settings, ~2,700–2,900 training windows)
+delivered the NWP channels to the model — the future-covariate channel counts
+in the saved checkpoints confirm the features genuinely reached the tensors.
+One of the three settings freezes the new NWP weights at zero, which makes
+that model numerically identical to one without the feature: a built-in
+control run. Wind landed at 193.49 / 194.15 / 193.31 MW across the three
+settings — the zero-frozen control included — a 0.4% spread, against
+run-to-run seed noise of roughly 10% at this training size. The prediction
+was **not met**: wind MAE did not start tracking the period; it did not move
+at all. A separate run with the NWP columns deleted outright scored 192.56
+against the zero-frozen control's 193.31 — freezing the feature to zero and
+deleting it give the same answer.
+
+**The mechanism**: Elia's day-ahead forecast is itself an NWP product —
+weather forecasts already passed through power curves, unit availability and
+site aggregation. Raw gridded weather at three coordinates is a
+worse-processed version of information the model already had. Redundant, not
+additive. A prediction written down before the experiment, that then failed,
+plus the reason it failed, says more about what this model actually does than
+any success metric would have.
+
+#### Same feature, opposite verdict: −75% once the TSO input is removed
+
+The standalone line asks a different question: how good can a forecaster be
+that consumes **no other party's forecast** — only public weather data and
+its own measurement history? That is the transferable configuration (nothing
+Elia-specific left in the inputs), and its honest baseline is persistence,
+not Elia.
+
+Two runs form a controlled pair: identical 2,724 training windows, identical
+model, identical split — the **only** difference is the NWP channels. The
+honesty-critical variable is *lead time*: how far in advance a forecast was
+issued. A day-ahead market closes around noon on the day before delivery, so
+an operationally usable forecast needs up to ~37 h of lead. The headline
+numbers use the archive's fixed **48 h lead** (`previous_day2`), which is
+available before any day-ahead gate closure. Test MAE in MW, median of 3
+seeds with the min–max range in brackets:
+
+| Target | no NWP | + NWP, 48 h lead | change |
+|--------|-------:|-----------------:|-------:|
+| Wind   | 1381.87 † | **341.62** (338.07–357.28) | **−75.3%** |
+| Solar  | 179.93 (174.79–196.68) | **162.68** (160.33–171.09) | −9.6% |
+| Load   | 479.31 (454.79–482.78) | 462.99 (431.13–468.83) | not demonstrated |
+
+† the no-NWP wind baseline is a single seed — its two sibling seeds were
+never run. The 75% gap is far beyond the ~15% threshold under which the
+multi-seed protocol (below) allows a single-seed comparison, but the baseline
+is one draw and this table must not imply otherwise.
+
+- **Wind**: the same feature that was worth 0% with Elia's forecast present
+  is worth −75.3% without it — the question was never "is NWP useful" but
+  "given everything else in the input, how much information does NWP still
+  carry".
+- **Solar**'s −9.6% is small but clean: the seed ranges do not overlap, so
+  every 48 h-lead draw beats every no-NWP draw.
+- **Load**: the ranges overlap. The honest statement is "no demonstrable
+  benefit at a legal lead", not "small benefit".
+- A 24 h rolling-lead archive (`previous_day1`) would give wind 314.97. The
+  48 h number was chosen as the headline at a **measured cost of +8.5%**
+  (314.97 → 341.62; the seed ranges are disjoint, so the cost is real rather
+  than noise). Paying 8.5% buys a claim that needs no defending: for the late
+  hours of the delivery day, the 24 h product is issued *after* a day-ahead
+  market has already closed.
+
+#### Why these numbers are credible
+
+Three sanity checks, none of which a bug or a data leak has any reason to
+reproduce:
+
+1. **The gain ordering is physically determined**: wind ≫ solar > load ≈ 0
+   (−75.3% / −9.6% / not demonstrated). Wind power is set almost entirely by
+   future wind speed, and nothing in the power history substitutes for it;
+   solar's sun-geometry component is already supplied by the calendar
+   features, so NWP only adds the cloud term; load barely depends on weather.
+2. **The no-NWP wind run fails in the right way**: its validation loss never
+   improved after initialisation (best epoch 0). At 2,724 windows with no
+   weather information there is nothing learnable in day-ahead wind — the
+   model ends up worse than persistence.
+3. **For wind, weather beats data volume**: the full-history no-NWP model
+   (17,847 windows) scores 702.96; the NWP model reaches 341.62 on 1/6.5 of
+   the data. For solar and load the opposite holds — full history wins —
+   consistent with those targets being calendar-driven rather than
+   weather-driven.
+
+Two further checks closed off the alternative explanations:
+
+- **The 48 h radiation data is not degraded.** The solar gap between the two
+  lead times could have been misread as "48 h radiation forecasts are
+  unusable". Measured directly on the test period, the archived radiation
+  correlates with measured solar output at 0.810 for the 48 h lead vs 0.780
+  for the 24 h lead — the longer-lead data is, if anything, the
+  better-correlated one. The gap is seed noise.
+- **The archive limit was probed, not assumed.** The NWP training set is
+  capped at 2,724 windows because the Open-Meteo forecast archive begins
+  2024-02. The one documented multi-year alternative (JMA's global model,
+  archived from 2018) was probed with sample days in 2021–2023 *and a 2024
+  control*: hub-height wind speed and shortwave radiation come back null
+  **even in the 2024 control**, so this is a missing-variable limit of that
+  model, not an archive-depth limit — extending history that way would mean
+  training on 10 m wind with no radiation at all. Closed, and closed cleanly.
+
+**The measurement protocol behind the tables**: at ~2,700 training windows,
+re-running the same configuration with a different random seed (the integer
+that fixes weight initialisation and batch shuffling) moves MAE by roughly
+10%. Every "A beats B" claim above therefore rests on ≥3 seeds and is
+reported as a median with its full min–max range, unless the observed gap
+exceeds ~15%. Applying this protocol retroactively **retracted two
+conclusions this project had already written down** (both about which
+training-window length wind and solar "prefer"; the observed gaps of 7.0%
+and 0.6% were inside single-seed noise). The protocol serves the statistical
+validity of a *comparison* — it is explicitly not reproducibility work;
+bit-level run-to-run repeatability remains a non-goal of this project.
 
 #### Known limitations
 
-- **Solar intervals are too narrow out of sample.** Daylight coverage is 0.646
-  against a nominal 0.80. On the training period it is 0.811, so this is a
-  generalisation failure of the interval *width*, not underfitting. Load is
-  close to calibrated (0.827), wind slightly wide (0.852).
-- **All-hours coverage is misleading for solar.** At night the target is
-  identically zero, so any interval containing zero counts as covering. The
-  daylight-only figure is the meaningful one; both are reported in
-  `models/<run>/diagnosis_<split>.json`. A night-time artefact remains: the
-  model emits a *positive* 10% quantile in 71% of night steps, so a zero target
-  falls below the interval and counts as uncovered. Predictions are clamped to
-  ≥ 0 in physical units as a hard physical guard — solar and wind output cannot
-  be negative — but that clamp provably cannot fix this: raising a *negative*
-  lower bound to zero leaves a zero target covered either way, and the 71% of
-  positive lower bounds are untouched. Removing the artefact properly means
-  forcing every quantile to exactly zero when the sun is below the horizon. It
-  is deliberately left in place: the error involved is a few MW at night, which
-  is ~0.4 kW after downscaling to the notional microgrid, and daylight coverage
-  is the metric being judged.
-- **Load's +0.2% over Elia is 0.5 MW on a 256 MW error** — a tie, not a win.
-- The comparison is against Elia's *day-ahead* product only; Elia also
-  publishes intraday updates, which are naturally more accurate and are not a
-  fair reference for a day-ahead model.
+- **Interval calibration is poor, and the legal lead makes it worse.**
+  *coverage_80* is the fraction of true values that fall inside the model's
+  80% prediction interval; the ideal is 0.80, and lower means the intervals
+  are too narrow. Medians of three seeds for the standalone NWP models: wind
+  0.773 (24 h lead) → 0.722 (48 h lead); solar daylight coverage 0.762 →
+  0.680 (seed 42 only); load 0.612 → 0.619. Point forecasts are usable; the
+  prediction intervals are not yet trustworthy.
+- **For solar, only daylight coverage is meaningful.** At night solar output
+  is identically zero and almost any interval covers a zero target, so the
+  all-hours figure (0.896–0.919 here) overstates calibration by roughly 15
+  percentage points. Solar coverage in this README is daylight-only.
+- **The test set is one season.** Nov–Dec 2024, 721 windows. Every forecast
+  number in this project describes late-autumn/winter performance; nothing
+  here supports a claim about summer, and no seasonal comparison is possible
+  without changing the frozen split.
+- **The dispatch and RL results below were produced with the original
+  single-year LSTM forecasts** and have not been re-run against any of the
+  newer forecasting models.
+- The standalone forecaster's wind error is ~1.85× Elia's (341.62 vs 185.08).
+  The honest framing is not that it beats the TSO — it does not — but that it
+  uses **none of Elia's outputs**: only public weather data and its own
+  history.
 
 ![Day-ahead quantile forecast, load](reports/figures/forecast_load_lstm.png)
 
@@ -340,9 +459,13 @@ data/               # raw / interim / processed (git-ignored)
 
 1. **Complete** — Data pipeline: Elia wind/solar/load; cleaning, 15-min alignment, causal features
 2. **Complete** — Forecasting (phase 1): seq2seq LSTM baseline, quantile interval forecasts, leakage-free window splits, time-boxed resumable training. Ablation-driven diagnosis established that solar and load were **data-limited** (extending training from 9 months to 4.2 years flipped both from losing to Elia to matching/beating it) while wind is **information-limited** (5.4× the data changed nothing; the model's error is flat across periods while Elia's tracks actual predictability)
-3. **In progress** — Forecasting (phase 2): **NWP weather features** — no longer an optional refinement but the only remaining lever on wind, per the phase-1 diagnosis; then PatchTST plugged into the same framework, and SHAP explainability
+3. **Complete** — Forecasting (phase 2): **NWP weather features** at an operationally legal 48 h lead. Headline finding: NWP's value is conditional on what else is in the input — inert while Elia's day-ahead forecast (itself an NWP product) is an input, worth −75.3% on wind once that input is removed. Established the multi-seed protocol (≥3 seeds, median with min–max range) after measuring seed noise at ~10% of MAE at this training scale; applying it retracted two single-seed conclusions
 4. **Complete** — Optimisation: pymoo NSGA-III day-ahead dispatch (cost/CO₂/grid-peak, pluggable objectives), entropy-weighted TOPSIS pick, named-scenario system
 5. **Complete** — DRL: SAC closed-loop dispatch policy, three-way comparison vs NSGA-III / rule baseline (cost / CO₂ / peak / decision latency / forecast-error robustness); physics reused from the single source system.py; time-boxed resumable training
 6. **Complete** — SQL layer: PostgreSQL, 5 tables ~260k rows, idempotent loading (COPY + ON CONFLICT), business comments on every table/column, 8 analysis queries
 7. **Complete** — Data agent: LLM tool-calling loop (explore schema → write SQL → self-correct on errors), belt-and-braces read-only safety (pure-function validator + READ ONLY transactions), any OpenAI-compatible endpoint, fully offline unit tests via an injected fake LLM client
 8. **Planned** — Re-run the downstream dispatch and RL comparison on the improved multi-year forecasts, quantifying how much forecast accuracy is actually worth in realised dispatch cost
+9. **Blocked** — Full history (17.8k windows) + NWP: very likely the best deployable forecaster, untested because the NWP forecast archive only reaches back to 2024-02 (the one documented multi-year alternative was probed and closed — see the forecasting section)
+10. **Planned, next** — PatchTST vs LSTM on the full standalone no-NWP dataset (17,847 wind / 18,198 solar and load windows, 3 seeds). PatchTST is a transformer forecaster that splits each input series into short patches and attends across them; run on the same windows as the standalone LSTM, it completes a features-versus-architecture comparison against the known LSTM bars (wind 702.96 / solar 132.43 / load 334.29). The bar is deliberately the LSTM, **not Elia**: with no NWP and no TSO input the model cannot approach Elia's 185.08, and judging a controlled architecture comparison against Elia would guarantee a failure verdict
+11. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table
+12. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help
