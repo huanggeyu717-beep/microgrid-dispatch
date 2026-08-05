@@ -1,3 +1,5 @@
+**English** | [简体中文](README.zh-CN.md)
+
 # Microgrid Dispatch: Forecasting → Multi-Objective Optimization → RL
 
 An end-to-end "forecasting → optimization → learning-based decision" microgrid project: deep-learning power/load forecasting + NSGA-III multi-objective day-ahead dispatch + a reinforcement-learning dispatch policy, topped by a PostgreSQL data layer and an LLM data agent (a Python rebuild and upgrade of my undergraduate thesis *Programming and Application of the NSGA-III Multi-Objective Optimization Algorithm*).
@@ -17,31 +19,158 @@ flowchart LR
     G --> H[LLM data agent<br>NL → SQL, read-only]
 ```
 
-**Status: ✅ data pipeline　✅ forecasting (LSTM baseline)　⬜ PatchTST　✅ NSGA-III optimization　✅ DRL (SAC)　✅ SQL data layer　✅ data agent (NL→SQL)**
+| Stage | Status |
+|-------|--------|
+| Data pipeline — Elia 2019–2024, cleaning, alignment, causal features | Complete |
+| Day-ahead probabilistic forecasting — seq2seq LSTM, quantile intervals | Complete |
+| NWP weather features | In progress |
+| PatchTST forecaster, SHAP attribution | Planned |
+| NSGA-III multi-objective dispatch + entropy-weighted TOPSIS | Complete |
+| DRL dispatch policy (SAC) + three-way comparison | Complete |
+| PostgreSQL data layer | Complete |
+| LLM data agent (natural language → SQL) | Complete |
 
 ## Results preview
 
-One year of real Belgian grid data (Elia, 15-minute resolution); cleaned and aligned measurements vs the TSO's day-ahead forecast:
+Six years of real Belgian grid data (Elia, 15-minute resolution, 2019-01 → 2024-12;
+the solar dataset only begins 2020-07); cleaned and aligned measurements vs the
+TSO's day-ahead forecast:
 
 ![One week of measurements vs day-ahead forecast](reports/figures/week_profile.png)
 
 ![Average intra-day profiles (10–90% quantile band)](reports/figures/daily_profiles.png)
 
-### Day-ahead probabilistic forecasting (LSTM baseline, test set 2024-11 – 2024-12)
+### Day-ahead probabilistic forecasting
 
-Trained with quantile loss (q = 0.1/0.5/0.9), producing 80% prediction intervals; benchmarked against a seasonal-persistence baseline and Elia's official day-ahead forecast:
+**Data.** Elia open data at 15-min resolution, 2019-01 → 2024-12 (the solar
+dataset only starts 2020-07, so windows before then are dropped for every
+target). Chronological split, never shuffled: train → 2024-09 (~18k windows),
+validation = Oct 2024 (372), test = Nov–Dec 2024 (721). The test period is
+untouched until final evaluation.
 
-| Target | MAE (MW) | vs persistence | vs TSO day-ahead | 80% interval coverage |
-|--------|---------|----------------|------------------|----------------------|
-| Load   | 260 | **+49.4%** | -1.4% | 73.3% |
-| Wind   | 225 | **+79.4%** | -21.7% | 86.5% |
-| Solar  | 106 | **+38.6%** | -11.0% | 93.2% |
+**Model.** Seq2seq LSTM, ~40k parameters, trains on CPU in ~1 min per target.
+Quantile loss at q = 0.1/0.5/0.9 gives 80% prediction intervals. The encoder
+reads 24 h of measured wind/solar/load; the decoder is driven only by features
+known at issue time (calendar encodings + Elia's published day-ahead forecast).
+Direct multi-horizon — the model's own output is never fed back, so error does
+not compound along the horizon.
 
-> The model uses no numerical weather prediction (NWP) — with history, calendar features and the TSO forecast as inputs alone it already approaches TSO level (load within 1.4%). The wind gap is larger because wind is fundamentally weather-driven — a clear improvement direction: NWP features.
+**Results** (test set, 721 windows; every baseline evaluated on *identical*
+windows):
 
-![Day-ahead quantile forecast, load](reports/figures/forecast_load.png)
+| Target | MAE (MW) | vs persistence | vs Elia DA | vs bias-corrected Elia | 80% coverage |
+|--------|---------:|---------------:|-----------:|-----------------------:|-------------:|
+| Load   | 256.1 | +50.2% | +0.2% (tie) | +1.3% | 0.827 |
+| Solar  |  92.2 | +46.4% | **+3.1%**   | +6.5% | 0.646 *(daylight)* |
+| Wind   | 225.1 | +79.4% | **−21.6%**  | +6.1% | 0.852 |
+
+Reference MAEs — seasonal persistence 514.2 / 172.1 / 1093.3, Elia day-ahead
+256.6 / 95.1 / 185.1, and a **zero-parameter** hour-of-day bias correction of
+Elia's forecast 259.3 / 98.6 / 239.8 (load / solar / wind).
+
+#### Where does the skill actually come from?
+
+The headline table is not self-explanatory: Elia's own day-ahead forecast is
+one of the model's inputs, so "beats persistence by 79%" could mean the model
+is good, or merely that it copies a good input. Three ablations, each varying
+exactly one thing, settle it.
+
+**1 — Remove Elia's forecast from the inputs.**
+
+| Target | history + calendar only | + Elia DA forecast |
+|--------|------------------------:|-------------------:|
+| Load   | 482.4 *(+6.2% vs persistence)*  | 256.1 *(+50.2%)* |
+| Solar  | 168.4 *(+2.1%)*                 |  92.2 *(+46.4%)* |
+| Wind   | 1299.7 *(**−18.9%**)*           | 225.1 *(+79.4%)* |
+
+Without it the model is barely better than "tomorrow = yesterday", and for wind
+it is *worse*. Essentially all of the headline skill is Elia's forecast being
+passed through; the model's own contribution is the correction it applies on
+top of it.
+
+**2 — Add four more years of training data** (3.3k → 18k windows). The original
+training period was 2024-01…09 and contained **no November or December at all**,
+so the test season was pure extrapolation — `doy_sin/doy_cos` took values never
+seen in training.
+
+| Target | trained on 2024-01…09 | trained on 2020-07…2024-09 |
+|--------|----------------------:|---------------------------:|
+| Load   | 260.1 *(−1.4% vs Elia)* | 256.1 *(**+0.2%**)* |
+| Solar  | 105.6 *(−11.0%)*        |  92.2 *(**+3.1%**)* |
+| Wind   | 225.3 *(−21.7%)*        | 225.1 *(−21.6%)* |
+
+Seasonal coverage was the binding constraint for **solar and load** — both flip
+from losing to Elia to matching or beating it, with no change to the model, the
+architecture, or a single hyperparameter. For **wind**, 5.4× the data changes
+nothing.
+
+**3 — Evaluate the same checkpoint on all three splits.** MAE in MW:
+
+| Target | model (train / val / test) | Elia (train / val / test) |
+|--------|----------------------------|---------------------------|
+| Load   | 241.6 / 186.4 / 256.1 | 249.1 / 177.7 / 256.6 |
+| Solar  | 107.7 / 141.7 /  92.2 | 109.4 / 138.0 /  95.1 |
+| Wind   | 232.7 / 240.0 / 225.1 | 269.5 / 209.9 / 185.1 |
+
+For load and solar the model's error **moves with Elia's** across periods: when
+a period is intrinsically harder, both degrade together. For wind the model's
+error is flat — 225–240 MW in all three periods — while Elia's ranges from 269
+down to 185. The model does not track the underlying predictability of the
+weather, because it cannot see it. Its apparent 37 MW "win" on the training
+period is not skill: it is Elia happening to be worse over 2020–2024 than over
+the test window, while the model sits on a ~225 MW floor it cannot get below.
+
+![Per-horizon MAE, wind (model vs Elia vs persistence, identical test windows)](reports/figures/forecast_diagnosis_wind_lstm_multiyear_test.png)
+
+The per-horizon breakdown says the same thing from another angle. Averaging MAE
+over all 96 horizon steps hides the structure: step 1 is only 15 min ahead of
+issue time, step 96 is 24 h ahead. The model beats Elia only for the first ~1 h
+of the horizon, where recent measurements dominate, then runs flat and parallel
+above Elia's curve for the remaining 23 h.
+
+**Conclusion: solar and load were data-limited; wind is information-limited.**
+Post-processing an NWP-based forecast with power history and calendar features
+alone extracts what is extractable — the residual is genuine weather
+uncertainty, which is simply not present in the electricity time series. The
+next step is therefore numerical weather prediction features, with a
+falsifiable expectation recorded in advance: *if NWP is genuinely used, wind
+MAE should start varying with the period the way Elia's does, instead of
+sitting at its ~225 MW floor.*
+
+#### Known limitations
+
+- **Solar intervals are too narrow out of sample.** Daylight coverage is 0.646
+  against a nominal 0.80. On the training period it is 0.811, so this is a
+  generalisation failure of the interval *width*, not underfitting. Load is
+  close to calibrated (0.827), wind slightly wide (0.852).
+- **All-hours coverage is misleading for solar.** At night the target is
+  identically zero, so any interval containing zero counts as covering. The
+  daylight-only figure is the meaningful one; both are reported in
+  `models/<run>/diagnosis_<split>.json`. A night-time artefact remains: the
+  model emits a *positive* 10% quantile in 71% of night steps, so a zero target
+  falls below the interval and counts as uncovered. Predictions are clamped to
+  ≥ 0 in physical units as a hard physical guard — solar and wind output cannot
+  be negative — but that clamp provably cannot fix this: raising a *negative*
+  lower bound to zero leaves a zero target covered either way, and the 71% of
+  positive lower bounds are untouched. Removing the artefact properly means
+  forcing every quantile to exactly zero when the sun is below the horizon. It
+  is deliberately left in place: the error involved is a few MW at night, which
+  is ~0.4 kW after downscaling to the notional microgrid, and daylight coverage
+  is the metric being judged.
+- **Load's +0.2% over Elia is 0.5 MW on a 256 MW error** — a tie, not a win.
+- The comparison is against Elia's *day-ahead* product only; Elia also
+  publishes intraday updates, which are naturally more accurate and are not a
+  fair reference for a day-ahead model.
+
+![Day-ahead quantile forecast, load](reports/figures/forecast_load_lstm.png)
 
 ### Day-ahead multi-objective dispatch (NSGA-III; cost / CO₂ emissions / grid peak)
+
+> **Note**: the numbers in this section and the next were produced with the
+> *single-year* LSTM forecasts (`models/*_lstm/`, not the improved
+> `*_lstm_multiyear` runs). Re-running the whole downstream chain on the better
+> forecasts, and quantifying how much a more accurate forecast is actually worth
+> in realised dispatch cost, is outstanding work.
 
 The national-scale forecasts are **downscaled** to a notional microgrid (peak load 4 MW, wind capacity 2 MW, solar capacity 3 MW; scaling factors derived from each series' maximum, defined in `configs/system/default.yaml`). For a given day (96 × 15 min) the day-ahead Pareto front is solved over three objectives: **operating cost / CO₂ emissions / grid peak power**. Decision variables are the per-step outputs of the micro gas turbine and the battery, `x = [P_mt(96), P_bat(96)]` (`P_bat > 0` discharging, `< 0` charging); the grid tie-line power is the **slack** of the power balance and never enters the decision vector. SoC bounds, terminal SoC (intra-day energy neutrality), tie-line ±3 MW and turbine ramp ±0.5 MW/step enter pymoo's **constraint vector G** (not folded into penalty terms).
 
@@ -116,7 +245,11 @@ Safety is **belt-and-braces**: a pure-function SQL validator (single SELECT/WITH
 pip install -r requirements.txt
 pip install -e .
 
-# 1. Download the full-year 2024 Elia data (wind ods031 / solar ods032 / load ods001)
+# 1. Download Elia data (wind ods031 / solar ods032 / load ods001).
+#    Chunked by calendar year into data/raw/elia/<series>_<year>.csv and resumable:
+#    years already on disk are skipped, so re-running only fetches what is missing.
+#    Default range is 2019-2024; override for a single year:
+#      python scripts/download_data.py data.date_start=2024-01-01
 python scripts/download_data.py
 
 # 2. Build the model-ready dataset (cleaning → alignment → features): parquet + quality report
@@ -125,10 +258,21 @@ python scripts/build_dataset.py
 # 3. Generate data-exploration figures -> reports/figures/
 python scripts/explore_data.py
 
-# 4. Train the day-ahead forecast models (LSTM baseline, trains on CPU)
+# 4. Train the day-ahead forecast models (LSTM baseline, ~1 min per target on CPU)
 python scripts/train_forecast.py forecast.target=load
 python scripts/train_forecast.py forecast.target=wind
 python scripts/train_forecast.py forecast.target=solar
+
+#    forecast.run_name gives a run its own directory under models/, so ablations
+#    do not overwrite each other (a finished run is skipped via its DONE marker):
+python scripts/train_forecast.py forecast.target=wind \
+    forecast.use_tso_forecast_input=false forecast.run_name=wind_lstm_notso
+
+# 4b. Diagnose a trained forecaster: per-horizon MAE vs Elia vs persistence, a
+#     zero-parameter bias-correction baseline, and daylight-only interval coverage.
+#     -> models/<run>/diagnosis_<split>.json + reports/figures/forecast_diagnosis_*.png
+python scripts/diagnose_forecast.py forecast.target=wind
+python scripts/diagnose_forecast.py forecast.target=wind forecast.diagnose_split=train
 
 # 5. Day-ahead multi-objective dispatch (NSGA-III: cost/CO₂/grid-peak; entropy-weighted TOPSIS pick)
 #    -> reports/figures/dispatch_*.png + models/dispatch_<day>/solution.json
@@ -194,10 +338,11 @@ data/               # raw / interim / processed (git-ignored)
 
 ## Roadmap
 
-1. ✅ Data pipeline: Elia wind/solar/load; cleaning, 15-min alignment, causal features
-2. ✅ Forecasting (phase 1): seq2seq LSTM baseline, quantile interval forecasts, leakage-free window splits, time-boxed resumable training
-3. ⬜ Forecasting (phase 2): PatchTST plugged into the same framework, NWP weather features, SHAP explainability
-4. ✅ Optimisation: pymoo NSGA-III day-ahead dispatch (cost/CO₂/grid-peak, pluggable objectives), entropy-weighted TOPSIS pick, named-scenario system
-5. ✅ DRL: SAC closed-loop dispatch policy, three-way comparison vs NSGA-III / rule baseline (cost / CO₂ / peak / decision latency / forecast-error robustness); physics reused from the single source system.py; time-boxed resumable training
-6. ✅ SQL layer: PostgreSQL, 5 tables ~260k rows, idempotent loading (COPY + ON CONFLICT), business comments on every table/column, 8 analysis queries
-7. ✅ Data agent: LLM tool-calling loop (explore schema → write SQL → self-correct on errors), belt-and-braces read-only safety (pure-function validator + READ ONLY transactions), any OpenAI-compatible endpoint, fully offline unit tests via an injected fake LLM client
+1. **Complete** — Data pipeline: Elia wind/solar/load; cleaning, 15-min alignment, causal features
+2. **Complete** — Forecasting (phase 1): seq2seq LSTM baseline, quantile interval forecasts, leakage-free window splits, time-boxed resumable training. Ablation-driven diagnosis established that solar and load were **data-limited** (extending training from 9 months to 4.2 years flipped both from losing to Elia to matching/beating it) while wind is **information-limited** (5.4× the data changed nothing; the model's error is flat across periods while Elia's tracks actual predictability)
+3. **In progress** — Forecasting (phase 2): **NWP weather features** — no longer an optional refinement but the only remaining lever on wind, per the phase-1 diagnosis; then PatchTST plugged into the same framework, and SHAP explainability
+4. **Complete** — Optimisation: pymoo NSGA-III day-ahead dispatch (cost/CO₂/grid-peak, pluggable objectives), entropy-weighted TOPSIS pick, named-scenario system
+5. **Complete** — DRL: SAC closed-loop dispatch policy, three-way comparison vs NSGA-III / rule baseline (cost / CO₂ / peak / decision latency / forecast-error robustness); physics reused from the single source system.py; time-boxed resumable training
+6. **Complete** — SQL layer: PostgreSQL, 5 tables ~260k rows, idempotent loading (COPY + ON CONFLICT), business comments on every table/column, 8 analysis queries
+7. **Complete** — Data agent: LLM tool-calling loop (explore schema → write SQL → self-correct on errors), belt-and-braces read-only safety (pure-function validator + READ ONLY transactions), any OpenAI-compatible endpoint, fully offline unit tests via an injected fake LLM client
+8. **Planned** — Re-run the downstream dispatch and RL comparison on the improved multi-year forecasts, quantifying how much forecast accuracy is actually worth in realised dispatch cost
