@@ -26,10 +26,20 @@ runs/
 .DS_Store
 Thumbs.db
 
-# model checkpoints & training artifacts (binary; metrics/history text files are kept)
+# model checkpoints & training artifacts (binary; metrics/history/diagnosis
+# text files are deliberately KEPT so results stay reviewable in the repo)
 models/**/*.pt
-models/**/*.pkl
-models/**/*.zip
-models/**/*.zip          # SB3 RL checkpoints (best/last)
 models/**/*.pkl          # SB3 replay buffer (large; only needed to resume training)
+models/**/*.zip          # SB3 RL checkpoints (best/last)
 .claude/
+
+# Per-run training-loss curves. 52 files, 1.8 MB, and none is cited by either
+# README or any doc — they only show that training converged. The diagnosis
+# figures are kept: those carry per-horizon comparisons that the docs cite.
+reports/figures/learning_curve_*.png
+
+# script run logs at the repo root (build_dataset.log, train_forecast.log,
+# diagnose_forecast.log, ...) — regenerated on every run, pure churn in diffs.
+# The ones already committed stay tracked until untracked explicitly:
+#   git rm --cached *.log
+*.log
