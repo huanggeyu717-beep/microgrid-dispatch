@@ -141,6 +141,29 @@ class ForecastWindows(Dataset):
         if n_excl:
             log.info("%s: dropped %d windows inside exclude_ranges", split, n_excl)
         self.starts = np.asarray(ok)
+        if split == "train":
+            frac = float(cfg.get("train_window_fraction", 1.0))
+            if not 0.0 < frac <= 1.0:
+                raise ValueError(
+                    f"forecast.train_window_fraction must be in (0, 1], got {frac}"
+                )
+            if frac < 1.0 and len(self.starts):
+                n_full = len(self.starts)
+                keep = np.unique(
+                    np.linspace(0, n_full - 1, max(1, round(n_full * frac)))
+                    .round()
+                    .astype(int)
+                )
+                # Evenly spaced over the WHOLE training period, first and last
+                # window always kept — every fraction spans the same calendar
+                # range, so the sample-size scaling curve varies window count,
+                # never seasonal coverage (see configs/forecast/default.yaml).
+                self.starts = self.starts[keep]
+                log.info(
+                    "train windows subsampled uniformly over the whole period: "
+                    "fraction=%g, %d -> %d",
+                    frac, n_full, len(self.starts),
+                )
         log.info(
             "%s windows: %d (context=%d, horizon=%d, stride=%d)",
             split, len(self.starts), C, H, cfg.stride,
@@ -200,6 +223,11 @@ def make_datasets(
         # Exclude the same periods from the scaler statistics: fitting mean/std
         # on a lockdown year would bias every split's scaling.
         train_df = train_df[~excluded_mask(train_df.index, cfg)]
+        # Deliberately NOT affected by train_window_fraction: fitting on the
+        # train split's rows (not the surviving windows) holds the input
+        # scaling fixed across every point of the sample-size scaling curve,
+        # so the only variable along the curve is the number of gradient
+        # samples.
         scaler = Scaler.fit(train_df, cols)
     else:
         missing = sorted(set(cols) - set(scaler.mean))

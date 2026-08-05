@@ -1,0 +1,26 @@
+# PatchTST-style encoder + future-covariate head — sized for CPU training
+# (2 threads): d_model 128 x 3 pre-norm layers is ~0.40M encoder parameters,
+# the per-channel flatten head ~0.14M, ~0.54M total. Patches of 16 steps (4h)
+# with stride 8 give 11 tokens over the 96-step context, so attention runs
+# over 11 positions, not 96. d_fuse=32 keeps the future-covariate projection
+# small (the standalone arms feed only 7 calendar columns) while leaving its
+# single-Linear weight [d_fuse, n_fut] the shape a later +NWP variant would
+# widen with zero-initialised columns (see forecast/extend.py for the LSTM
+# precedent).
+_target_: microgrid.forecast.models.patchtst.PatchTSTForecaster   # built by microgrid.assemble.build_model
+name: patchtst
+# Must equal forecast.context_steps. The patch count fixes the positional
+# embedding and head shapes at construction: the trainer creates its optimizer
+# and every load path calls load_state_dict before any forward pass, so these
+# parameters cannot be sized lazily from the first batch. Shorter contexts run
+# on the leading slice; longer ones raise.
+context_steps: 96
+d_model: 128
+n_heads: 8
+n_layers: 3
+d_ff: 256
+dropout: 0.1
+patch_len: 16
+patch_stride: 8
+d_fuse: 32
+revin: false

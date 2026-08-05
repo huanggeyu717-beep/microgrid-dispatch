@@ -245,6 +245,58 @@ def test_scaler_ignores_excluded_rows(wide_df, fcfg):
 
 
 # --------------------------------------------------------------------------- #
+# train_window_fraction (task 05 phase 3: sample-size scaling curve)
+# --------------------------------------------------------------------------- #
+def _with_fraction(fcfg, frac):
+    cfg = OmegaConf.create(OmegaConf.to_container(fcfg, resolve=True))
+    cfg.train_window_fraction = frac
+    return cfg
+
+
+def test_train_window_fraction_subsamples_train_split_only(wide_df, fcfg):
+    """0.25 keeps ~25% of the train windows; val and test starts stay
+    element-wise identical to the full run."""
+    full, _ = make_datasets(wide_df, fcfg)
+    sub, _ = make_datasets(wide_df, _with_fraction(fcfg, 0.25))
+    n_full = len(full["train"].starts)
+    assert abs(len(sub["train"].starts) - round(0.25 * n_full)) <= 1
+    for s in ("val", "test"):
+        assert np.array_equal(sub[s].starts, full[s].starts)
+
+
+def test_train_window_fraction_spans_the_whole_period(wide_df, fcfg):
+    """Uniform rule, not "most recent": the subsample keeps the first and last
+    window of the full set, so every fraction covers the same calendar range."""
+    full, _ = make_datasets(wide_df, fcfg)
+    sub, _ = make_datasets(wide_df, _with_fraction(fcfg, 0.25))
+    assert sub["train"].starts[0] == full["train"].starts[0]
+    assert sub["train"].starts[-1] == full["train"].starts[-1]
+
+
+def test_train_window_fraction_leaves_scaler_unchanged(wide_df, fcfg):
+    """The scaler is fit on the train split's rows, not the surviving windows:
+    every point on the scaling curve must share identical input scaling."""
+    _, full = make_datasets(wide_df, fcfg)
+    _, sub = make_datasets(wide_df, _with_fraction(fcfg, 0.1))
+    assert sub.mean == full.mean
+    assert sub.std == full.std
+
+
+def test_train_window_fraction_absent_key_is_a_noop(wide_df, fcfg):
+    """Configs written before the key existed must keep working unchanged."""
+    assert "train_window_fraction" not in fcfg
+    absent, _ = make_datasets(wide_df, fcfg)
+    explicit, _ = make_datasets(wide_df, _with_fraction(fcfg, 1.0))
+    assert np.array_equal(absent["train"].starts, explicit["train"].starts)
+
+
+@pytest.mark.parametrize("bad", [0.0, -0.5, 1.5])
+def test_train_window_fraction_out_of_range_raises(wide_df, fcfg, bad):
+    with pytest.raises(ValueError, match="train_window_fraction"):
+        make_datasets(wide_df, _with_fraction(fcfg, bad))
+
+
+# --------------------------------------------------------------------------- #
 # diagnostics (per-horizon MAE, bias-corrected TSO, daylight coverage)
 # --------------------------------------------------------------------------- #
 def test_per_horizon_mae_has_horizon_length(wide_df, fcfg):

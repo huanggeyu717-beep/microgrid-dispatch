@@ -62,6 +62,20 @@ splits:
 #   forecast.exclude_ranges='[["2020-03-14","2020-07-01"]]'
 exclude_ranges: []
 
+# Sample-size scaling curve (task 05 phase 3): keep this fraction of the TRAIN
+# split's windows; val and test are never subsampled. Selection is
+# deterministic and UNIFORM across the whole training period (evenly spaced
+# window indices, first and last window always kept) — NOT "the most recent
+# N%". Reason: the most recent 10% of the standalone training set is roughly
+# May–October 2024 and contains no winter at all, while the test split is
+# November–December, so a "most recent" rule would confound sample size with
+# seasonal coverage and the curve could not separate the two. Consequence:
+# the existing 2,724-window "recent" arm (A1, experiment log section 4) is
+# NOT a point on this curve and must not be plotted on it. The scaler is
+# unaffected either way — it is fit on the train split's rows, not on the
+# surviving windows, so every point on the curve shares identical scaling.
+train_window_fraction: 1.0
+
 # Pretrain-and-extend fine-tuning (task 05 phase 2.4/2.5). When from_run is
 # set, models/<from_run>/best.pt is loaded, the model built from its saved
 # model_cfg, and its future-input module widened with ZERO-initialised
