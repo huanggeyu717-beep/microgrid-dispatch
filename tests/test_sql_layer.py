@@ -149,7 +149,7 @@ def scratch_conn():
     """Connection into a throwaway schema; skip cleanly if no DB is reachable."""
     if not (os.environ.get("PGHOST") and os.environ.get("PGUSER")):
         pytest.skip("PostgreSQL env vars not set")
-    import psycopg2
+    psycopg2 = pytest.importorskip("psycopg2", reason="psycopg2 not installed")
 
     try:
         conn = psycopg2.connect(dbname=os.environ.get("PGDATABASE") or None)

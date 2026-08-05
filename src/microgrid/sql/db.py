@@ -16,7 +16,23 @@ import os
 from pathlib import Path
 
 import pandas as pd
-import psycopg2
+
+
+def _psycopg2():
+    """Import the PostgreSQL driver on first use, with an actionable error.
+
+    Local import: importing this module (e.g. from tests of the pure extract
+    helpers) must work without the driver installed — psycopg2 is an optional
+    extra (see requirements.txt), needed only to talk to a live database.
+    """
+    try:
+        import psycopg2
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError(
+            "PostgreSQL driver not installed; the SQL layer needs it to open "
+            "connections. Install it with: pip install psycopg2-binary"
+        ) from e
+    return psycopg2
 
 
 def connect(dbname: str | None = None):
@@ -25,6 +41,7 @@ def connect(dbname: str | None = None):
     ``dbname`` overrides only the target database (not a credential); host / user
     / password still come from the environment.
     """
+    psycopg2 = _psycopg2()
     if not os.environ.get("PGHOST") or not os.environ.get("PGUSER"):
         raise SystemExit(
             "PostgreSQL env vars not set (need at least PGHOST/PGUSER); aborting"

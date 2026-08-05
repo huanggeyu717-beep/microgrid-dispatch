@@ -18,9 +18,27 @@ from __future__ import annotations
 
 from typing import Callable, Mapping
 
-import psycopg2
-
 from microgrid.agent import guard
+
+
+def _psycopg2():
+    """Import the PostgreSQL driver on first use, with an actionable error.
+
+    psycopg2 is only needed here for ``psycopg2.Error`` in except clauses, so
+    each database-touching function imports it locally via this helper — that
+    keeps the except clauses reading as plain ``except psycopg2.Error`` while
+    letting the module (and tests of its pure functions, e.g. rows_to_text)
+    import without the driver installed. It is an optional extra, not a pin
+    (see requirements.txt).
+    """
+    try:
+        import psycopg2
+    except ModuleNotFoundError as e:
+        raise ModuleNotFoundError(
+            "PostgreSQL driver not installed; the data agent's database tools "
+            "need it. Install it with: pip install psycopg2-binary"
+        ) from e
+    return psycopg2
 
 __all__ = ["ALLOWED_TABLES", "build_toolset", "list_tables", "get_schema", "run_query", "rows_to_text"]
 
@@ -52,6 +70,7 @@ def rows_to_text(cols: list[str], rows: list[tuple], truncated: bool, row_limit:
 
 def list_tables(conn) -> str:
     """Name + row count + table COMMENT for each project table that exists."""
+    psycopg2 = _psycopg2()
     lines = []
     try:
         with conn.cursor() as cur:
@@ -75,6 +94,7 @@ def list_tables(conn) -> str:
 
 def get_schema(conn, table: str) -> str:
     """Columns (type, nullability, COMMENT) and constraints of one table."""
+    psycopg2 = _psycopg2()
     if table not in ALLOWED_TABLES:
         return (
             f"ERROR: unknown table '{table}'. "
@@ -116,6 +136,7 @@ def get_schema(conn, table: str) -> str:
 
 def run_query(conn, sql: str, row_limit: int = 50, timeout_ms: int = 5000) -> str:
     """Validate, then execute one read-only query; return rows or the error text."""
+    psycopg2 = _psycopg2()
     try:
         clean = guard.validate(sql)
     except guard.GuardError as e:
