@@ -142,7 +142,11 @@ class ForecastWindows(Dataset):
             log.info("%s: dropped %d windows inside exclude_ranges", split, n_excl)
         self.starts = np.asarray(ok)
         if split == "train":
-            frac = float(cfg.get("train_window_fraction", 1.0))
+            raw = cfg.get("train_window_fraction", 1.0)
+            # Explicit null means the default (keep every window), matching
+            # the repo-wide yaml convention (run_name, non_negative,
+            # max_seconds); float(None) would raise TypeError instead.
+            frac = 1.0 if raw is None else float(raw)
             if not 0.0 < frac <= 1.0:
                 raise ValueError(
                     f"forecast.train_window_fraction must be in (0, 1], got {frac}"

@@ -5,6 +5,7 @@
     python scripts/train_forecast.py model=patchtst       # (future)
 """
 
+import json
 import logging
 from pathlib import Path
 
@@ -26,6 +27,54 @@ from microgrid.forecast.windows import future_columns, make_datasets
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s | %(message)s")
 log = logging.getLogger(__name__)
+
+
+def check_context_steps(cfg: DictConfig) -> None:
+    """Fail fast when model.context_steps disagrees with forecast.context_steps.
+
+    Only PatchTST's config carries context_steps (its positional embedding and
+    head are sized from it at construction). The model itself raises only when
+    the actual context is LONGER; a shorter one silently runs on the leading
+    slice of the positional embedding and head with fewer patch tokens — a
+    deliberate property the model-contract test relies on (it feeds a 32-step
+    context to every architecture), so this check lives here, where both
+    config groups are in scope, and not inside the model.
+    """
+    model_ctx = cfg.model.get("context_steps")
+    if model_ctx is not None and int(model_ctx) != int(cfg.forecast.context_steps):
+        raise ValueError(
+            f"model.context_steps ({model_ctx}) != forecast.context_steps "
+            f"({cfg.forecast.context_steps}) — the model's positional "
+            "embedding and head are sized from model.context_steps, and a "
+            "shorter training context would silently use their leading slice; "
+            "set both keys to the same value"
+        )
+
+
+def write_run_meta(run_dir: Path, datasets: dict, fcfg: DictConfig) -> None:
+    """Record the realised split sizes in <run_dir>/run_meta.json.
+
+    Written BEFORE training starts, so even an interrupted run is
+    self-describing. scripts/plot_scaling_curve.py prefers these counts for
+    its x axis over re-deriving them from hardcoded full-split totals — the
+    realised count after train_window_fraction subsampling can differ by one
+    from ``fraction * total`` and would silently drift if the totals went
+    stale.
+    """
+    raw = fcfg.get("train_window_fraction", 1.0)
+    run_dir.mkdir(parents=True, exist_ok=True)
+    (run_dir / "run_meta.json").write_text(
+        json.dumps(
+            {
+                "n_train_windows": len(datasets["train"]),
+                "n_val_windows": len(datasets["val"]),
+                "n_test_windows": len(datasets["test"]),
+                # explicit null means the default, like the key being absent
+                "train_window_fraction": 1.0 if raw is None else float(raw),
+            },
+            indent=2,
+        )
+    )
 
 
 def _finetune_model_and_scaler(cfg: DictConfig, df: pd.DataFrame):
@@ -88,6 +137,7 @@ def _finetune_model_and_scaler(cfg: DictConfig, df: pd.DataFrame):
 
 @hydra.main(config_path="../configs", config_name="pipeline", version_base=None)
 def main(cfg: DictConfig) -> None:
+    check_context_steps(cfg)
     df = pd.read_parquet(resolve(cfg.paths.processed_dir) / f"{cfg.data.name}_dataset.parquet")
 
     if extend.finetune_requested(cfg.forecast):
@@ -117,6 +167,7 @@ def main(cfg: DictConfig) -> None:
 
     name = cfg.forecast.get("run_name") or f"{cfg.forecast.target}_{cfg.model.name}"
     run_dir = resolve(cfg.paths.models_dir) / name
+    write_run_meta(run_dir, datasets, cfg.forecast)
     done = trainer.fit(model, datasets, scaler, cfg, run_dir)
     if not done:
         log.info("RESUME_NEEDED: rerun this command to continue training")

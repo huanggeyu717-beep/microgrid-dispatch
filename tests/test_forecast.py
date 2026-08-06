@@ -1,5 +1,6 @@
 """Forecast framework tests: no-leakage guarantees + loss correctness."""
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -202,6 +203,67 @@ def test_model_contract_output_shape(model_yaml):
 
 
 # --------------------------------------------------------------------------- #
+# model.context_steps x forecast.context_steps consistency (train entry point)
+# --------------------------------------------------------------------------- #
+def _import_train_forecast():
+    import sys
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    try:
+        import train_forecast
+    finally:
+        sys.path.pop(0)
+    return train_forecast
+
+
+def test_context_steps_mismatch_raises_at_train_entry(fcfg):
+    """A model config carrying context_steps (PatchTST sizes its positional
+    embedding and head from it) must match forecast.context_steps. The model
+    only raises when the actual context is LONGER — a shorter one silently
+    runs on the leading slice (a property the contract test above relies on),
+    so the training script must catch the mismatch, naming both values."""
+    train_forecast = _import_train_forecast()
+    cfg = OmegaConf.create(
+        {
+            "forecast": OmegaConf.to_container(fcfg, resolve=True),  # 192 steps
+            "model": {"name": "patchtst", "context_steps": 96},
+        }
+    )
+    with pytest.raises(ValueError, match=r"\(96\).*\(192\)"):
+        train_forecast.check_context_steps(cfg)
+    cfg.model.context_steps = 192  # equal values pass
+    train_forecast.check_context_steps(cfg)
+    # a model config without the key (the LSTM) is never checked
+    train_forecast.check_context_steps(
+        OmegaConf.create({"forecast": {"context_steps": 192}, "model": {"name": "lstm"}})
+    )
+
+
+def test_run_meta_records_realised_split_sizes(tmp_path, wide_df, fcfg):
+    """run_meta.json makes each run self-describing: plot_scaling_curve.py
+    reads its x axis from it instead of hardcoded full-split totals, so its
+    n_train_windows must equal the realised (post-subsampling) dataset length
+    and the file must exist even for a run that never finishes training."""
+    train_forecast = _import_train_forecast()
+    cfg = OmegaConf.create(OmegaConf.to_container(fcfg, resolve=True))
+    cfg.train_window_fraction = 0.25
+    ds, _ = make_datasets(wide_df, cfg)
+    run_dir = tmp_path / "load_lstm_f0.25_s42"
+    train_forecast.write_run_meta(run_dir, ds, cfg)
+    meta = json.loads((run_dir / "run_meta.json").read_text())
+    assert meta["n_train_windows"] == len(ds["train"])
+    assert meta["n_val_windows"] == len(ds["val"])
+    assert meta["n_test_windows"] == len(ds["test"])
+    assert meta["train_window_fraction"] == 0.25
+    # absent key -> recorded as 1.0, matching the subsample-nothing default
+    ds_full, _ = make_datasets(wide_df, fcfg)
+    train_forecast.write_run_meta(run_dir, ds_full, fcfg)
+    meta = json.loads((run_dir / "run_meta.json").read_text())
+    assert meta["n_train_windows"] == len(ds_full["train"])
+    assert meta["train_window_fraction"] == 1.0
+
+
+# --------------------------------------------------------------------------- #
 # exclude_ranges (e.g. the 2020 COVID lockdown)
 # --------------------------------------------------------------------------- #
 def test_exclude_ranges_absent_key_is_a_noop(wide_df, fcfg):
@@ -283,11 +345,17 @@ def test_train_window_fraction_leaves_scaler_unchanged(wide_df, fcfg):
 
 
 def test_train_window_fraction_absent_key_is_a_noop(wide_df, fcfg):
-    """Configs written before the key existed must keep working unchanged."""
+    """Configs written before the key existed must keep working unchanged.
+
+    An explicit null must behave exactly like an absent key (the repo-wide
+    yaml convention: run_name, non_negative, max_seconds) — it used to hit
+    float(None) and raise TypeError instead of subsampling nothing."""
     assert "train_window_fraction" not in fcfg
     absent, _ = make_datasets(wide_df, fcfg)
     explicit, _ = make_datasets(wide_df, _with_fraction(fcfg, 1.0))
+    null, _ = make_datasets(wide_df, _with_fraction(fcfg, None))
     assert np.array_equal(absent["train"].starts, explicit["train"].starts)
+    assert np.array_equal(absent["train"].starts, null["train"].starts)
 
 
 @pytest.mark.parametrize("bad", [0.0, -0.5, 1.5])
