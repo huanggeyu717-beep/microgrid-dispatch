@@ -24,7 +24,7 @@ flowchart LR
 | Data pipeline — Elia 2019–2024, cleaning, alignment, causal features | Complete |
 | Day-ahead probabilistic forecasting — seq2seq LSTM, quantile intervals | Complete |
 | NWP weather features — 48 h lead; value shown to be conditional on the input set | Complete |
-| PatchTST vs LSTM architecture comparison | Planned (next) |
+| PatchTST vs LSTM architecture comparison — LSTM wins on wind, three-seed ranges disjoint | Complete |
 | NSGA-III multi-objective dispatch + entropy-weighted TOPSIS | Complete |
 | DRL dispatch policy (SAC) + three-way comparison | Complete |
 | PostgreSQL data layer | Complete |
@@ -256,6 +256,116 @@ and 0.6% were inside single-seed noise). The protocol serves the statistical
 validity of a *comparison* — it is explicitly not reproducibility work;
 bit-level run-to-run repeatability remains a non-goal of this project.
 
+### Architecture: PatchTST vs LSTM, and what it took to measure it
+
+Does a transformer beat the seq2seq LSTM on this data? The question turned out
+to be unanswerable with the instrument the project had, and repairing the
+instrument produced two results worth more than the comparison itself.
+
+**The problem.** Re-running the standalone LSTM baseline with three seeds
+instead of one gave a best-to-worst spread of 10.2% on wind, 7.7% on solar and
+12.2% on load. The expected architecture effect is a few percent. A few percent
+cannot be read off an instrument whose own scatter is ten.
+
+**What did not fix it: more data.** At ~2,700 training windows the spread had
+measured 0.95–19.16% across eight arms; at 17,847 windows it is 7.7–12.2%.
+6.5× the training data did not reduce it.
+
+**What did.** The validation set — the 372 windows on which early stopping and
+best-checkpoint selection happen — never grew with the training set. Widening it
+from one month to four (1,476 windows, costing 6% of the training data) cut
+wind's spread from 10.2% to **1.7%** while moving the median by 0.4%. The
+variance was in model *selection*, not in what the models learned. Two runs
+whose validation losses differ by 0.04% had differed by 8.8% on test.
+
+It is not free. A four-month validation window is more summer-weighted while the
+test period is November–December, and the cost lands in proportion to how
+calendar-driven a target is: wind, where the calendar explains ~21% of the
+variance, gains almost freely; load is helped; solar, at 79.8%, gets *worse*
+(7.7% → 11.6%). Solar's architecture verdict carries that caveat.
+
+**The comparison.** Three seeds per architecture on identical windows, learning
+rates selected per architecture on validation only — all differences turned out
+to be inside seed noise, so the finding there is that the default was *not*
+disadvantaging the transformer. Median with min–max range, test MAE in MW:
+
+| Target | LSTM | PatchTST | Verdict |
+|--------|------|----------|---------|
+| Wind  | **699.95** (688.94–700.97) | 724.28 (716.23–748.39) | LSTM, ranges disjoint |
+| Solar | **136.44** (133.00–148.86) | 150.35 (145.29–155.02) | LSTM by 10.2%, ranges overlap marginally |
+| Load  | 312.59 (299.38–324.36) | **299.81** (288.96–307.10) | indistinguishable |
+
+The LSTM's *worst* wind draw beats PatchTST's *best* by 15.26 MW — every LSTM
+seed beats every PatchTST seed. **536,652 parameters lose to 38,531**: the
+fourth time in this project that more trainable parameters have done worse at
+this data scale, and the first measured with disjoint three-seed ranges rather
+than inferred. No run was cut short by its epoch cap, so "undertrained" is ruled
+out as an explanation.
+
+One thing PatchTST is measurably better at: interval calibration on load, where
+its three coverage values are 0.796 / 0.799 / 0.805 against a nominal 0.80,
+against the LSTM's 0.766 / 0.794 / 0.811.
+
+**Features versus architecture — both halves measured here, not cited:**
+
+> On identical windows, replacing the seq2seq LSTM with PatchTST **costs 3.5%**
+> on wind. On identical windows one-sixth the size, adding a freely available
+> 48-hour-lead weather forecast is worth **−75.3%**. Features set the ceiling;
+> architecture determines how close you get to it.
+
+Each of those two comparisons is internally controlled at its own training-set
+size. The cross-scale figure — the best NWP model at 2,724 windows against the
+best no-NWP model at 17,847 — is **−51.4%**, and the three numbers must not be
+conflated.
+
+#### The scaling curve, and why the transformer lost
+
+Both architectures at 10 / 25 / 50 / 100% of the training windows, subsampled
+uniformly across the whole training period, three seeds per point. Wind:
+
+| Training windows | LSTM | PatchTST |
+|---:|---|---|
+| 1,674 | 832.30 | **773.11** — 7.1% better |
+| 4,185 | **744.96** | 754.36 |
+| 8,371 | **715.67** | 742.15 |
+| 16,743 | **699.95** | 724.28 — 3.5% worse, ranges disjoint |
+
+**The curves cross.** The same crossing appears on solar (PatchTST 7.4% better
+at 1,709 windows, 10.2% worse at 17,094). On load PatchTST wins at every size,
+but its lead shrinks monotonically from 16.2% to 4.1%.
+
+The mechanism is slope, not quality. From the 10% point to the 100% point the
+LSTM improves by **15.9%** (wind), **20.4%** (solar) and **21.1%** (load);
+PatchTST improves by 6.3%, 5.2% and 9.8% — between 2.2× and 3.9× less.
+**PatchTST stops improving at roughly four thousand windows; the LSTM is still
+descending at seventeen thousand.**
+
+So the verdict is not "the transformer is a worse model of this problem" — at
+1,674 windows it is the better one on all three targets:
+
+> The two architectures differ less in quality than in *where they stop
+> improving*, and this dataset sits past PatchTST's stopping point and before
+> the LSTM's.
+
+![Sample-size scaling curve: test MAE vs training windows, both architectures, median of three seeds with min–max band](reports/figures/scaling_curve.png)
+
+The x axis counts windows, and at full density two consecutive windows share 92%
+of their 24-hour context (a window opens every 2 hours). This curve therefore
+measures **denser sampling of 2020-07 → 2024-07**, not more years — a flat
+segment means further density stops paying, not that further data would.
+
+**One claim this curve corrected.** Phase 0 measured that 5.4× the training
+period moved wind MAE by 0.08%, and that has been quoted since as "wind is
+information-limited, not sample-limited". This curve measures −15.9% over a
+comparable range of training-set sizes. The two are not in conflict: Phase 0's
+ablation had **Elia's day-ahead forecast in the input**; this curve has no TSO
+input at all. With Elia's forecast available, extra history adds nothing for
+wind — the forecast already carries what the history would have to be mined for.
+Remove it, and more windows help substantially. This is structurally the same
+statement as the project's headline NWP result — **what a resource is worth
+depends on what else is already in the input** — now shown to hold for training
+data as well as for weather.
+
 #### Known limitations
 
 - **Interval calibration is poor, and the legal lead makes it worse.**
@@ -441,7 +551,7 @@ src/microgrid/
   data/sources/     # data-source adapters (elia / gefcom2014, assembled via yaml _target_)
   data/             # cleaning / alignment / features (pure-function stages)
   forecast/         # windowed datasets / quantile loss / metrics / baselines / trainer / evaluation
-  forecast/models/  # models (lstm; PatchTST reserved behind the same forward contract)
+  forecast/models/  # models (lstm, patchtst — both behind the same forward contract + Protocol)
   optimize/         # device physics (pure functions incl. per-step primitives) / objectives /
                     #   pymoo problem / NSGA-III / entropy TOPSIS / scenario overrides / daily inputs / reports
   rl/               # DRL dispatch: env (gymnasium) / data (daily profiles) / baseline (rules) /
@@ -458,7 +568,7 @@ data/               # raw / interim / processed (git-ignored)
 ## Roadmap
 
 1. **Complete** — Data pipeline: Elia wind/solar/load; cleaning, 15-min alignment, causal features
-2. **Complete** — Forecasting (phase 1): seq2seq LSTM baseline, quantile interval forecasts, leakage-free window splits, time-boxed resumable training. Ablation-driven diagnosis established that solar and load were **data-limited** (extending training from 9 months to 4.2 years flipped both from losing to Elia to matching/beating it) while wind is **information-limited** (5.4× the data changed nothing; the model's error is flat across periods while Elia's tracks actual predictability)
+2. **Complete** — Forecasting (phase 1): seq2seq LSTM baseline, quantile interval forecasts, leakage-free window splits, time-boxed resumable training. Ablation-driven diagnosis established that solar and load were **data-limited** (extending training from 9 months to 4.2 years flipped both from losing to Elia to matching/beating it) while wind is **information-limited *given Elia's forecast as an input*** (5.4× the data changed nothing; the model's error is flat across periods while Elia's tracks actual predictability). That qualifier is load-bearing and was added after the fact: the scaling curve later measured −15.9% for 10× the windows on wind **with the TSO input removed**, so "information-limited" describes the configuration, not the target
 3. **Complete** — Forecasting (phase 2): **NWP weather features** at an operationally legal 48 h lead. Headline finding: NWP's value is conditional on what else is in the input — inert while Elia's day-ahead forecast (itself an NWP product) is an input, worth −75.3% on wind once that input is removed. Established the multi-seed protocol (≥3 seeds, median with min–max range) after measuring seed noise at ~10% of MAE at this training scale; applying it retracted two single-seed conclusions
 4. **Complete** — Optimisation: pymoo NSGA-III day-ahead dispatch (cost/CO₂/grid-peak, pluggable objectives), entropy-weighted TOPSIS pick, named-scenario system
 5. **Complete** — DRL: SAC closed-loop dispatch policy, three-way comparison vs NSGA-III / rule baseline (cost / CO₂ / peak / decision latency / forecast-error robustness); physics reused from the single source system.py; time-boxed resumable training
@@ -466,6 +576,6 @@ data/               # raw / interim / processed (git-ignored)
 7. **Complete** — Data agent: LLM tool-calling loop (explore schema → write SQL → self-correct on errors), belt-and-braces read-only safety (pure-function validator + READ ONLY transactions), any OpenAI-compatible endpoint, fully offline unit tests via an injected fake LLM client
 8. **Planned** — Re-run the downstream dispatch and RL comparison on the improved multi-year forecasts, quantifying how much forecast accuracy is actually worth in realised dispatch cost
 9. **Blocked** — Full history (17.8k windows) + NWP: very likely the best deployable forecaster, untested because the NWP forecast archive only reaches back to 2024-02 (the one documented multi-year alternative was probed and closed — see the forecasting section)
-10. **Planned, next** — PatchTST vs LSTM on the full standalone no-NWP dataset (17,847 wind / 18,198 solar and load windows, 3 seeds). PatchTST is a transformer forecaster that splits each input series into short patches and attends across them; run on the same windows as the standalone LSTM, it completes a features-versus-architecture comparison against the known LSTM bars (wind 702.96 / solar 132.43 / load 334.29). The bar is deliberately the LSTM, **not Elia**: with no NWP and no TSO input the model cannot approach Elia's 185.08, and judging a controlled architecture comparison against Elia would guarantee a failure verdict
-11. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table
+10. **Complete** — PatchTST vs LSTM on the full standalone no-NWP dataset, three seeds per architecture on identical windows. PatchTST is a transformer forecaster that splits each input series into short patches and attends across the patches rather than across all 96 time steps. **The LSTM wins on wind with disjoint three-seed ranges (699.95 vs 724.28, a 3.5% cost for the transformer), load is indistinguishable, solar likely LSTM**; 536,652 parameters lose to 38,531. The bar was deliberately the LSTM, **not Elia**: with no NWP and no TSO input the model cannot approach Elia's 185.08, and judging a controlled architecture comparison against Elia would have guaranteed a failure verdict. Getting there first required repairing the measurement: three-seed baselines at full scale, and a four-fold wider validation window that cut wind's seed spread from 10.2% to 1.7%. The sample-size scaling curve then supplied the mechanism: **the two curves cross** — PatchTST is 7.1% better at 1,674 windows and saturates around four thousand, while the LSTM is still improving at seventeen thousand. It also corrected an earlier claim: "wind is information-limited" holds only while Elia's forecast is an input; without it, 10× the windows is worth −15.9%
+11. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table. Scoped out of the forecasting task into its own, precisely because a result set that may never share a table with the others is not a phase of them
 12. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help

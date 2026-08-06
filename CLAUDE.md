@@ -124,6 +124,11 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 05 | Transferable forecaster: diagnose -> NWP -> model comparison | ⬜ pending (main line) | [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md) |
 | S1 | SQL layer (5 tables, idempotent load, 8 analysis queries) | ✅ done (branch `feat/sql-layer`) | no spec file; see 求职素材_微电网SQL层 doc |
 | 06 | Data agent: NL Q&A over the SQL layer (this branch) | ✅ done | [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md) |
+| 07 | Split B: full-year test split + seasonality | ⬜ pending | [docs/tasks/07-split-b.md](docs/tasks/07-split-b.md) — scoped out of task 05 Phase 4; split A and split B numbers may never share a table |
+
+Cross-cutting plan for what to deepen after the forecasting line, and which
+pieces already exist so they do not get rebuilt: [docs/roadmap.md](docs/roadmap.md).
+It is explicitly not binding — it says so at the top.
 
 ## ACTIVE TASK
 

@@ -3,12 +3,16 @@
 **Status**: 🔄 active — Phases 0–2 of this file complete, including the
 standalone arms, the multi-seed lead-time audit and the archive-extension
 probe (experiment phases 3–5 in the log's own numbering — the two schemes
-differ, always say which document a phase number belongs to); the 0.4
-publication-time leakage audit is still open. Phase 3 (PatchTST) is next.
-All result numbers live in
+differ, always say which document a phase number belongs to). Phase 3's
+architecture comparison is **answered** (log §11.4); its sample-size scaling
+curve is outstanding, as is the 0.4 publication-time leakage audit.
+**Phase 4 (split B) has moved out of this task** — see
+[docs/tasks/07-split-b.md](07-split-b.md) and the note in the Phase 4 section
+below. All result numbers live in
 [docs/experiments/05-forecast-experiment-log.md](../experiments/05-forecast-experiment-log.md)
 — that file is the single source of truth; this one plans work.
-**Timebox**: 4 weeks from the start of Phase 1.
+**Timebox**: 4 weeks from the start of Phase 1 (exceeded; the response was to
+cut scope, not to extend the box — see the Phase 4 note).
 
 ## Archive summary (fill when done, keep ≤15 lines)
 
@@ -68,7 +72,11 @@ substitutes for it. Phase 2 supplies it.
 | wind  | **225.06** | 185.08 | 1093.26 | 239.79 |
 
 Checkpoints: `models/{load,solar,wind}_lstm_multiyear/`. **These three MAEs are
-the bar every later phase must clear.**
+the bar for Phase 2 — and only for Phase 2.** They are produced with Elia's
+day-ahead forecast present as a model input. Phase 3 removes that input
+entirely, so it is judged against the standalone LSTM instead (log §11.2), never
+against these three and never against Elia. Confusing the two bars is the single
+easiest mistake to make in this file.
 
 ### NWP archive — verified by direct API probing (2026-08-04)
 
@@ -329,15 +337,30 @@ before Phase 2 reports.
 (This is *planned-work* Phase 3; the log's "Phase 3" is the standalone
 experiment set, already run. See the numbering note in log §4.)
 
-**The testbed is the full standalone no-NWP dataset — no TSO input, no NWP:
-17,847 wind / 18,198 solar and load training windows, 3 seeds, medians with
-min–max ranges** (the binding protocol in CLAUDE.md and log §5). The NWP arms
-are capped at ~2,700 windows, a regime where this project has observed three
-separate times that more trainable parameters lose — a transformer there
-would lose and teach nothing (log §9). The full standalone dataset is the
-only fair architecture testbed available, and its LSTM bars are known:
-**wind 702.96 / solar 132.43 / load 334.29** (`{target}_standalone_full`,
-log §4).
+**RESULT (log §11.4): answered. The LSTM wins on wind with non-overlapping
+three-seed ranges — 699.95 [688.94, 700.97] against PatchTST's 724.28
+[716.23, 748.39], a 3.5% cost for the transformer. Load is indistinguishable
+(ranges overlap heavily); solar is likely LSTM but its ranges overlap
+marginally. 536,652 parameters lose to 38,531.** The sample-size scaling curve
+below is what remains.
+
+**The testbed is the full standalone no-NWP dataset — no TSO input, no NWP,
+3 seeds, medians with min–max ranges** (the binding protocol in CLAUDE.md and
+log §5). The NWP arms are capped at ~2,700 windows, a regime where this project
+has observed three separate times that more trainable parameters lose — a
+transformer there would lose and teach nothing (log §9).
+
+Two things changed after this section was first written, both in log §11:
+
+- **The bar moved.** `{target}_standalone_full` was single-seed; three seeds put
+  its medians at 702.96 / 136.26 / 305.56 under split A — load's original 334.29
+  was the *worst* of three draws and would have handed PatchTST 9.4% of free
+  margin.
+- **The validation window moved**, to cut the wind seed spread from 10.2% to
+  1.7% so the comparison could resolve anything at all. The comparison therefore
+  runs under **split A-wide** (16,743 wind / 17,094 solar and load training
+  windows; test set byte-identical). Bars: **wind 699.95 / solar 136.44 /
+  load 312.59**. Read log §11's split-naming rule before quoting any of these.
 
 **The bar is the LSTM, explicitly NOT Elia.** In the standalone configuration
 the model consumes no NWP and no TSO forecast, so it cannot approach Elia's
@@ -377,34 +400,51 @@ where much of the signal lives, so they must be fused.
   threads, shrink `d_model` before reaching for a scheduler.
 
 **Sample-size scaling curve.** Train both architectures on 10 / 25 / 50 / 100%
-of the training windows (subsample `ds.starts` by a fixed rule; val and test
-untouched) and plot test MAE vs window count. Two real points already exist on
-the standalone LSTM line (2,724 recent and the full history — log §4). This is
-what converts the likely outcome — the transformer does not win at this scale —
-from a failure into a statement with a mechanism.
+of the training windows via `forecast.train_window_fraction` (val, test and the
+scaler untouched) and plot test MAE vs window count, three seeds per point.
 
-**Honest expectation**: a tie or a small loss. 17.8k windows is small for a
-transformer, and in the standalone configuration the wind signal without
-weather is thin no matter the architecture (log Finding 5.2). Budget the
-effort for explaining the result, not for winning.
+The subsample rule is **uniform over the whole training period**, not "the most
+recent N%" — the reasoning is in the config comment, and the consequence is
+recorded in log §8: **A1's 2,724 "recent" windows are NOT a point on this
+curve**, and the earlier claim in this file that two real points already existed
+on the standalone LSTM line was wrong and is removed.
 
-### Phase 4 — Split B: the full-year test split (additive)
+This is what converts the measured outcome — the transformer loses by 3.5% on
+wind — from a bare result into a statement with a mechanism. If PatchTST's curve
+is still falling at 16,743 windows while the LSTM's has flattened, the
+conclusion is "it would win with more data, which this project does not have";
+if both are flat, it is "more data of this kind helps neither". Those are
+different conclusions and only the curve separates them.
 
-Derived from log §7. Split A (train → 2024-10, test = Nov–Dec 2024) stays
-frozen so every existing forecast/dispatch/RL number remains comparable.
-Split B adds: train 2019-01 → 2023-10, val 2023-11..12, **test = all of 2024**
-(~4,380 windows vs 721 today) — a test set that covers four seasons and a 6×
-larger evaluation sample.
+**Honest expectation, recorded in advance**: a tie or a small loss. 17.8k
+windows is small for a transformer, and in the standalone configuration the wind
+signal without weather is thin no matter the architecture (log Finding 5.2).
+Budget the effort for explaining the result, not for winning. *(Outcome: a
+3.5% loss on wind with non-overlapping ranges. The expectation held.)*
 
-- **Only models that need no NWP can use it**: the Open-Meteo archive begins
-  2024-02, so putting all of 2024 in test leaves the NWP arms with no
-  training data.
-- Requires re-running the LSTM standalone baselines under split B.
-- **Split A and split B numbers must never appear in the same table.**
-- Season-conditioned training/intervals (log §7.1: within-month std swings
-  746 → 1369 MW across the year while the model learns one global quantile
-  spread) is **gated on this split** and remains an untested hypothesis with
-  a plausible mechanism, not a finding, until it exists.
+### Phase 4 — Split B: moved out of this task
+
+**Split B is now [task 07](07-split-b.md).** It was originally scoped here as an
+additive phase; the reason it left is structural rather than a matter of
+convenience.
+
+Split B does not extend this task's results, it produces a **parallel** set of
+them under a different evaluation set — and this project's own binding rule
+(log §7, restated in log §11) is that split A and split B numbers may never
+share a table. A phase whose output cannot be tabulated with the rest of its
+task is not a phase of that task.
+
+Two further reasons: what depends on split B lives outside this task —
+season-conditioned training and intervals (log §7.1) and conformal calibration
+(docs/roadmap.md, block A3, whose exchangeability assumption is violated by the
+current validation window) — so it is a prerequisite for future work rather than
+a completion of past work. And this task's 4-week timebox is long exceeded;
+cutting scope closes it, extending scope does not.
+
+Task 05 is complete when the scaling curve, the leakage audit and both READMEs
+are done. Split B is sequenced against the rest of the roadmap on value, not by
+the accident of having been written into this file first — currently priority 5
+in docs/roadmap.md.
 
 ### Open list (not scheduled)
 
@@ -460,9 +500,10 @@ input" an affine map the network must learn rather than the identity.
    LSTM on identical windows (`ds.starts` equality asserted) with **3 seeds,
    medians and min–max ranges**, and the sample-size scaling curve exists for
    both architectures with the verdict stated **with its mechanism**.
-8. The Phase 3 architecture comparison (vs 702.96 / 132.43 / 334.29, never vs
-   Elia) lands in both READMEs; if split B exists, its numbers never share a
-   table with split A's.
+8. The Phase 3 architecture comparison (vs the split A-wide three-seed medians
+   in log §11.2, never vs Elia and never vs the Phase 2 bars) lands in both
+   READMEs, with the split configuration named. Split B belongs to task 07; its
+   numbers must never share a table with split A or split A-wide numbers.
 9. Daylight-only solar coverage reported alongside all-hours; load's interval
    under-coverage stated plainly.
 10. pytest green (fast + slow). Both READMEs updated; task board flipped; this
@@ -492,10 +533,19 @@ input" an affine map the network must learn rather than the identity.
       {day1, day2}; multi-seed protocol adopted; two retractions (log §5)
 - [x] Archive-extension attempt: 2021–23 shells confirmed empty; JMA GSM
       probed with a 2024 control and closed (log §6)
-- [ ] Phase 3 (this file): `patchtst.py` + `configs/model/patchtst.yaml`,
-      trained on the full standalone no-NWP dataset, 3 seeds
-- [ ] Phase 3 (this file): sample-size scaling curve, both architectures
-- [ ] Phase 4 (this file): split B — re-run standalone LSTM baselines,
-      full-year 2024 test
-- [ ] Architecture comparison in both READMEs; board; archive summary
+- [x] Phase 6 (log §11): three-seed baselines at full scale, the validation-
+      window decision, per-architecture learning-rate selection — the
+      measurement precision the comparison below needed
+- [x] Phase 3 (this file): `patchtst.py` + `configs/model/patchtst.yaml`,
+      trained on the full standalone no-NWP dataset, 3 seeds (log §11.4 —
+      LSTM wins on wind, ranges do not overlap)
+- [x] Phase 3 (this file): sample-size scaling curve, both architectures,
+      3 seeds per point, via `forecast.train_window_fraction` (log §11.5 —
+      the curves cross; PatchTST saturates near 4k windows, the LSTM does not;
+      corrected the unqualified "wind is information-limited" claim)
+- [x] Architecture comparison and scaling curve in both READMEs
+- [ ] Phase 0.4 publication-time leakage audit (desk research) — **the last
+      open item; task board and archive summary wait on it**
 - [ ] (optional) Appendix A: residual + shared (target, TSO) scaling
+- ~~Phase 4: split B~~ — moved to [task 07](07-split-b.md), see the Phase 4
+  section above

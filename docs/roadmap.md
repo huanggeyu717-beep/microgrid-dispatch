@@ -67,9 +67,15 @@ answer, it is consistent with the three prior observations that more parameters
 lose at this data scale, and it completes the features-versus-architecture
 statement in log §9. **Do not reopen the architecture line.**
 
-Still open on the forecasting side: the sample-size scaling curve
-(`forecast.train_window_fraction` exists and is tested), split B (§5 below), and
-the publication-time leakage audit (desk research, log §7).
+Still open on the forecasting side, and these three close task 05: the
+sample-size scaling curve (`forecast.train_window_fraction` exists and is
+tested), both READMEs plus the task board, and the publication-time leakage
+audit (desk research, log §7).
+
+Split B is no longer part of task 05 — it is [task 07](tasks/07-split-b.md),
+priority 5 below. It was scoped out because its numbers may never share a table
+with split A's, which makes it a parallel result set rather than a phase of the
+task it was written into.
 
 ---
 
@@ -123,7 +129,7 @@ not a code change.
 | "interval coverage is 0.68–0.74 against a nominal 0.80" — used to motivate conformal calibration | **too broad** | those figures belong to the ~2,700-window NWP arms (log §5). The standalone arms measure 0.751–0.820 (wind) and 0.762–0.812 (load) across six runs each, and `lstm_multiyear` is 0.852 wind / 0.827 load. Under-coverage is a small-sample problem, plus solar everywhere once daylight-only coverage is used. |
 | conformal prediction as a near-term item | **deprioritised** | its guarantee rests on exchangeability between the calibration and test sets. Validation is Jul–Oct and test is Nov–Dec, and log §11.2 measured that this exact mismatch **biases** model selection on solar. Calibrating on a season the test set does not contain voids the guarantee. Gate this on split B. |
 | a five-tier forecast ladder fed to the existing dispatch, with cost plotted against MAE | **needs a second axis** | the five tiers differ in error *structure*, not only in error size — a TSO product, an NWP-driven model and a no-weather model fail in different ways and at different horizons. Plotting cost against scalar MAE conflates "how accurate" with "which model". Run a synthetic degradation sweep for a clean x-axis and use the real tiers as anchor points; a real tier landing off the synthetic curve is itself a result. |
-| split B / seasonality | **omitted entirely** | it is in `docs/tasks/05-patchtst.md` Phase 4 and log §7. Without it, every economic conclusion below is restricted to 61 winter days and must say so. |
+| split B / seasonality | **omitted entirely** | it is in log §7 and was Phase 4 of task 05. Without it, every economic conclusion below is restricted to 61 winter days and must say so. It has since been scoped out of task 05 into [task 07](tasks/07-split-b.md) — see §6 for where it sits and why. |
 
 ---
 
@@ -231,7 +237,7 @@ and triggering recalibration closes that loop.
 | 2 | A2 scaling curve | hours of compute | closes Phase 3 with a mechanism rather than a bare loss |
 | 3 | **B transfer function** | ~1 week, mostly analysis | highest value; makes three modules one project; reuses existing code |
 | 4 | C2 MILP gap | ~3 days | largest credibility gain per unit of work |
-| 5 | split B (Phase 4) | ~1 week | removes the "61 winter days only" caveat from everything above |
+| 5 | split B — [task 07](tasks/07-split-b.md) | ~1 week | removes the "61 winter days only" caveat from everything above; scoped out of task 05 because its numbers may never share a table with split A's, so it is a parallel result set rather than a phase |
 | 6 | C1 rolling MPC | ~1.5 weeks | largest single improvement to the optimisation line |
 | 7 | A3 + C3 | ~1.5 weeks | only meaningful after split B fixes the calibration-set season problem |
 | 8 | D2 → D1 → D3 | 2–3 weeks | RL line |

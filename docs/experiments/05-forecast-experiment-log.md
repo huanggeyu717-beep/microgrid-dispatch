@@ -118,9 +118,10 @@ was already good. Head-only recalibration on recent data recovered ~15%.
 Multi-year baselines (TSO input present, no NWP): wind **225.06**,
 load **256.05**, solar **92.17**.
 
-> The solar figure is 92.17, not 92.16 — docs/tasks/05-patchtst.md quotes
-> 92.16 in three places and must be corrected to match
-> `models/solar_lstm_multiyear/metrics.json`.
+> The solar figure is 92.17, not 92.16, per
+> `models/solar_lstm_multiyear/metrics.json`. *(The three stale 92.16 quotes in
+> docs/tasks/05-patchtst.md were corrected; verified 2026-08-05, that file now
+> contains no occurrence of 92.16.)*
 
 ---
 
@@ -440,7 +441,7 @@ with no radiation at all, which is not worth a multi-year download.
 |---|---|---|
 | full history (17.8k windows) + NWP | **untested** | archive depth (§6); this is very likely the best deployable model |
 | ERA5 reanalysis as an oracle upper bound | not run | none — ERA5 is free back to 1940, but it is *reanalysis*, so it is leakage as a deployed feature and may only be reported as an explicitly-labelled upper bound, never as a model score |
-| PatchTST vs LSTM | **answered** (§11.4) | LSTM wins on wind with non-overlapping three-seed ranges (699.95 vs 724.28); load indistinguishable; solar likely LSTM. Only the sample-size scaling curve remains |
+| PatchTST vs LSTM | **closed** (§11.4, §11.5) | LSTM wins on wind at full data with disjoint ranges (699.95 vs 724.28). The scaling curve gives the mechanism: the curves cross — PatchTST is better below ~4k windows, saturates there, and the LSTM keeps improving past it |
 | season-conditioned training (per-season models, or a season-dependent quantile spread) | planned, gated on the full-year test split below | see §7.1 for the measured seasonality this rests on |
 | **split B — full-year test split** | planned, additive; does **not** replace split A | train 2019-01 → 2023-10, val 2023-11..12, test 2024 full year (~4,380 windows vs 721 today). Buys a test set that covers four seasons and a 6× larger evaluation sample. Usable **only by arms that need no NWP** — the Open-Meteo archive begins 2024-02, so putting all of 2024 in test leaves the NWP arms with no training data. Requires re-running the LSTM standalone baselines under split B; **split A and split B numbers must never appear in the same table.** |
 | Elia publication-time leakage audit (ods001/031/032 day-ahead publication schedule) | open | desk research; result belongs in the `data/sources/elia.py` docstring |
@@ -506,10 +507,11 @@ Anything in this list that still appears in a README or task file is a bug.
 | "clamping quantiles to ≥0 fixes solar night-time coverage" | **wrong, retracted** | q10 was *positive* in 71% of night steps; clamping only affects negatives. Coverage measured 0.417 before and after — provably unchanged. |
 | "NWP adds nothing" (unqualified) | **too broad, corrected** | true only with the TSO forecast present. Without it, NWP is worth −75.3% on wind. Always state the condition. |
 | "wind degrades at the 24-month window" | **retracted** | 7.0% gap, inside single-seed noise (§3). |
+| "wind is information-limited, not sample-limited" (unqualified) | **too broad, corrected** | true only with Elia's day-ahead forecast present as a model input, which is the configuration Phase 0 measured it in. Without that input, 10× the training windows is worth −15.9% on wind (§11.5, Finding 22). Always name the configuration. |
 | "solar prefers the 24-month window / opposite direction to wind" | **retracted** | 0.6% gap, pure noise (§3). |
 | "NWP is worth −20.3% on solar" | **corrected** | best-of-three seed draw; −9.6% at the legal lead (§5). |
 | "NWP is worth −7.4% on load" | **retracted** | ranges overlap at the legal lead; no demonstrable benefit (§5). |
-| `previous_day1` "cannot inflate results" | **wrong, retracted in place** in `src/microgrid/data/sources/openmeteo.py` | it is issued after gate closure for the late hours of D. Still present in docs/tasks/05-patchtst.md §2.1 — remove it there. |
+| `previous_day1` "cannot inflate results" | **wrong, retracted in place** in `src/microgrid/data/sources/openmeteo.py` | it is issued after gate closure for the late hours of D. *(docs/tasks/05-patchtst.md §2.1 now quotes the claim only inside its own retraction paragraph, which is the correct form; verified 2026-08-05, this instruction is discharged.)* |
 | "the LSTM bar for the architecture comparison is 702.96 / 132.43 / 334.29" | **corrected** | single-seed. Three seeds under split A give medians 702.96 / 136.26 / **305.56** — load's original figure was the *worst* of three draws, overstating the LSTM's error by 9.4% and handing PatchTST that much free margin. The bar actually used is the split A-wide median (§11.2). |
 | "seed noise is ~10% of MAE **at the ~2,700-window scale**" — implied to shrink with more data | **corrected, and the qualifier was doing no work** | measured at 17,847 windows: 10.2% / 7.7% / 12.2% (§11.1). 6.5× the training data did not reduce it. The ~10% figure is right; the implied mechanism (too few training samples) was wrong. |
 | docs/tasks/05-patchtst.md: "Two real points already exist on the standalone LSTM line (2,724 recent and the full history)" | **wrong, must be removed** | A1's 2,724 windows are the most *recent* windows; the scaling curve subsamples uniformly over the whole training period (`forecast.train_window_fraction`). The two rules produce different quantities and A1 is not a point on that curve. |
@@ -886,9 +888,192 @@ The bar was the LSTM, never Elia — §9, unchanged. In this configuration the
 model consumes no NWP and no TSO forecast, so neither architecture can approach
 Elia's 185.08, and neither was asked to.
 
-**Still outstanding for Phase 3**: the sample-size scaling curve
-(`forecast.train_window_fraction`, both architectures at 10/25/50/100%). Without
-it the result above is "the transformer lost"; with it the result is either "it
-lost and its curve is still falling, so it would win with more data" or "both
-curves are flat, so more data of this kind helps neither". Those are different
-conclusions and only the curve separates them.
+**Still outstanding for Phase 3**: the sample-size scaling curve — §11.5.
+
+---
+
+### 11.5 Sample-size scaling curve — design, and the limitation that must travel with it
+
+Purpose: separate "the transformer lost" from "the transformer lost **and** its
+curve is still falling, so it would win on more data than this project has".
+Those are different conclusions and only the curve distinguishes them.
+
+**Design.** Both architectures × three targets × four training-set sizes ×
+three seeds. `forecast.train_window_fraction` keeps a uniform subsample of the
+train split; validation, test and the scaler are untouched, so the only variable
+along the curve is the number of gradient samples. Learning rates are those
+selected in §11.3 and are identical across architectures at each target.
+
+| fraction | wind windows | solar / load windows |
+|---|---:|---:|
+| 10% | 1,674 | 1,709 |
+| 25% | 4,186 | 4,274 |
+| 50% | 8,372 | 8,547 |
+| 100% | 16,743 | 17,094 |
+
+The 100% points are the §11.4 runs — identical configuration, different naming
+(`{target}_standalone_valwide_s*`, `{target}_patchtst_lr2e-3_s*`,
+`{target}_{lstm,patchtst}_lr5e-4_s*`), which is an accident of the order the
+runs were produced in and not a convention to imitate. The other 54 runs are
+`{target}_{arch}_f{fraction}_s{seed}`.
+
+**Why 10 / 25 / 50 / 100 and not 25 / 50 / 75 / 100.** Error versus sample size
+is approximately multiplicative, so the points must be spread evenly on a log
+axis, not on a linear one. 10/25/50/100 spans a factor of 10 with log₁₀ gaps of
+0.398 / 0.301 / 0.301; 25/50/75/100 spans a factor of 4 with gaps of 0.301 /
+0.176 / 0.125, crowding three of its four points into the top of the range.
+
+There is also a measured reason. The 50% → 100% step moves wind's LSTM MAE by
+about 1.4%, which is already inside that arm's 1.7% three-seed spread (§11.2).
+A 75% point, at a 1.33× rather than 2× step, would sit further inside the noise
+floor and could not have been read. The low end is where the resolvable signal
+is, and it is also the regime — a few thousand windows — in which this project
+has repeatedly observed larger models losing.
+
+**A1 is not a point on this curve.** Its 2,724 windows are the most *recent*
+windows; this curve subsamples uniformly across the whole training period. The
+two rules produce different quantities and the claim that A1 was already a point
+on the standalone LSTM line was retracted (§8).
+
+#### The limitation that must be quoted with any flat segment
+
+**The x axis counts windows, not information, and windows overlap heavily.**
+
+At `stride: 8` a window opens every 2 hours while the context is 96 steps = 24
+hours, so **two consecutive windows share 88 of their 96 context steps — 92%**.
+After subsampling to 10% the effective spacing is 80 steps = 20 hours and the
+overlap falls to **16 of 96 — 17%**.
+
+So moving from 10% to 100% multiplies the window count by ten but multiplies the
+*information* by far less: the windows added are increasingly redundant with
+windows already present.
+
+The consequence is a constraint on how a flat segment may be read:
+
+> A flat segment means **"sampling the same period more densely stops helping"**.
+> It does **not** mean "more data stops helping". Those are different claims and
+> only the first one is supported by this curve.
+
+The complementary question — whether more *years*, which add non-redundant
+windows, would help — is not answered here. Phase 0 answered it for wind by a
+different experiment: extending the training period by **5.4×** moved wind MAE
+by **0.08%** (§1, Finding 2).
+
+**These two experiments are run in different input configurations and must not
+be composed.** Phase 0's ablation had **Elia's day-ahead forecast present as a
+model input**; this curve is the standalone configuration, with that input
+removed. The results below show they genuinely disagree, and §11.5's Finding 22
+records what that disagreement means rather than smoothing it over.
+
+| question | experiment | TSO input | wind answer |
+|---|---|---|---|
+| more years of new data? | Phase 0 ablation 2 | **present** | 0.08% — no |
+| denser sampling of the same period? | this curve | **absent** | −15.9% — yes |
+
+**A second caution about the spread column.** Each point's min–max range is
+estimated from three draws, and a three-draw range is itself a high-variance
+statistic. Do not read the spreads across this curve as a measurement of how
+seed noise varies with sample size — that would need many more seeds per point
+than this curve runs.
+
+#### Results
+
+All 54 runs plus the 12 reused 100% runs are on disk. Test MAE (MW), median of
+three seeds with the full min–max range. "disjoint" means every LSTM draw beats
+every PatchTST draw or vice versa — the §5 Finding 8 standard.
+
+**Wind**
+
+| windows | LSTM | PatchTST | gap | ranges |
+|---:|---|---|---:|---|
+| 1,674 | 832.30 [788.93, 912.67] | **773.11** [761.73, 792.32] | −7.1% | overlap |
+| 4,185 | **744.96** [742.48, 748.90] | 754.36 [721.53, 759.06] | +1.3% | overlap |
+| 8,371 | **715.67** [710.55, 761.98] | 742.15 [722.07, 743.15] | +3.7% | overlap |
+| 16,743 | **699.95** [688.94, 700.97] | 724.28 [716.23, 748.39] | +3.5% | **disjoint** |
+
+**Solar** (coverage is all-hours and inflated; read MAE only — §10)
+
+| windows | LSTM | PatchTST | gap | ranges |
+|---:|---|---|---:|---|
+| 1,709 | 171.42 [161.23, 179.92] | **158.65** [153.98, 169.18] | −7.4% | overlap |
+| 4,273 | 159.38 [146.52, 169.88] | **149.46** [144.85, 151.18] | −6.2% | overlap |
+| 8,547 | **139.21** [135.17, 152.52] | 144.77 [144.08, 150.98] | +4.0% | overlap |
+| 17,094 | **136.44** [133.00, 148.86] | 150.35 [145.29, 155.02] | +10.2% | overlap |
+
+**Load**
+
+| windows | LSTM | PatchTST | gap | ranges |
+|---:|---|---|---:|---|
+| 1,709 | 396.33 [342.11, 459.97] | **332.24** [324.77, 337.33] | −16.2% | **disjoint** |
+| 4,273 | 350.97 [316.96, 439.22] | **313.38** [312.96, 317.54] | −10.7% | overlap |
+| 8,547 | 347.64 [319.54, 369.87] | **304.22** [298.64, 312.77] | −12.5% | **disjoint** |
+| 17,094 | 312.59 [299.38, 324.36] | **299.81** [288.96, 307.10] | −4.1% | overlap |
+
+**Finding 19 — the curves cross, and they cross on two of three targets.**
+On wind PatchTST is 7.1% *better* at 1,674 windows and 3.5% worse at 16,743; on
+solar it is 7.4% better at 1,709 and 10.2% worse at 17,094. The crossing sits
+between 1,674 and 4,185 windows for wind and between 4,273 and 8,547 for solar.
+This is the opposite of the usual expectation that a transformer needs *more*
+data to become competitive: here it is competitive precisely in the small-data
+regime and loses ground as data grows.
+
+**Finding 20 — the mechanism is different slopes, not different quality.**
+Total improvement from the 10% point to the 100% point:
+
+| target | LSTM | PatchTST | LSTM steeper by |
+|---|---:|---:|---:|
+| wind | **−15.9%** | −6.3% | 2.5× |
+| solar | **−20.4%** | −5.2% | 3.9× |
+| load | **−21.1%** | −9.8% | 2.2× |
+
+PatchTST's curve is close to flat past roughly four thousand windows — on solar
+its 8,547 and 17,094 points are 144.77 and 150.35, i.e. it does not improve and
+may slightly degrade, though those two ranges overlap heavily so the degradation
+is not itself a finding. The LSTM is still descending at 17,094 on every target.
+**PatchTST saturates; the LSTM keeps extracting.**
+
+**Finding 21 — this reframes §11.4 rather than contradicting it.** The
+architecture verdict stands: at the data volume this project has, the LSTM wins
+on wind with disjoint ranges. But the reason is now measured rather than
+asserted. PatchTST did not lose because it is a weaker model of this problem —
+at 1,674 windows it is the better one on all three targets. It lost because
+**it stops improving at a data volume this project exceeds**, while the LSTM
+does not. The honest one-line verdict is:
+
+> On 16,743 windows the seq2seq LSTM beats a PatchTST-style transformer by 3.5%
+> on wind. On 1,674 windows the transformer wins by 7.1%. The architectures do
+> not differ in quality so much as in where they stop improving, and this
+> dataset sits past PatchTST's stopping point and before the LSTM's.
+
+**Finding 22 — "wind is information-limited" is conditional on the TSO input,
+and this curve is what shows it.** Phase 0 established that 5.4× the training
+period moved wind MAE by 0.08% (§1, Finding 2), and that has been quoted since
+as "wind is information-limited, not sample-limited". This curve measures −15.9%
+over a comparable range of training-set sizes. The two do not contradict each
+other because **they are run in different input configurations**: Phase 0 had
+Elia's day-ahead forecast as a model input, this curve has no TSO input at all.
+
+With Elia's forecast available, extra history adds nothing for wind — the
+forecast already carries what the history would have to be mined for. Remove it,
+and the model has to learn the wind dynamics from its own past, and then more
+windows do help, substantially.
+
+This is structurally the same statement as the project's headline NWP result:
+**how much a given resource is worth depends on what else is in the input.**
+That held for weather forecasts (§4, Finding 4) and it holds for training data.
+Any future quotation of "wind is information-limited" must name the
+configuration it applies to.
+
+**Load is the one target where PatchTST wins at every size** — by 16.2%, 10.7%,
+12.5% and 4.1% — but the gap closes monotonically as data grows, and the LSTM's
+slope (−21.1%) is more than twice PatchTST's (−9.8%). Extrapolating the two
+lines, the crossing would fall somewhere past 17,094 windows. That extrapolation
+is not a finding; it is stated to make clear that load's result is the same
+phenomenon as wind's and solar's, observed before the crossing rather than
+after it.
+
+**What this does not say.** Per the limitation above, every one of these
+statements is about *denser sampling of 2020-07 → 2024-07*. Whether more years —
+non-redundant windows — would move the LSTM further, or move PatchTST at all, is
+not measured here, and Phase 0's answer to that question was obtained in a
+different input configuration and does not transfer (Finding 22).
