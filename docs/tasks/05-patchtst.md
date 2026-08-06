@@ -1,6 +1,8 @@
 # Task 05 — Transferable day-ahead forecaster: diagnose → NWP → architecture
 
-**Status**: 🔄 active — Phases 0–2 of this file complete, including the
+**Status**: ✅ done (2026-08-06) — Phases 0–3 complete, all ten acceptance
+criteria met; see the archive summary above. Historical detail below.
+Previously read: 🔄 active — Phases 0–2 of this file complete, including the
 standalone arms, the multi-seed lead-time audit and the archive-extension
 probe (experiment phases 3–5 in the log's own numbering — the two schemes
 differ, always say which document a phase number belongs to). Phase 3's
@@ -16,12 +18,21 @@ cut scope, not to extend the box — see the Phase 4 note).
 
 ## Archive summary (fill when done, keep ≤15 lines)
 
-*Phase 0 complete (2026-08-04). Ablation-driven diagnosis established that
-solar and load were data-limited — extending training from 9 months to 4.2
-years flipped both from losing to Elia to beating it (solar −11.0% → +3.1%,
-load −1.4% → +0.2%) — while wind is information-limited: 5.4× the data moved
-its test MAE by 0.08%, and its error is flat across periods (225–240 MW) while
-Elia's tracks actual predictability (269 → 185 MW). Remaining phases below.*
+*Complete 2026-08-06. Diagnosis first: solar and load were **data-limited**
+(4.2 years of training flipped both from losing to Elia to beating it), wind
+**information-limited given Elia's forecast as an input** — a qualifier the
+scaling curve later forced, since without that input 10× the windows is worth
+−15.9%. Headline: **NWP's value is conditional on what else is in the input** —
+inert alongside Elia's day-ahead forecast, worth **−75.3%** on wind (1381.87 →
+341.62) at a legal 48 h lead once that input is removed. Architecture:
+**LSTM beats PatchTST** on wind at full data (699.95 vs 724.28, disjoint
+three-seed ranges), and the scaling curve says why — the curves **cross**, with
+PatchTST better below ~4k windows and saturating there while the LSTM keeps
+improving to 17k. Measurement was itself a deliverable: 6.5× the data did not
+shrink seed noise, but a 4× wider validation window took wind's spread from
+10.2% to 1.7%. Two single-seed conclusions retracted, four claims corrected, and
+a publication-time leak found in the TSO-input arms that reaches neither the
+standalone line nor the downstream chain (§12). Split B moved to task 07.*
 
 ## Goal
 

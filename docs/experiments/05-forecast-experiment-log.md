@@ -444,7 +444,7 @@ with no radiation at all, which is not worth a multi-year download.
 | PatchTST vs LSTM | **closed** (§11.4, §11.5) | LSTM wins on wind at full data with disjoint ranges (699.95 vs 724.28). The scaling curve gives the mechanism: the curves cross — PatchTST is better below ~4k windows, saturates there, and the LSTM keeps improving past it |
 | season-conditioned training (per-season models, or a season-dependent quantile spread) | planned, gated on the full-year test split below | see §7.1 for the measured seasonality this rests on |
 | **split B — full-year test split** | planned, additive; does **not** replace split A | train 2019-01 → 2023-10, val 2023-11..12, test 2024 full year (~4,380 windows vs 721 today). Buys a test set that covers four seasons and a 6× larger evaluation sample. Usable **only by arms that need no NWP** — the Open-Meteo archive begins 2024-02, so putting all of 2024 in test leaves the NWP arms with no training data. Requires re-running the LSTM standalone baselines under split B; **split A and split B numbers must never appear in the same table.** |
-| Elia publication-time leakage audit (ods001/031/032 day-ahead publication schedule) | open | desk research; result belongs in the `data/sources/elia.py` docstring |
+| Elia publication-time leakage audit (ods001/031/032 day-ahead publication schedule) | **closed** (§12) | a real leak exists on the TSO-input arms — ~25% of horizon steps for wind and solar, ~10% for load — and reaches neither the standalone line nor the downstream chain. Full write-up in the `data/sources/elia.py` docstring |
 
 ---
 
@@ -578,6 +578,12 @@ comparison on identical windows.
 - **Dispatch and RL results elsewhere in the repo were produced with the
   original single-year LSTM forecasts** and have not been re-run against any
   arm in this file.
+- **The TSO-input arms carry a publication-time leak** (§12): about 25% of
+  horizon steps for wind and solar, 10% for load, consume a day-ahead snapshot
+  published after the window's issue time. Their MAEs — including the
+  225.06 / 256.05 / 92.17 reference row — are optimistic by an unmeasured
+  amount. The standalone line, every NWP arm, the architecture comparison, the
+  scaling curve and the whole downstream chain are unaffected.
 - The standalone forecaster is ~1.85× Elia's wind error (341.62 vs 185.08).
   The honest framing is that it uses **none of Elia's outputs**, only public
   weather and its own history.
@@ -1077,3 +1083,122 @@ statements is about *denser sampling of 2020-07 → 2024-07*. Whether more years
 non-redundant windows — would move the LSTM further, or move PatchTST at all, is
 not measured here, and Phase 0's answer to that question was obtained in a
 different input configuration and does not transfer (Finding 22).
+
+---
+
+## 12. Phase 0.4 — Elia publication-time leakage audit
+
+Desk research, 2026-08-06. The last open item of task 05. The full write-up
+lives in `src/microgrid/data/sources/elia.py`'s module docstring, per the task
+file; this section records the result and its scope.
+
+**The question.** `forecast_da_col` reaches the model as a known-future
+covariate. Can a window issued at `t0` consume a TSO forecast value Elia had not
+published at `t0`?
+
+**Elia's schedule.** The day-ahead forecast is *a snapshot of the D+1 forecast*
+taken once a day, not a continuously updated series:
+
+| dataset | target | publication time P |
+|---|---|---|
+| ods031 | wind | **17:40** on D−1 |
+| ods001 | load | **12:00** on D−1 |
+| ods032 | solar | not stated on any reachable Elia page (HTTP 403); assumed = wind, flagged for re-check |
+
+**Finding 23 — the leak is real and its size is arithmetic, not an estimate.**
+A window issued at hour *h* of day D spans `[h, h+24)`. The day-D part is always
+safe. The day-D+1 part — nonempty for every *h* > 0 — needs the D+1 snapshot
+published at P *on day D*, and is legal only when *h* ≥ P. At `stride: 8` the
+issue times are 00:00, 02:00 … 22:00: with P = 17:40 four of twelve are legal,
+with P = 12:00 seven are. As a share of all horizon steps in the dataset:
+**≈25% for wind and solar, ≈10% for load**.
+
+**Finding 24 — it reaches none of task 05's published conclusions.** Three
+independent bounds:
+
+1. **No TSO column, no leak.** Every arm with
+   `forecast.use_tso_forecast_input: false` is untouched — the standalone line,
+   all NWP arms, §11.4's architecture comparison and §11.5's scaling curve. That
+   is every conclusion this log leads with.
+2. **The downstream chain only issues at midnight.** `optimize/inputs.py` and
+   `rl/data.py` build windows exclusively at `t.hour == 0 and t.minute == 0`,
+   and a midnight window's horizon is exactly one calendar day, so it reads a
+   single snapshot published the previous afternoon. Dispatch and RL inputs are
+   legal.
+3. **What leaks is a forecast, never a measurement.**
+
+**What is affected**: `{target}_lstm`, `_lstm_multiyear`, `_lstm_nwp_*` and
+`_lstm_recal_*` — so the Phase 0/1/2 numbers, including the 225.06 / 256.05 /
+92.17 reference row. Their reported test MAE is **optimistic by an amount this
+audit does not measure**. Any future quotation of those three must carry this.
+
+**Finding 25 — a partial fix is already sitting in the downloaded data.**
+ods031 and ods032 also carry `dayahead11hforecast`, the 11:00 D−1 snapshot,
+non-null in 98.4–100% of rows in every downloaded year (counted directly on
+`data/raw/elia/{wind,solar}_20*.csv`). Repointing `forecast_da_col` at it moves
+P from 17:40 to 11:00 and the leaked share from ~25% to ~10%, for the price of
+one yaml line and no new download. ods001 has no 11h column; load is already at
+P = 12:00. Eliminating the leak outright needs `stride: 96` — midnight issues
+only — at 1/12 the window count.
+
+**Not applied.** Switching the column invalidates every published TSO-input
+number, and that line is no longer this project's headline. It is recorded as a
+priced option, not taken. Whoever takes it must re-run Phase 0–2 and restate
+§1–§3 in full.
+
+**Finding 26 — a shared leak cancels in a difference; a one-sided one does
+not.** "Optimistic" applies to the *absolute* MAEs, not uniformly to the
+conclusions drawn from them. Sort the affected comparisons by whether the leak
+sits on both sides:
+
+| comparison | leak on | verdict |
+|---|---|---|
+| §2 Phase 1, three freeze settings | **both sides** — all three arms carry the TSO column and the identical ~25% | **survives.** The leak is a common term and cancels in the difference |
+| §3 Phase 2, recency sweep m7/m12/m24 | **both sides** | **survives** |
+| §1 Finding 1, TSO input present vs `_notso` | **one side only** — `_notso` has no TSO column, so no leak | **weakened, see below** |
+
+Written out, with each arm's score split into what it earned and what the leak
+added:
+
+    arm A (TSO present) = ability_A + leak
+    arm B (_notso)      = ability_B          (no leak term at all)
+    A − B               = (ability_A − ability_B) + leak     <- leak survives
+
+    arm 1 (freeze=none)     = ability_1 + leak
+    arm 2 (freeze=encoder)  = ability_2 + leak
+    arm 1 − arm 2           = ability_1 − ability_2           <- leak cancels
+
+**Finding 1's measured gap is therefore an upper bound on the TSO input's real
+value, not a point estimate.** The direction is not in doubt — wind 1299.7
+without the input against 225.1 with it is a factor of 5.8, and a partial leak
+affecting 25% of horizon steps, on a *forecast* column rather than a
+measurement, cannot account for a gap that size. The qualitative claim
+("essentially all headline skill was the TSO input passing through") stands. The
+precise span quoted in §1 and in `docs/tasks/05-patchtst.md`'s ablation-1 table
+(+79.4% → −18.9% on wind) must be read as an upper bound.
+
+**Finding 27 — the downstream chain may keep consuming these forecasts, and the
+reason is the midnight-only issue time.** `optimize/inputs.py` and `rl/data.py`
+build windows exclusively at `t.hour == 0 and t.minute == 0`. A midnight
+window's horizon is exactly one calendar day, so every value it reads comes from
+a single snapshot published the previous afternoon — **the one issue time that
+is legal under every publication time in the table above**. Dispatch and RL
+inputs contain no post-publication value at all.
+
+Two supporting notes, weaker than that one and labelled as such:
+
+- The three dispatch methods (rule, NSGA-III, SAC) consume the *same* forecast,
+  so forecast quality is a common term in `rule=5317 / nsga3=5456 / rl=5220` and
+  in the paired daily differences. Those comparisons are insensitive to it by
+  the same cancellation as Finding 26.
+- Training did include leaking windows, so the weights are not innocent of them.
+  A mechanism argument, not a measurement: the leaked values carry a *shorter*
+  lead to valid time (6–20 h) than the legal ones at the same horizon position
+  (20–30 h), so a model trained on the mixture would tend to over-trust the TSO
+  column at late horizon positions, which at midnight inference makes it
+  slightly *worse* rather than flattered. Direction only; magnitude unmeasured.
+
+**What to write in the READMEs**, rather than re-running anything: the dispatch
+and RL forecasts come from a TSO-input arm carrying this caveat; the downstream
+chain issues only at midnight so its inputs are legal; and the method-versus-
+method comparison is insensitive to forecast quality regardless.

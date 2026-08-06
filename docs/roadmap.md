@@ -174,6 +174,14 @@ Deliverable: a curve and one sentence of the form "each 100 MW of wind forecast
 error costs X EUR/day, and the curve flattens below Y, beyond which further
 forecast improvement has no economic value."
 
+**One trap to avoid on the x axis.** Do not use a tier's published test MAE as
+its coordinate. Those numbers were computed over 721 windows at `stride: 8`,
+while dispatch consumes only the 61 midnight windows — a different sample, and
+for TSO-input tiers a differently-legal one (log §12: only midnight issues are
+free of the publication-time leak). Recompute each tier's MAE **on exactly the
+days the dispatch run used**, and say so. Getting this wrong puts every point on
+the curve at the wrong horizontal position while looking entirely reasonable.
+
 Compute is small — roughly five tiers × 61 test days ≈ 305 NSGA-III solves at
 about 10.7 s each. The week is analysis and writing, not machine time.
 

@@ -14,6 +14,64 @@ multi-year export in one request is both slow and fragile (the wind dataset
 carries ~15 rows per timestamp, so six years is millions of rows); writing to
 ``.part`` and renaming on success means an interrupted download never leaves a
 truncated file that the skip-if-exists check would later trust.
+
+Publication-time leakage audit (task 05 phase 0.4, desk research 2026-08-06)
+---------------------------------------------------------------------------
+``forecast_da_col`` is fed to the model as a *known-future* covariate, so the
+question this audit answers is whether a window issued at ``t0`` can consume a
+forecast value that Elia had not published yet at ``t0``.
+
+Elia publishes the day-ahead forecast as **a snapshot of the D+1 forecast**,
+taken once a day, not as a continuously updated series:
+
+    ods031 wind  -> "updated at 05.40 p.m."  -> P = 17:40 on D-1
+    ods001 load  -> "updated at 12.00 p.m."  -> P = 12:00 on D-1
+    ods032 solar -> publication time is not stated on any Elia page reachable
+                    from here (the generation-data page returns HTTP 403);
+                    assumed to match wind until confirmed. Re-check before
+                    relying on the solar figure.
+
+    https://www.elia.be/en/grid-data/generation-data/wind-power-generation
+    https://www.elia.be/en/grid-data/load-and-load-forecasts
+
+A window issued at hour ``h`` of day D spans ``[h, h+24)``: day D from ``h``
+onward, which is always safe because that snapshot was published on D-1, plus
+day D+1 from 00:00 to ``h``, which needs the D+1 snapshot published at ``P`` on
+day D. That second part is legal only when ``h >= P``.
+
+At ``forecast.stride: 8`` the issue times are 00:00, 02:00 ... 22:00 — twelve a
+day. With P = 17:40, four of twelve are legal (00, 18, 20, 22); with P = 12:00,
+seven are (00, 12 ... 22). As a share of *all* horizon steps in the dataset the
+values consumed before publication come to roughly **25% for wind and solar and
+10% for load**.
+
+**The leak is real, and it is bounded three ways.**
+
+1. It cannot reach any arm with ``forecast.use_tso_forecast_input: false`` —
+   those tensors carry no TSO column at all. That covers the standalone line,
+   every NWP arm, the PatchTST-versus-LSTM comparison and the sample-size
+   scaling curve, which is to say all of task 05's published conclusions.
+2. It cannot reach the downstream chain. ``optimize/inputs.py`` and
+   ``rl/data.py`` only ever build windows at midnight (``t.hour == 0 and
+   t.minute == 0``), and a midnight window's horizon is exactly one calendar
+   day, so it consumes a single snapshot published the previous afternoon.
+3. What leaks is a *forecast*, never a measurement.
+
+Affected: the TSO-input forecasting arms — ``{target}_lstm``,
+``_lstm_multiyear``, ``_lstm_nwp_*``, ``_lstm_recal_*`` — whose reported test
+MAE is optimistic by an amount this audit does not measure.
+
+**A partial fix is already in the downloaded data and costs one yaml line.**
+ods031 and ods032 also carry ``dayahead11hforecast``, the 11:00 D-1 snapshot,
+populated for 98.4-100% of rows in every downloaded year. Pointing
+``forecast_da_col`` at it moves P from 17:40 to 11:00 and takes the leaked
+share from ~25% to ~10%. ods001 has no 11h column and load already sits at
+P = 12:00. Removing the leak completely needs ``stride: 96`` — midnight issues
+only — at a factor of twelve in window count.
+
+Deliberately **not applied**: switching the column would invalidate every
+published TSO-input number, and that line is no longer this project's headline.
+Recorded as an option, with its cost, rather than taken.
 """
 
 from __future__ import annotations
