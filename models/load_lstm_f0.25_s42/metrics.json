@@ -1,0 +1,17 @@
+{
+  "target": "load",
+  "model": "lstm",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 439.22,
+    "rmse": 572.27,
+    "pinball": 139.12,
+    "coverage_80": 0.818
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 514.23,
+    "tso_dayahead": 256.59
+  },
+  "skill_vs_persistence": 0.146,
+  "skill_vs_tso": -0.712
+}

@@ -1,0 +1,17 @@
+{
+  "target": "solar",
+  "model": "patchtst",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 158.65,
+    "rmse": 390.81,
+    "pinball": 53.42,
+    "coverage_80": 0.893
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 172.05,
+    "tso_dayahead": 95.14
+  },
+  "skill_vs_persistence": 0.078,
+  "skill_vs_tso": -0.668
+}

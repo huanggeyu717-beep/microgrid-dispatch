@@ -1,0 +1,17 @@
+{
+  "target": "load",
+  "model": "patchtst",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 337.33,
+    "rmse": 461.04,
+    "pinball": 112.26,
+    "coverage_80": 0.786
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 514.23,
+    "tso_dayahead": 256.59
+  },
+  "skill_vs_persistence": 0.344,
+  "skill_vs_tso": -0.315
+}

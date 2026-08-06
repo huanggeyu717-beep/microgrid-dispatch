@@ -1,0 +1,6 @@
+{
+  "n_train_windows": 8547,
+  "n_val_windows": 1476,
+  "n_test_windows": 721,
+  "train_window_fraction": 0.5
+}

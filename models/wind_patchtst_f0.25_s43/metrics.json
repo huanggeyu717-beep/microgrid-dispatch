@@ -1,0 +1,17 @@
+{
+  "target": "wind",
+  "model": "patchtst",
+  "n_test_windows": 721,
+  "model_metrics": {
+    "mae": 754.36,
+    "rmse": 1013.81,
+    "pinball": 235.37,
+    "coverage_80": 0.776
+  },
+  "baseline_mae": {
+    "seasonal_persistence": 1093.26,
+    "tso_dayahead": 185.08
+  },
+  "skill_vs_persistence": 0.31,
+  "skill_vs_tso": -3.076
+}
