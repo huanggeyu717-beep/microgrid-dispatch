@@ -1,0 +1,4622 @@
+{
+  "n_test_days": 61,
+  "test_days": [
+    "2024-11-01",
+    "2024-11-02",
+    "2024-11-03",
+    "2024-11-04",
+    "2024-11-05",
+    "2024-11-06",
+    "2024-11-07",
+    "2024-11-08",
+    "2024-11-09",
+    "2024-11-10",
+    "2024-11-11",
+    "2024-11-12",
+    "2024-11-13",
+    "2024-11-14",
+    "2024-11-15",
+    "2024-11-16",
+    "2024-11-17",
+    "2024-11-18",
+    "2024-11-19",
+    "2024-11-20",
+    "2024-11-21",
+    "2024-11-22",
+    "2024-11-23",
+    "2024-11-24",
+    "2024-11-25",
+    "2024-11-26",
+    "2024-11-27",
+    "2024-11-28",
+    "2024-11-29",
+    "2024-11-30",
+    "2024-12-01",
+    "2024-12-02",
+    "2024-12-03",
+    "2024-12-04",
+    "2024-12-05",
+    "2024-12-06",
+    "2024-12-07",
+    "2024-12-08",
+    "2024-12-09",
+    "2024-12-10",
+    "2024-12-11",
+    "2024-12-12",
+    "2024-12-13",
+    "2024-12-14",
+    "2024-12-15",
+    "2024-12-16",
+    "2024-12-17",
+    "2024-12-18",
+    "2024-12-19",
+    "2024-12-20",
+    "2024-12-21",
+    "2024-12-22",
+    "2024-12-23",
+    "2024-12-24",
+    "2024-12-25",
+    "2024-12-26",
+    "2024-12-27",
+    "2024-12-28",
+    "2024-12-29",
+    "2024-12-30",
+    "2024-12-31"
+  ],
+  "methods": [
+    "rule",
+    "nsga3",
+    "rl"
+  ],
+  "aggregate_opt_seed": 42,
+  "aggregate": {
+    "rule": {
+      "cost_eur": {
+        "mean": 5317.495245901639,
+        "std": 1786.8228011465126
+      },
+      "co2_tco2": {
+        "mean": 16.87793442622951,
+        "std": 3.606193014886767
+      },
+      "peak_mw": {
+        "mean": 2.9654524590163933,
+        "std": 0.5215578268574332
+      },
+      "terminal_soc_dev": {
+        "mean": 0.1125,
+        "std": 0.0
+      },
+      "tie_violation_steps": {
+        "mean": 4.590163934426229,
+        "std": 4.906927352091048
+      },
+      "tie_violation_mw": {
+        "mean": 1.1342180327868852,
+        "std": 1.5056273942548193
+      },
+      "projection_mw": {
+        "mean": 34.39519999999999,
+        "std": 1.4210854715202004e-14
+      },
+      "decision_latency_s": {
+        "mean": 0.0011629508196721314,
+        "std": 2.3212790587715256e-05
+      },
+      "per_step_ms": {
+        "mean": 0.012113114754098363,
+        "std": 0.00023848937828089607
+      }
+    },
+    "nsga3": {
+      "cost_eur": {
+        "mean": 5460.554590163935,
+        "std": 1716.9836934583514
+      },
+      "co2_tco2": {
+        "mean": 18.563509836065574,
+        "std": 5.9372882398877875
+      },
+      "peak_mw": {
+        "mean": 1.9002688524590163,
+        "std": 0.4101546723607314
+      },
+      "terminal_soc_dev": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "tie_violation_steps": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "tie_violation_mw": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "projection_mw": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "decision_latency_s": {
+        "mean": 3.4789236065573768,
+        "std": 0.05238313456631575
+      },
+      "per_step_ms": {
+        "mean": 0.00018196721311475412,
+        "std": 3.8446030818224835e-05
+      }
+    },
+    "rl": {
+      "cost_eur": {
+        "mean": 5219.662786885245,
+        "std": 1622.7170621867217
+      },
+      "co2_tco2": {
+        "mean": 20.36090655737705,
+        "std": 5.624480525633962
+      },
+      "peak_mw": {
+        "mean": 2.5727147540983606,
+        "std": 0.6849657375267724
+      },
+      "terminal_soc_dev": {
+        "mean": 0.049113114754098366,
+        "std": 0.023133344576215378
+      },
+      "tie_violation_steps": {
+        "mean": 1.639344262295082,
+        "std": 2.863179402573219
+      },
+      "tie_violation_mw": {
+        "mean": 0.33492295081967216,
+        "std": 0.7710143396411486
+      },
+      "projection_mw": {
+        "mean": 29.51740983606557,
+        "std": 13.807300006983771
+      },
+      "decision_latency_s": {
+        "mean": 0.007998524590163933,
+        "std": 0.0014515461920848328
+      },
+      "per_step_ms": {
+        "mean": 0.08331639344262297,
+        "std": 0.015119742606967242
+      }
+    }
+  },
+  "paired_cost": {
+    "rl_vs_rule": {
+      "mean_cost_diff_eur": -97.83,
+      "std_cost_diff_eur": 212.2,
+      "a_cheaper_win_rate_pct": 72.1,
+      "n_days": 61
+    },
+    "rl_vs_nsga3": {
+      "mean_cost_diff_eur": -240.89,
+      "std_cost_diff_eur": 182.92,
+      "a_cheaper_win_rate_pct": 86.9,
+      "n_days": 61
+    },
+    "nsga3_vs_rule": {
+      "mean_cost_diff_eur": 143.06,
+      "std_cost_diff_eur": 130.19,
+      "a_cheaper_win_rate_pct": 6.6,
+      "n_days": 61
+    }
+  },
+  "paired_by_metric": {
+    "cost_eur": {
+      "rl_vs_rule": {
+        "mean_diff": -97.8325,
+        "std_diff": 212.1964,
+        "a_lower_win_rate_pct": 72.1,
+        "n_days": 61
+      },
+      "rl_vs_nsga3": {
+        "mean_diff": -240.8918,
+        "std_diff": 182.919,
+        "a_lower_win_rate_pct": 86.9,
+        "n_days": 61
+      },
+      "nsga3_vs_rule": {
+        "mean_diff": 143.0593,
+        "std_diff": 130.1945,
+        "a_lower_win_rate_pct": 6.6,
+        "n_days": 61
+      }
+    },
+    "peak_mw": {
+      "rl_vs_rule": {
+        "mean_diff": -0.3927,
+        "std_diff": 0.3557,
+        "a_lower_win_rate_pct": 96.7,
+        "n_days": 61
+      },
+      "rl_vs_nsga3": {
+        "mean_diff": 0.6724,
+        "std_diff": 0.4986,
+        "a_lower_win_rate_pct": 13.1,
+        "n_days": 61
+      },
+      "nsga3_vs_rule": {
+        "mean_diff": -1.0652,
+        "std_diff": 0.4057,
+        "a_lower_win_rate_pct": 98.4,
+        "n_days": 61
+      }
+    },
+    "tie_violation_steps": {
+      "rl_vs_rule": {
+        "mean_diff": -2.9508,
+        "std_diff": 3.2815,
+        "a_lower_win_rate_pct": 59.0,
+        "n_days": 61
+      },
+      "rl_vs_nsga3": {
+        "mean_diff": 1.6393,
+        "std_diff": 2.8632,
+        "a_lower_win_rate_pct": 0.0,
+        "n_days": 61
+      },
+      "nsga3_vs_rule": {
+        "mean_diff": -4.5902,
+        "std_diff": 4.9069,
+        "a_lower_win_rate_pct": 62.3,
+        "n_days": 61
+      }
+    }
+  },
+  "per_day": {
+    "rule": {
+      "2024-11-01": {
+        "cost_eur": 6101.57,
+        "co2_tco2": 18.6119,
+        "peak_mw": 3.3281,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 1.1708,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0124
+      },
+      "2024-11-02": {
+        "cost_eur": 5941.47,
+        "co2_tco2": 18.4447,
+        "peak_mw": 3.2229,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 1.1051,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-03": {
+        "cost_eur": 6000.54,
+        "co2_tco2": 18.3616,
+        "peak_mw": 3.2655,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.7327,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-04": {
+        "cost_eur": 7042.83,
+        "co2_tco2": 20.4725,
+        "peak_mw": 3.4192,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.3049,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-11-05": {
+        "cost_eur": 7638.04,
+        "co2_tco2": 21.7162,
+        "peak_mw": 3.5301,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 14,
+        "tie_violation_mw": 3.8045,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-06": {
+        "cost_eur": 8096.09,
+        "co2_tco2": 22.4968,
+        "peak_mw": 3.4898,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 14,
+        "tie_violation_mw": 4.3308,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-07": {
+        "cost_eur": 7621.86,
+        "co2_tco2": 21.6648,
+        "peak_mw": 3.4109,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 13,
+        "tie_violation_mw": 3.3552,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-08": {
+        "cost_eur": 7903.2,
+        "co2_tco2": 22.0514,
+        "peak_mw": 3.5116,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 3.2051,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-09": {
+        "cost_eur": 7033.76,
+        "co2_tco2": 20.4919,
+        "peak_mw": 3.4237,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.9667,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-10": {
+        "cost_eur": 6526.03,
+        "co2_tco2": 19.4336,
+        "peak_mw": 3.2035,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 1.2352,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-11": {
+        "cost_eur": 3362.02,
+        "co2_tco2": 13.4709,
+        "peak_mw": 3.0559,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.0824,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-12": {
+        "cost_eur": 4873.94,
+        "co2_tco2": 15.4077,
+        "peak_mw": 3.0191,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0191,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0124
+      },
+      "2024-11-13": {
+        "cost_eur": 7257.49,
+        "co2_tco2": 20.9397,
+        "peak_mw": 3.3929,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 1.5608,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.0012,
+        "per_step_ms": 0.0125
+      },
+      "2024-11-14": {
+        "cost_eur": 7420.91,
+        "co2_tco2": 21.1893,
+        "peak_mw": 3.5869,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 3.4419,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-15": {
+        "cost_eur": 7805.63,
+        "co2_tco2": 22.0053,
+        "peak_mw": 3.4849,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 14,
+        "tie_violation_mw": 3.4079,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-11-16": {
+        "cost_eur": 4899.78,
+        "co2_tco2": 16.3394,
+        "peak_mw": 3.0016,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0016,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.012
+      },
+      "2024-11-17": {
+        "cost_eur": 3654.94,
+        "co2_tco2": 13.5838,
+        "peak_mw": 2.3137,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-18": {
+        "cost_eur": 7342.47,
+        "co2_tco2": 20.4138,
+        "peak_mw": 3.0004,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0004,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-19": {
+        "cost_eur": 5536.43,
+        "co2_tco2": 16.5314,
+        "peak_mw": 2.7267,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0118
+      },
+      "2024-11-20": {
+        "cost_eur": 3489.33,
+        "co2_tco2": 13.2176,
+        "peak_mw": 2.3472,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-21": {
+        "cost_eur": 6971.65,
+        "co2_tco2": 19.7023,
+        "peak_mw": 2.5983,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-22": {
+        "cost_eur": 4289.08,
+        "co2_tco2": 14.5004,
+        "peak_mw": 3.0767,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0767,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-11-23": {
+        "cost_eur": 2930.63,
+        "co2_tco2": 12.5882,
+        "peak_mw": 2.8561,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-24": {
+        "cost_eur": 1666.58,
+        "co2_tco2": 9.7721,
+        "peak_mw": 1.7025,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-25": {
+        "cost_eur": 4155.24,
+        "co2_tco2": 13.8312,
+        "peak_mw": 2.3994,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-26": {
+        "cost_eur": 5539.36,
+        "co2_tco2": 17.2091,
+        "peak_mw": 3.22,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.576,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-27": {
+        "cost_eur": 3487.87,
+        "co2_tco2": 13.8091,
+        "peak_mw": 3.106,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 0.255,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-28": {
+        "cost_eur": 6612.82,
+        "co2_tco2": 19.2381,
+        "peak_mw": 3.57,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 1.9801,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-11-29": {
+        "cost_eur": 5246.47,
+        "co2_tco2": 17.4999,
+        "peak_mw": 3.4744,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 7,
+        "tie_violation_mw": 2.4599,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-11-30": {
+        "cost_eur": 5341.03,
+        "co2_tco2": 16.8523,
+        "peak_mw": 3.1342,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.2694,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-01": {
+        "cost_eur": 3441.79,
+        "co2_tco2": 13.7707,
+        "peak_mw": 3.0047,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0047,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-12-02": {
+        "cost_eur": 4230.9,
+        "co2_tco2": 14.3498,
+        "peak_mw": 2.4601,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0124
+      },
+      "2024-12-03": {
+        "cost_eur": 6908.03,
+        "co2_tco2": 19.7204,
+        "peak_mw": 3.5069,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 1.7068,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00122,
+        "per_step_ms": 0.0127
+      },
+      "2024-12-04": {
+        "cost_eur": 6884.77,
+        "co2_tco2": 20.2,
+        "peak_mw": 3.4108,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 1.9766,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00123,
+        "per_step_ms": 0.0128
+      },
+      "2024-12-05": {
+        "cost_eur": 3252.96,
+        "co2_tco2": 12.6498,
+        "peak_mw": 2.3999,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00121,
+        "per_step_ms": 0.0126
+      },
+      "2024-12-06": {
+        "cost_eur": 4222.86,
+        "co2_tco2": 14.005,
+        "peak_mw": 2.309,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-12-07": {
+        "cost_eur": 2104.5,
+        "co2_tco2": 10.2804,
+        "peak_mw": 1.9618,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0118
+      },
+      "2024-12-08": {
+        "cost_eur": 2969.44,
+        "co2_tco2": 11.9789,
+        "peak_mw": 2.0402,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-09": {
+        "cost_eur": 3673.53,
+        "co2_tco2": 13.2102,
+        "peak_mw": 2.1961,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-10": {
+        "cost_eur": 4941.05,
+        "co2_tco2": 15.7475,
+        "peak_mw": 3.0652,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.1445,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-11": {
+        "cost_eur": 7712.66,
+        "co2_tco2": 21.5505,
+        "peak_mw": 3.6621,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 2.457,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-12": {
+        "cost_eur": 8389.37,
+        "co2_tco2": 23.1821,
+        "peak_mw": 3.6267,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 16,
+        "tie_violation_mw": 6.6903,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-13": {
+        "cost_eur": 8368.94,
+        "co2_tco2": 23.0003,
+        "peak_mw": 3.5493,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 15,
+        "tie_violation_mw": 4.9156,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-14": {
+        "cost_eur": 5500.51,
+        "co2_tco2": 17.5831,
+        "peak_mw": 3.2766,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 1.2173,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-15": {
+        "cost_eur": 3344.11,
+        "co2_tco2": 13.1863,
+        "peak_mw": 2.5618,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00123,
+        "per_step_ms": 0.0128
+      },
+      "2024-12-16": {
+        "cost_eur": 4339.83,
+        "co2_tco2": 14.4966,
+        "peak_mw": 2.8038,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-17": {
+        "cost_eur": 5979.78,
+        "co2_tco2": 18.3344,
+        "peak_mw": 2.7407,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.012
+      },
+      "2024-12-18": {
+        "cost_eur": 2948.27,
+        "co2_tco2": 11.9115,
+        "peak_mw": 1.9901,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-19": {
+        "cost_eur": 3624.87,
+        "co2_tco2": 12.8938,
+        "peak_mw": 2.3721,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-20": {
+        "cost_eur": 4345.02,
+        "co2_tco2": 15.1446,
+        "peak_mw": 2.4346,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-12-21": {
+        "cost_eur": 2693.62,
+        "co2_tco2": 12.1978,
+        "peak_mw": 2.4369,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-22": {
+        "cost_eur": 2557.65,
+        "co2_tco2": 11.1276,
+        "peak_mw": 1.7388,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0118
+      },
+      "2024-12-23": {
+        "cost_eur": 4301.66,
+        "co2_tco2": 14.1868,
+        "peak_mw": 3.3002,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.9201,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-12-24": {
+        "cost_eur": 6114.04,
+        "co2_tco2": 18.6087,
+        "peak_mw": 3.2691,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 1.3981,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-12-25": {
+        "cost_eur": 5948.2,
+        "co2_tco2": 18.3066,
+        "peak_mw": 3.2506,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 0.9918,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.012
+      },
+      "2024-12-26": {
+        "cost_eur": 6921.55,
+        "co2_tco2": 20.1351,
+        "peak_mw": 3.3628,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 1.734,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0117
+      },
+      "2024-12-27": {
+        "cost_eur": 7051.34,
+        "co2_tco2": 20.445,
+        "peak_mw": 3.5098,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.8267,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-28": {
+        "cost_eur": 6146.12,
+        "co2_tco2": 18.916,
+        "peak_mw": 3.4036,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.7539,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-29": {
+        "cost_eur": 6141.82,
+        "co2_tco2": 18.7948,
+        "peak_mw": 3.1979,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 1.1077,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-30": {
+        "cost_eur": 4565.35,
+        "co2_tco2": 15.4109,
+        "peak_mw": 2.6649,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0118
+      },
+      "2024-12-31": {
+        "cost_eur": 2953.61,
+        "co2_tco2": 12.3818,
+        "peak_mw": 2.5133,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      }
+    },
+    "nsga3": {
+      "2024-11-01": {
+        "cost_eur": 6228.46,
+        "co2_tco2": 21.2192,
+        "peak_mw": 1.8329,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.56595,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-02": {
+        "cost_eur": 6151.53,
+        "co2_tco2": 20.9603,
+        "peak_mw": 1.9344,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.60189,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-03": {
+        "cost_eur": 6279.15,
+        "co2_tco2": 19.0139,
+        "peak_mw": 2.2496,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.5489,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-04": {
+        "cost_eur": 7162.51,
+        "co2_tco2": 23.0341,
+        "peak_mw": 2.408,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.4577,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-05": {
+        "cost_eur": 7750.73,
+        "co2_tco2": 23.8983,
+        "peak_mw": 2.6868,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.51284,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-06": {
+        "cost_eur": 8166.97,
+        "co2_tco2": 26.38,
+        "peak_mw": 2.4404,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.49556,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-07": {
+        "cost_eur": 7625.21,
+        "co2_tco2": 28.4717,
+        "peak_mw": 1.8549,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.51047,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-08": {
+        "cost_eur": 7909.92,
+        "co2_tco2": 26.9028,
+        "peak_mw": 2.3512,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44359,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-09": {
+        "cost_eur": 7036.16,
+        "co2_tco2": 25.9085,
+        "peak_mw": 1.9724,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45059,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-10": {
+        "cost_eur": 6462.53,
+        "co2_tco2": 24.6229,
+        "peak_mw": 1.6514,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.4589,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-11": {
+        "cost_eur": 3663.21,
+        "co2_tco2": 12.0822,
+        "peak_mw": 1.9809,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46504,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-12": {
+        "cost_eur": 5041.61,
+        "co2_tco2": 16.1278,
+        "peak_mw": 1.9435,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.4535,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-13": {
+        "cost_eur": 7228.72,
+        "co2_tco2": 26.3694,
+        "peak_mw": 2.0403,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45043,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-14": {
+        "cost_eur": 7431.57,
+        "co2_tco2": 26.1189,
+        "peak_mw": 2.1287,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.59731,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-15": {
+        "cost_eur": 7845.63,
+        "co2_tco2": 26.7736,
+        "peak_mw": 2.2941,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.49364,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-16": {
+        "cost_eur": 5088.68,
+        "co2_tco2": 18.51,
+        "peak_mw": 1.6551,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44996,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-17": {
+        "cost_eur": 3980.74,
+        "co2_tco2": 12.055,
+        "peak_mw": 1.6111,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.47044,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-18": {
+        "cost_eur": 7364.66,
+        "co2_tco2": 23.7202,
+        "peak_mw": 2.4168,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44639,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-19": {
+        "cost_eur": 5675.68,
+        "co2_tco2": 19.077,
+        "peak_mw": 2.0275,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44609,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-20": {
+        "cost_eur": 3796.15,
+        "co2_tco2": 11.1654,
+        "peak_mw": 1.9063,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46928,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-21": {
+        "cost_eur": 7056.67,
+        "co2_tco2": 22.1029,
+        "peak_mw": 2.5687,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44239,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-22": {
+        "cost_eur": 4468.59,
+        "co2_tco2": 15.0226,
+        "peak_mw": 1.6867,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.48604,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-23": {
+        "cost_eur": 3113.18,
+        "co2_tco2": 12.4359,
+        "peak_mw": 1.6844,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45898,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-24": {
+        "cost_eur": 1688.92,
+        "co2_tco2": 5.5754,
+        "peak_mw": 0.7713,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.56557,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-25": {
+        "cost_eur": 4483.53,
+        "co2_tco2": 13.4726,
+        "peak_mw": 1.8631,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.49143,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-26": {
+        "cost_eur": 5568.7,
+        "co2_tco2": 19.4427,
+        "peak_mw": 2.0217,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44405,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-27": {
+        "cost_eur": 3543.98,
+        "co2_tco2": 16.1238,
+        "peak_mw": 1.6137,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46288,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-28": {
+        "cost_eur": 6680.25,
+        "co2_tco2": 22.163,
+        "peak_mw": 2.1452,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46157,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-29": {
+        "cost_eur": 5311.63,
+        "co2_tco2": 20.6168,
+        "peak_mw": 2.0041,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.4487,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-30": {
+        "cost_eur": 5543.65,
+        "co2_tco2": 17.7082,
+        "peak_mw": 2.1226,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46123,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-01": {
+        "cost_eur": 3660.35,
+        "co2_tco2": 12.7777,
+        "peak_mw": 1.9091,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46534,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-02": {
+        "cost_eur": 4425.82,
+        "co2_tco2": 15.6158,
+        "peak_mw": 1.6625,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.47007,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-03": {
+        "cost_eur": 7032.36,
+        "co2_tco2": 22.3528,
+        "peak_mw": 2.1914,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.56631,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-04": {
+        "cost_eur": 6979.77,
+        "co2_tco2": 23.4935,
+        "peak_mw": 2.2974,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.75719,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-05": {
+        "cost_eur": 3625.97,
+        "co2_tco2": 10.9545,
+        "peak_mw": 1.6735,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.47234,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-06": {
+        "cost_eur": 4349.86,
+        "co2_tco2": 13.435,
+        "peak_mw": 2.3579,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.49657,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-07": {
+        "cost_eur": 2165.15,
+        "co2_tco2": 7.7157,
+        "peak_mw": 1.0172,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.50355,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-08": {
+        "cost_eur": 3050.37,
+        "co2_tco2": 11.1019,
+        "peak_mw": 1.133,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.47651,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-09": {
+        "cost_eur": 4327.87,
+        "co2_tco2": 10.8474,
+        "peak_mw": 1.8256,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46435,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-10": {
+        "cost_eur": 5350.99,
+        "co2_tco2": 15.3735,
+        "peak_mw": 2.1092,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.48911,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-11": {
+        "cost_eur": 7714.32,
+        "co2_tco2": 25.9406,
+        "peak_mw": 2.2996,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.43423,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-12": {
+        "cost_eur": 8432.7,
+        "co2_tco2": 26.4383,
+        "peak_mw": 2.6031,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45459,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-13": {
+        "cost_eur": 8386.5,
+        "co2_tco2": 26.5402,
+        "peak_mw": 2.7325,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.4538,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-14": {
+        "cost_eur": 5644.96,
+        "co2_tco2": 20.8844,
+        "peak_mw": 1.5933,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45535,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-15": {
+        "cost_eur": 3482.42,
+        "co2_tco2": 14.935,
+        "peak_mw": 0.9896,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46045,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-16": {
+        "cost_eur": 4582.9,
+        "co2_tco2": 15.4882,
+        "peak_mw": 1.6287,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.4855,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-17": {
+        "cost_eur": 6128.85,
+        "co2_tco2": 20.5486,
+        "peak_mw": 2.3661,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44743,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-18": {
+        "cost_eur": 3215.16,
+        "co2_tco2": 10.3283,
+        "peak_mw": 1.3092,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45231,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-19": {
+        "cost_eur": 3895.37,
+        "co2_tco2": 11.8203,
+        "peak_mw": 1.5789,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44753,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-20": {
+        "cost_eur": 4538.1,
+        "co2_tco2": 16.2677,
+        "peak_mw": 1.9463,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44814,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-21": {
+        "cost_eur": 2917.6,
+        "co2_tco2": 11.9302,
+        "peak_mw": 1.6638,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45278,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-22": {
+        "cost_eur": 2847.04,
+        "co2_tco2": 7.7354,
+        "peak_mw": 1.3857,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.49217,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-23": {
+        "cost_eur": 4564.1,
+        "co2_tco2": 12.7923,
+        "peak_mw": 2.0707,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46756,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-24": {
+        "cost_eur": 6220.76,
+        "co2_tco2": 22.1608,
+        "peak_mw": 1.7598,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44718,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-25": {
+        "cost_eur": 5889.84,
+        "co2_tco2": 23.388,
+        "peak_mw": 1.456,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44538,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-26": {
+        "cost_eur": 7020.74,
+        "co2_tco2": 23.836,
+        "peak_mw": 1.9522,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45042,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-27": {
+        "cost_eur": 6968.99,
+        "co2_tco2": 26.5538,
+        "peak_mw": 1.8964,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.4394,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-28": {
+        "cost_eur": 6191.27,
+        "co2_tco2": 22.5588,
+        "peak_mw": 1.9165,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44591,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-29": {
+        "cost_eur": 6261.09,
+        "co2_tco2": 21.6776,
+        "peak_mw": 1.8553,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.45612,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-30": {
+        "cost_eur": 4688.91,
+        "co2_tco2": 17.7942,
+        "peak_mw": 1.4361,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.44536,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-31": {
+        "cost_eur": 3184.78,
+        "co2_tco2": 12.0125,
+        "peak_mw": 1.432,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "decision_latency_s": 3.46008,
+        "per_step_ms": 0.0001
+      }
+    },
+    "rl": {
+      "2024-11-01": {
+        "cost_eur": 5729.37,
+        "co2_tco2": 23.5284,
+        "peak_mw": 3.0271,
+        "terminal_soc_dev": 0.0563,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.0445,
+        "projection_mw": 10.8571,
+        "decision_latency_s": 0.01921,
+        "per_step_ms": 0.2001
+      },
+      "2024-11-02": {
+        "cost_eur": 5616.45,
+        "co2_tco2": 22.8157,
+        "peak_mw": 2.8509,
+        "terminal_soc_dev": 0.0265,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 16.6275,
+        "decision_latency_s": 0.00772,
+        "per_step_ms": 0.0804
+      },
+      "2024-11-03": {
+        "cost_eur": 5777.1,
+        "co2_tco2": 22.2585,
+        "peak_mw": 3.0089,
+        "terminal_soc_dev": 0.0406,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0089,
+        "projection_mw": 21.0839,
+        "decision_latency_s": 0.00774,
+        "per_step_ms": 0.0806
+      },
+      "2024-11-04": {
+        "cost_eur": 6809.75,
+        "co2_tco2": 25.1486,
+        "peak_mw": 3.1962,
+        "terminal_soc_dev": 0.048,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.4998,
+        "projection_mw": 31.4937,
+        "decision_latency_s": 0.0077,
+        "per_step_ms": 0.0802
+      },
+      "2024-11-05": {
+        "cost_eur": 7341.7,
+        "co2_tco2": 26.1992,
+        "peak_mw": 3.8131,
+        "terminal_soc_dev": 0.0649,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 3.316,
+        "projection_mw": 24.2522,
+        "decision_latency_s": 0.00785,
+        "per_step_ms": 0.0817
+      },
+      "2024-11-06": {
+        "cost_eur": 7881.23,
+        "co2_tco2": 28.0068,
+        "peak_mw": 3.3022,
+        "terminal_soc_dev": 0.0691,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 1.107,
+        "projection_mw": 11.0332,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-11-07": {
+        "cost_eur": 7424.76,
+        "co2_tco2": 27.6286,
+        "peak_mw": 3.1545,
+        "terminal_soc_dev": 0.0432,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.2866,
+        "projection_mw": 20.6346,
+        "decision_latency_s": 0.00796,
+        "per_step_ms": 0.083
+      },
+      "2024-11-08": {
+        "cost_eur": 7678.3,
+        "co2_tco2": 27.7618,
+        "peak_mw": 3.3657,
+        "terminal_soc_dev": 0.0681,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 0.8872,
+        "projection_mw": 18.6716,
+        "decision_latency_s": 0.00774,
+        "per_step_ms": 0.0807
+      },
+      "2024-11-09": {
+        "cost_eur": 6724.74,
+        "co2_tco2": 25.8863,
+        "peak_mw": 3.0778,
+        "terminal_soc_dev": 0.0543,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.1029,
+        "projection_mw": 5.3378,
+        "decision_latency_s": 0.00773,
+        "per_step_ms": 0.0806
+      },
+      "2024-11-10": {
+        "cost_eur": 6183.77,
+        "co2_tco2": 24.5045,
+        "peak_mw": 2.9699,
+        "terminal_soc_dev": 0.0434,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 7.1239,
+        "decision_latency_s": 0.00779,
+        "per_step_ms": 0.0812
+      },
+      "2024-11-11": {
+        "cost_eur": 3583.21,
+        "co2_tco2": 15.3454,
+        "peak_mw": 1.5596,
+        "terminal_soc_dev": 0.0381,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 33.5713,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-11-12": {
+        "cost_eur": 4728.51,
+        "co2_tco2": 19.8381,
+        "peak_mw": 2.718,
+        "terminal_soc_dev": 0.0044,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 37.7842,
+        "decision_latency_s": 0.00778,
+        "per_step_ms": 0.0811
+      },
+      "2024-11-13": {
+        "cost_eur": 7031.62,
+        "co2_tco2": 26.3186,
+        "peak_mw": 3.2462,
+        "terminal_soc_dev": 0.0591,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 0.5638,
+        "projection_mw": 17.4529,
+        "decision_latency_s": 0.00782,
+        "per_step_ms": 0.0814
+      },
+      "2024-11-14": {
+        "cost_eur": 7156.26,
+        "co2_tco2": 26.876,
+        "peak_mw": 3.3953,
+        "terminal_soc_dev": 0.0733,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.2712,
+        "projection_mw": 27.972,
+        "decision_latency_s": 0.0077,
+        "per_step_ms": 0.0802
+      },
+      "2024-11-15": {
+        "cost_eur": 7611.56,
+        "co2_tco2": 27.6586,
+        "peak_mw": 3.1925,
+        "terminal_soc_dev": 0.0182,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.5823,
+        "projection_mw": 9.241,
+        "decision_latency_s": 0.00791,
+        "per_step_ms": 0.0824
+      },
+      "2024-11-16": {
+        "cost_eur": 4694.8,
+        "co2_tco2": 21.3471,
+        "peak_mw": 2.2674,
+        "terminal_soc_dev": 0.0036,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.456,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-11-17": {
+        "cost_eur": 3708.06,
+        "co2_tco2": 16.44,
+        "peak_mw": 1.9341,
+        "terminal_soc_dev": 0.042,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 25.5913,
+        "decision_latency_s": 0.00771,
+        "per_step_ms": 0.0803
+      },
+      "2024-11-18": {
+        "cost_eur": 7098.77,
+        "co2_tco2": 25.3082,
+        "peak_mw": 2.8481,
+        "terminal_soc_dev": 0.0131,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 23.3688,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-11-19": {
+        "cost_eur": 5240.11,
+        "co2_tco2": 21.4269,
+        "peak_mw": 2.3191,
+        "terminal_soc_dev": 0.059,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 36.6868,
+        "decision_latency_s": 0.00794,
+        "per_step_ms": 0.0827
+      },
+      "2024-11-20": {
+        "cost_eur": 3645.86,
+        "co2_tco2": 13.2979,
+        "peak_mw": 2.1515,
+        "terminal_soc_dev": 0.073,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 30.0053,
+        "decision_latency_s": 0.0077,
+        "per_step_ms": 0.0802
+      },
+      "2024-11-21": {
+        "cost_eur": 6658.6,
+        "co2_tco2": 24.7816,
+        "peak_mw": 2.5952,
+        "terminal_soc_dev": 0.0554,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 12.968,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-11-22": {
+        "cost_eur": 4449.69,
+        "co2_tco2": 14.9695,
+        "peak_mw": 2.8614,
+        "terminal_soc_dev": 0.0001,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.4078,
+        "decision_latency_s": 0.00771,
+        "per_step_ms": 0.0803
+      },
+      "2024-11-23": {
+        "cost_eur": 3305.65,
+        "co2_tco2": 12.0629,
+        "peak_mw": 1.492,
+        "terminal_soc_dev": 0.071,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 49.3113,
+        "decision_latency_s": 0.008,
+        "per_step_ms": 0.0833
+      },
+      "2024-11-24": {
+        "cost_eur": 1747.84,
+        "co2_tco2": 6.5776,
+        "peak_mw": 1.1702,
+        "terminal_soc_dev": 0.0809,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 36.6477,
+        "decision_latency_s": 0.00786,
+        "per_step_ms": 0.0818
+      },
+      "2024-11-25": {
+        "cost_eur": 4012.16,
+        "co2_tco2": 17.8819,
+        "peak_mw": 2.179,
+        "terminal_soc_dev": 0.057,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 42.8454,
+        "decision_latency_s": 0.00764,
+        "per_step_ms": 0.0796
+      },
+      "2024-11-26": {
+        "cost_eur": 5389.92,
+        "co2_tco2": 22.7157,
+        "peak_mw": 3.0563,
+        "terminal_soc_dev": 0.0387,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0563,
+        "projection_mw": 42.5485,
+        "decision_latency_s": 0.00773,
+        "per_step_ms": 0.0806
+      },
+      "2024-11-27": {
+        "cost_eur": 3877.52,
+        "co2_tco2": 15.0296,
+        "peak_mw": 2.2164,
+        "terminal_soc_dev": 0.0618,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 53.9107,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-11-28": {
+        "cost_eur": 6353.05,
+        "co2_tco2": 23.1348,
+        "peak_mw": 3.417,
+        "terminal_soc_dev": 0.0747,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.2971,
+        "projection_mw": 27.9237,
+        "decision_latency_s": 0.00782,
+        "per_step_ms": 0.0814
+      },
+      "2024-11-29": {
+        "cost_eur": 5160.83,
+        "co2_tco2": 21.5967,
+        "peak_mw": 2.5942,
+        "terminal_soc_dev": 0.0376,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 31.2206,
+        "decision_latency_s": 0.00773,
+        "per_step_ms": 0.0805
+      },
+      "2024-11-30": {
+        "cost_eur": 5148.59,
+        "co2_tco2": 20.7974,
+        "peak_mw": 2.9105,
+        "terminal_soc_dev": 0.0142,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 25.9543,
+        "decision_latency_s": 0.00777,
+        "per_step_ms": 0.0809
+      },
+      "2024-12-01": {
+        "cost_eur": 3535.74,
+        "co2_tco2": 16.7069,
+        "peak_mw": 1.7744,
+        "terminal_soc_dev": 0.0371,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.1536,
+        "decision_latency_s": 0.00779,
+        "per_step_ms": 0.0811
+      },
+      "2024-12-02": {
+        "cost_eur": 4148.59,
+        "co2_tco2": 19.4709,
+        "peak_mw": 2.2698,
+        "terminal_soc_dev": 0.0622,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 28.6664,
+        "decision_latency_s": 0.00815,
+        "per_step_ms": 0.0849
+      },
+      "2024-12-03": {
+        "cost_eur": 6603.11,
+        "co2_tco2": 24.2673,
+        "peak_mw": 3.3398,
+        "terminal_soc_dev": 0.0762,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.1021,
+        "projection_mw": 28.5111,
+        "decision_latency_s": 0.008,
+        "per_step_ms": 0.0833
+      },
+      "2024-12-04": {
+        "cost_eur": 6646.86,
+        "co2_tco2": 25.6751,
+        "peak_mw": 2.9282,
+        "terminal_soc_dev": 0.0256,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 25.2687,
+        "decision_latency_s": 0.00788,
+        "per_step_ms": 0.0821
+      },
+      "2024-12-05": {
+        "cost_eur": 3653.72,
+        "co2_tco2": 11.8131,
+        "peak_mw": 1.5817,
+        "terminal_soc_dev": 0.0724,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 52.3106,
+        "decision_latency_s": 0.00786,
+        "per_step_ms": 0.0819
+      },
+      "2024-12-06": {
+        "cost_eur": 4087.66,
+        "co2_tco2": 16.3376,
+        "peak_mw": 1.5715,
+        "terminal_soc_dev": 0.0529,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 31.0093,
+        "decision_latency_s": 0.00776,
+        "per_step_ms": 0.0809
+      },
+      "2024-12-07": {
+        "cost_eur": 2244.86,
+        "co2_tco2": 8.9123,
+        "peak_mw": 1.6191,
+        "terminal_soc_dev": 0.0429,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 48.5858,
+        "decision_latency_s": 0.00796,
+        "per_step_ms": 0.0829
+      },
+      "2024-12-08": {
+        "cost_eur": 2960.92,
+        "co2_tco2": 14.2155,
+        "peak_mw": 1.7368,
+        "terminal_soc_dev": 0.0387,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.0619,
+        "decision_latency_s": 0.0077,
+        "per_step_ms": 0.0802
+      },
+      "2024-12-09": {
+        "cost_eur": 3825.92,
+        "co2_tco2": 14.7117,
+        "peak_mw": 1.9371,
+        "terminal_soc_dev": 0.0601,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 50.0597,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-12-10": {
+        "cost_eur": 4909.89,
+        "co2_tco2": 19.1926,
+        "peak_mw": 2.808,
+        "terminal_soc_dev": 0.0133,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 44.4562,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-12-11": {
+        "cost_eur": 7449.9,
+        "co2_tco2": 26.5192,
+        "peak_mw": 3.5208,
+        "terminal_soc_dev": 0.083,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.8617,
+        "projection_mw": 25.0877,
+        "decision_latency_s": 0.00785,
+        "per_step_ms": 0.0818
+      },
+      "2024-12-12": {
+        "cost_eur": 8216.8,
+        "co2_tco2": 28.4906,
+        "peak_mw": 3.4723,
+        "terminal_soc_dev": 0.0884,
+        "tie_violation_steps": 12,
+        "tie_violation_mw": 3.922,
+        "projection_mw": 13.6484,
+        "decision_latency_s": 0.00793,
+        "per_step_ms": 0.0826
+      },
+      "2024-12-13": {
+        "cost_eur": 8149.19,
+        "co2_tco2": 28.3273,
+        "peak_mw": 3.3758,
+        "terminal_soc_dev": 0.0819,
+        "tie_violation_steps": 11,
+        "tie_violation_mw": 2.2326,
+        "projection_mw": 22.0536,
+        "decision_latency_s": 0.00787,
+        "per_step_ms": 0.0819
+      },
+      "2024-12-14": {
+        "cost_eur": 5298.3,
+        "co2_tco2": 23.0473,
+        "peak_mw": 2.3421,
+        "terminal_soc_dev": 0.0051,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 44.3394,
+        "decision_latency_s": 0.00808,
+        "per_step_ms": 0.0842
+      },
+      "2024-12-15": {
+        "cost_eur": 3392.06,
+        "co2_tco2": 16.1391,
+        "peak_mw": 1.5881,
+        "terminal_soc_dev": 0.0391,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 40.8389,
+        "decision_latency_s": 0.0079,
+        "per_step_ms": 0.0822
+      },
+      "2024-12-16": {
+        "cost_eur": 4306.37,
+        "co2_tco2": 17.6619,
+        "peak_mw": 2.5932,
+        "terminal_soc_dev": 0.0215,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.0627,
+        "decision_latency_s": 0.00788,
+        "per_step_ms": 0.0821
+      },
+      "2024-12-17": {
+        "cost_eur": 5732.94,
+        "co2_tco2": 23.2505,
+        "peak_mw": 2.9284,
+        "terminal_soc_dev": 0.0599,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 21.3494,
+        "decision_latency_s": 0.00784,
+        "per_step_ms": 0.0817
+      },
+      "2024-12-18": {
+        "cost_eur": 3237.33,
+        "co2_tco2": 10.8307,
+        "peak_mw": 1.54,
+        "terminal_soc_dev": 0.0749,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 51.5146,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-12-19": {
+        "cost_eur": 3730.23,
+        "co2_tco2": 14.2206,
+        "peak_mw": 2.1677,
+        "terminal_soc_dev": 0.0706,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 45.6062,
+        "decision_latency_s": 0.00785,
+        "per_step_ms": 0.0818
+      },
+      "2024-12-20": {
+        "cost_eur": 4313.71,
+        "co2_tco2": 18.935,
+        "peak_mw": 2.3391,
+        "terminal_soc_dev": 0.068,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 30.5771,
+        "decision_latency_s": 0.00779,
+        "per_step_ms": 0.0812
+      },
+      "2024-12-21": {
+        "cost_eur": 3120.79,
+        "co2_tco2": 11.6917,
+        "peak_mw": 1.37,
+        "terminal_soc_dev": 0.0581,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 50.4677,
+        "decision_latency_s": 0.00784,
+        "per_step_ms": 0.0816
+      },
+      "2024-12-22": {
+        "cost_eur": 2588.21,
+        "co2_tco2": 10.5443,
+        "peak_mw": 1.384,
+        "terminal_soc_dev": 0.0517,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 44.4743,
+        "decision_latency_s": 0.00789,
+        "per_step_ms": 0.0822
+      },
+      "2024-12-23": {
+        "cost_eur": 4175.94,
+        "co2_tco2": 16.4142,
+        "peak_mw": 3.0317,
+        "terminal_soc_dev": 0.0195,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.0376,
+        "projection_mw": 39.8244,
+        "decision_latency_s": 0.00798,
+        "per_step_ms": 0.0831
+      },
+      "2024-12-24": {
+        "cost_eur": 5823.5,
+        "co2_tco2": 23.7045,
+        "peak_mw": 2.9139,
+        "terminal_soc_dev": 0.0329,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 26.5634,
+        "decision_latency_s": 0.00783,
+        "per_step_ms": 0.0816
+      },
+      "2024-12-25": {
+        "cost_eur": 5625.82,
+        "co2_tco2": 23.2453,
+        "peak_mw": 3.0251,
+        "terminal_soc_dev": 0.0628,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0251,
+        "projection_mw": 5.5473,
+        "decision_latency_s": 0.00771,
+        "per_step_ms": 0.0803
+      },
+      "2024-12-26": {
+        "cost_eur": 6657.24,
+        "co2_tco2": 25.2727,
+        "peak_mw": 3.1878,
+        "terminal_soc_dev": 0.0683,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.3326,
+        "projection_mw": 6.8997,
+        "decision_latency_s": 0.00772,
+        "per_step_ms": 0.0804
+      },
+      "2024-12-27": {
+        "cost_eur": 6777.23,
+        "co2_tco2": 25.6383,
+        "peak_mw": 3.3014,
+        "terminal_soc_dev": 0.0683,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.7891,
+        "projection_mw": 6.1047,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0808
+      },
+      "2024-12-28": {
+        "cost_eur": 5888.66,
+        "co2_tco2": 23.9005,
+        "peak_mw": 3.095,
+        "terminal_soc_dev": 0.0602,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.1039,
+        "projection_mw": 5.0191,
+        "decision_latency_s": 0.00797,
+        "per_step_ms": 0.083
+      },
+      "2024-12-29": {
+        "cost_eur": 5878.99,
+        "co2_tco2": 23.819,
+        "peak_mw": 2.5384,
+        "terminal_soc_dev": 0.0171,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 11.1622,
+        "decision_latency_s": 0.0079,
+        "per_step_ms": 0.0823
+      },
+      "2024-12-30": {
+        "cost_eur": 4395.11,
+        "co2_tco2": 19.4446,
+        "peak_mw": 2.4071,
+        "terminal_soc_dev": 0.0185,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 41.2844,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-12-31": {
+        "cost_eur": 3254.06,
+        "co2_tco2": 12.4721,
+        "peak_mw": 1.357,
+        "terminal_soc_dev": 0.0751,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 40.0704,
+        "decision_latency_s": 0.00789,
+        "per_step_ms": 0.0822
+      }
+    }
+  },
+  "robustness": {
+    "factors": [
+      0.0,
+      1.0,
+      2.0,
+      3.0
+    ],
+    "subset_seed": 20241109,
+    "subset_days": [
+      "2024-11-05",
+      "2024-11-15",
+      "2024-11-20",
+      "2024-12-01",
+      "2024-12-06",
+      "2024-12-12",
+      "2024-12-13",
+      "2024-12-16",
+      "2024-12-26",
+      "2024-12-27",
+      "2024-12-28",
+      "2024-12-29"
+    ],
+    "noise_seeds": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "mean_cost_by_method": {
+      "rule": [
+        6163.051666666666,
+        6163.051666666668,
+        6163.051666666668,
+        6163.051666666668
+      ],
+      "nsga3": [
+        6270.575833333332,
+        6273.949166666666,
+        6293.5261666666665,
+        6290.0315
+      ],
+      "rl": [
+        6008.083333333333,
+        5996.238333333333,
+        5997.9383333333335,
+        6003.5751666666665
+      ]
+    },
+    "by_metric": {
+      "cost_eur": {
+        "rule": [
+          6163.051666666666,
+          6163.051666666668,
+          6163.051666666668,
+          6163.051666666668
+        ],
+        "nsga3": [
+          6270.575833333332,
+          6273.949166666666,
+          6293.5261666666665,
+          6290.0315
+        ],
+        "rl": [
+          6008.083333333333,
+          5996.238333333333,
+          5997.9383333333335,
+          6003.5751666666665
+        ]
+      },
+      "co2_tco2": {
+        "rule": [
+          18.640391666666666,
+          18.640391666666662,
+          18.640391666666662,
+          18.640391666666662
+        ],
+        "nsga3": [
+          20.928575000000002,
+          21.01798833333334,
+          20.553835000000003,
+          20.596025000000004
+        ],
+        "rl": [
+          22.775875,
+          22.81754666666667,
+          22.812845,
+          22.839626666666664
+        ]
+      },
+      "peak_mw": {
+        "rule": [
+          3.177483333333333,
+          3.1774833333333334,
+          3.1774833333333334,
+          3.1774833333333334
+        ],
+        "nsga3": [
+          2.1449083333333334,
+          2.1678516666666665,
+          2.274085,
+          2.3094616666666665
+        ],
+        "rl": [
+          2.838908333333333,
+          2.8335733333333333,
+          2.884838333333333,
+          2.850305
+        ]
+      },
+      "terminal_soc_dev": {
+        "rule": [
+          0.1125,
+          0.1125,
+          0.1125,
+          0.1125
+        ],
+        "nsga3": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rl": [
+          0.05431666666666667,
+          0.06401666666666668,
+          0.081955,
+          0.09373333333333332
+        ]
+      },
+      "tie_violation_steps": {
+        "rule": [
+          8.0,
+          8.0,
+          8.0,
+          8.0
+        ],
+        "nsga3": [
+          0.0,
+          0.0,
+          0.016666666666666666,
+          0.016666666666666666
+        ],
+        "rl": [
+          3.8333333333333335,
+          3.466666666666667,
+          3.0833333333333335,
+          2.6333333333333333
+        ]
+      },
+      "tie_violation_mw": {
+        "rule": [
+          2.2704416666666667,
+          2.2704416666666662,
+          2.2704416666666662,
+          2.2704416666666662
+        ],
+        "nsga3": [
+          0.0,
+          0.0,
+          0.0005116666666666667,
+          0.0022466666666666668
+        ],
+        "rl": [
+          0.9398749999999999,
+          0.9251900000000001,
+          0.9735516666666667,
+          0.8498266666666667
+        ]
+      },
+      "projection_mw": {
+        "rule": [
+          34.395199999999996,
+          34.395199999999996,
+          34.395199999999996,
+          34.395199999999996
+        ],
+        "nsga3": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "rl": [
+          19.634316666666667,
+          19.68755,
+          21.335615,
+          22.51533
+        ]
+      },
+      "decision_latency_s": {
+        "rule": [
+          0.0011508333333333334,
+          0.0011755000000000001,
+          0.0012821666666666665,
+          0.0013739999999999998
+        ],
+        "nsga3": [
+          3.4686175,
+          3.5461630000000004,
+          3.9347801666666666,
+          4.220894333333333
+        ],
+        "rl": [
+          0.007835833333333335,
+          0.007873,
+          0.008416333333333333,
+          0.009229666666666667
+        ]
+      },
+      "per_step_ms": {
+        "rule": [
+          0.011999999999999999,
+          0.012243333333333335,
+          0.013353333333333333,
+          0.014311666666666667
+        ],
+        "nsga3": [
+          0.0001916666666666667,
+          0.00019000000000000004,
+          0.00020000000000000006,
+          0.00020666666666666674
+        ],
+        "rl": [
+          0.08161666666666667,
+          0.08200500000000001,
+          0.08766833333333332,
+          0.09614666666666666
+        ]
+      }
+    }
+  },
+  "nsga_budget": {
+    "pop_size": 200,
+    "n_gen": 400
+  },
+  "rl_checkpoint": "/Users/00x/Projects/microgrid-dispatch/models/rl_sac/best.zip",
+  "opt_seed_spread": {
+    "opt_seeds": [
+      42,
+      43,
+      44
+    ],
+    "n_days": 61,
+    "per_method": {
+      "rule": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5317.495245901639,
+            "o43": 5317.495245901639,
+            "o44": 5317.495245901639
+          },
+          "median": 5317.495245901639,
+          "min": 5317.495245901639,
+          "max": 5317.495245901639
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 2.9654524590163933,
+            "o43": 2.9654524590163933,
+            "o44": 2.9654524590163933
+          },
+          "median": 2.9654524590163933,
+          "min": 2.9654524590163933,
+          "max": 2.9654524590163933
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 4.590163934426229,
+            "o43": 4.590163934426229,
+            "o44": 4.590163934426229
+          },
+          "median": 4.590163934426229,
+          "min": 4.590163934426229,
+          "max": 4.590163934426229
+        }
+      },
+      "nsga3": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5460.554590163935,
+            "o43": 5442.499344262296,
+            "o44": 5432.097704918031
+          },
+          "median": 5442.499344262296,
+          "min": 5432.097704918031,
+          "max": 5460.554590163935
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 1.9002688524590163,
+            "o43": 1.8690180327868853,
+            "o44": 1.8501967213114756
+          },
+          "median": 1.8690180327868853,
+          "min": 1.8501967213114756,
+          "max": 1.9002688524590163
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 0.0,
+            "o43": 0.0,
+            "o44": 0.0
+          },
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "rl": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5219.662786885245,
+            "o43": 5219.662786885245,
+            "o44": 5219.662786885245
+          },
+          "median": 5219.662786885245,
+          "min": 5219.662786885245,
+          "max": 5219.662786885245
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 2.5727147540983606,
+            "o43": 2.5727147540983606,
+            "o44": 2.5727147540983606
+          },
+          "median": 2.5727147540983606,
+          "min": 2.5727147540983606,
+          "max": 2.5727147540983606
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 1.639344262295082,
+            "o43": 1.639344262295082,
+            "o44": 1.639344262295082
+          },
+          "median": 1.639344262295082,
+          "min": 1.639344262295082,
+          "max": 1.639344262295082
+        }
+      }
+    },
+    "nsga3_seed_pair_day_diffs": {
+      "o42_vs_o43": {
+        "n_days_differing": 61,
+        "n_days": 61,
+        "max_abs_diff_eur": 241.55,
+        "max_abs_diff_day": "2024-12-09"
+      },
+      "o42_vs_o44": {
+        "n_days_differing": 61,
+        "n_days": 61,
+        "max_abs_diff_eur": 464.06,
+        "max_abs_diff_day": "2024-12-09"
+      },
+      "o43_vs_o44": {
+        "n_days_differing": 61,
+        "n_days": 61,
+        "max_abs_diff_eur": 298.11,
+        "max_abs_diff_day": "2024-11-18"
+      }
+    },
+    "nsga3_whitenoise_curve": {
+      "factors": [
+        0.0,
+        1.0,
+        2.0,
+        3.0
+      ],
+      "per_seed_mean_cost": {
+        "o42": [
+          6270.575833333332,
+          6273.949166666666,
+          6293.5261666666665,
+          6290.0315
+        ],
+        "o43": [
+          6250.284166666667,
+          6257.098166666667,
+          6268.196166666667,
+          6290.92
+        ],
+        "o44": [
+          6244.974999999999,
+          6249.962666666668,
+          6273.121166666667,
+          6295.944333333334
+        ]
+      },
+      "median": [
+        6250.284166666667,
+        6257.098166666667,
+        6273.121166666667,
+        6290.92
+      ],
+      "min": [
+        6244.974999999999,
+        6249.962666666668,
+        6268.196166666667,
+        6290.0315
+      ],
+      "max": [
+        6270.575833333332,
+        6273.949166666666,
+        6293.5261666666665,
+        6295.944333333334
+      ],
+      "movement_first_to_last_eur": 40.63583333333281,
+      "max_opt_seed_range_eur": 25.600833333332957,
+      "movement_outside_opt_seed_range": true
+    }
+  },
+  "residual_curve": {
+    "mech": "residual",
+    "opt_seeds": [
+      42,
+      43,
+      44
+    ],
+    "full": {
+      "gammas": [
+        0.0,
+        0.5,
+        1.0,
+        2.0
+      ],
+      "n_days": 61,
+      "points": [
+        {
+          "gamma": 0.0,
+          "n_days": 61,
+          "measured_mae_mw": {
+            "load": 0.0,
+            "wind": 0.0,
+            "solar": 0.0
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5317.495245901639,
+                  "o43": 5317.495245901639,
+                  "o44": 5317.495245901639
+                },
+                "median": 5317.495245901639,
+                "min": 5317.495245901639,
+                "max": 5317.495245901639
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.9654524590163933,
+                  "o43": 2.9654524590163933,
+                  "o44": 2.9654524590163933
+                },
+                "median": 2.9654524590163933,
+                "min": 2.9654524590163933,
+                "max": 2.9654524590163933
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.590163934426229,
+                  "o43": 4.590163934426229,
+                  "o44": 4.590163934426229
+                },
+                "median": 4.590163934426229,
+                "min": 4.590163934426229,
+                "max": 4.590163934426229
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5471.576885245901,
+                  "o43": 5460.437704918033,
+                  "o44": 5442.54442622951
+                },
+                "median": 5460.437704918033,
+                "min": 5442.54442622951,
+                "max": 5471.576885245901
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 1.8496950819672133,
+                  "o43": 1.8364475409836067,
+                  "o44": 1.7775213114754098
+                },
+                "median": 1.8364475409836067,
+                "min": 1.7775213114754098,
+                "max": 1.8496950819672133
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5234.525245901639,
+                  "o43": 5234.525245901639,
+                  "o44": 5234.525245901639
+                },
+                "median": 5234.525245901639,
+                "min": 5234.525245901639,
+                "max": 5234.525245901639
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.5686147540983604,
+                  "o43": 2.5686147540983604,
+                  "o44": 2.5686147540983604
+                },
+                "median": 2.5686147540983604,
+                "min": 2.5686147540983604,
+                "max": 2.5686147540983604
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 1.8032786885245902,
+                  "o43": 1.8032786885245902,
+                  "o44": 1.8032786885245902
+                },
+                "median": 1.8032786885245902,
+                "min": 1.8032786885245902,
+                "max": 1.8032786885245902
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.05380983606557376,
+                  "o43": 0.05380983606557376,
+                  "o44": 0.05380983606557376
+                },
+                "median": 0.05380983606557376,
+                "min": 0.05380983606557376,
+                "max": 0.05380983606557376
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.0,
+            "wind": 0.0,
+            "solar": 0.0
+          },
+          "mae_deviation_pct": {
+            "load": null,
+            "wind": null,
+            "solar": null
+          }
+        },
+        {
+          "gamma": 0.5,
+          "n_days": 61,
+          "measured_mae_mw": {
+            "load": 0.039203198130234554,
+            "wind": 0.049378452506525936,
+            "solar": 0.020134666510819757
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5317.495245901639,
+                  "o43": 5317.495245901639,
+                  "o44": 5317.495245901639
+                },
+                "median": 5317.495245901639,
+                "min": 5317.495245901639,
+                "max": 5317.495245901639
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.9654524590163933,
+                  "o43": 2.9654524590163933,
+                  "o44": 2.9654524590163933
+                },
+                "median": 2.9654524590163933,
+                "min": 2.9654524590163933,
+                "max": 2.9654524590163933
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.590163934426229,
+                  "o43": 4.590163934426229,
+                  "o44": 4.590163934426229
+                },
+                "median": 4.590163934426229,
+                "min": 4.590163934426229,
+                "max": 4.590163934426229
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5462.109672131149,
+                  "o43": 5444.66918032787,
+                  "o44": 5438.565737704917
+                },
+                "median": 5444.66918032787,
+                "min": 5438.565737704917,
+                "max": 5462.109672131149
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 1.8643524590163931,
+                  "o43": 1.8194918032786886,
+                  "o44": 1.8066196721311474
+                },
+                "median": 1.8194918032786886,
+                "min": 1.8066196721311474,
+                "max": 1.8643524590163931
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5221.150655737706,
+                  "o43": 5221.150655737706,
+                  "o44": 5221.150655737706
+                },
+                "median": 5221.150655737706,
+                "min": 5221.150655737706,
+                "max": 5221.150655737706
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.5631491803278696,
+                  "o43": 2.5631491803278696,
+                  "o44": 2.5631491803278696
+                },
+                "median": 2.5631491803278696,
+                "min": 2.5631491803278696,
+                "max": 2.5631491803278696
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 1.7377049180327868,
+                  "o43": 1.7377049180327868,
+                  "o44": 1.7377049180327868
+                },
+                "median": 1.7377049180327868,
+                "min": 1.7377049180327868,
+                "max": 1.7377049180327868
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.05202459016393443,
+                  "o43": 0.05202459016393443,
+                  "o44": 0.05202459016393443
+                },
+                "median": 0.05202459016393443,
+                "min": 0.05202459016393443,
+                "max": 0.05202459016393443
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.03920319813023455,
+            "wind": 0.049378452506525936,
+            "solar": 0.020134666510819754
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": 0.0,
+            "solar": 0.0
+          }
+        },
+        {
+          "gamma": 1.0,
+          "n_days": 61,
+          "measured_mae_mw": {
+            "load": 0.0784063962604691,
+            "wind": 0.09875690501305187,
+            "solar": 0.04026933302163951
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5317.495245901639,
+                  "o43": 5317.495245901639,
+                  "o44": 5317.495245901639
+                },
+                "median": 5317.495245901639,
+                "min": 5317.495245901639,
+                "max": 5317.495245901639
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.9654524590163933,
+                  "o43": 2.9654524590163933,
+                  "o44": 2.9654524590163933
+                },
+                "median": 2.9654524590163933,
+                "min": 2.9654524590163933,
+                "max": 2.9654524590163933
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.590163934426229,
+                  "o43": 4.590163934426229,
+                  "o44": 4.590163934426229
+                },
+                "median": 4.590163934426229,
+                "min": 4.590163934426229,
+                "max": 4.590163934426229
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5460.554590163935,
+                  "o43": 5442.499344262296,
+                  "o44": 5432.097704918031
+                },
+                "median": 5442.499344262296,
+                "min": 5432.097704918031,
+                "max": 5460.554590163935
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 1.9002688524590163,
+                  "o43": 1.8690180327868853,
+                  "o44": 1.8501967213114756
+                },
+                "median": 1.8690180327868853,
+                "min": 1.8501967213114756,
+                "max": 1.9002688524590163
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5219.662786885245,
+                  "o43": 5219.662786885245,
+                  "o44": 5219.662786885245
+                },
+                "median": 5219.662786885245,
+                "min": 5219.662786885245,
+                "max": 5219.662786885245
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.5727147540983606,
+                  "o43": 2.5727147540983606,
+                  "o44": 2.5727147540983606
+                },
+                "median": 2.5727147540983606,
+                "min": 2.5727147540983606,
+                "max": 2.5727147540983606
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 1.639344262295082,
+                  "o43": 1.639344262295082,
+                  "o44": 1.639344262295082
+                },
+                "median": 1.639344262295082,
+                "min": 1.639344262295082,
+                "max": 1.639344262295082
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.049113114754098366,
+                  "o43": 0.049113114754098366,
+                  "o44": 0.049113114754098366
+                },
+                "median": 0.049113114754098366,
+                "min": 0.049113114754098366,
+                "max": 0.049113114754098366
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.0784063962604691,
+            "wind": 0.09875690501305187,
+            "solar": 0.04026933302163951
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": 0.0,
+            "solar": 0.0
+          }
+        },
+        {
+          "gamma": 2.0,
+          "n_days": 61,
+          "measured_mae_mw": {
+            "load": 0.1568127925209382,
+            "wind": 0.19701386852725997,
+            "solar": 0.08027175830365424
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5317.495245901639,
+                  "o43": 5317.495245901639,
+                  "o44": 5317.495245901639
+                },
+                "median": 5317.495245901639,
+                "min": 5317.495245901639,
+                "max": 5317.495245901639
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.9654524590163933,
+                  "o43": 2.9654524590163933,
+                  "o44": 2.9654524590163933
+                },
+                "median": 2.9654524590163933,
+                "min": 2.9654524590163933,
+                "max": 2.9654524590163933
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.590163934426229,
+                  "o43": 4.590163934426229,
+                  "o44": 4.590163934426229
+                },
+                "median": 4.590163934426229,
+                "min": 4.590163934426229,
+                "max": 4.590163934426229
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5467.171639344262,
+                  "o43": 5477.023606557377,
+                  "o44": 5460.787868852459
+                },
+                "median": 5467.171639344262,
+                "min": 5460.787868852459,
+                "max": 5477.023606557377
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 1.9661672131147543,
+                  "o43": 1.96476393442623,
+                  "o44": 1.9730459016393438
+                },
+                "median": 1.9661672131147543,
+                "min": 1.96476393442623,
+                "max": 1.9730459016393438
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5229.557049180327,
+                  "o43": 5229.557049180327,
+                  "o44": 5229.557049180327
+                },
+                "median": 5229.557049180327,
+                "min": 5229.557049180327,
+                "max": 5229.557049180327
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.579422950819672,
+                  "o43": 2.579422950819672,
+                  "o44": 2.579422950819672
+                },
+                "median": 2.579422950819672,
+                "min": 2.579422950819672,
+                "max": 2.579422950819672
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 1.3770491803278688,
+                  "o43": 1.3770491803278688,
+                  "o44": 1.3770491803278688
+                },
+                "median": 1.3770491803278688,
+                "min": 1.3770491803278688,
+                "max": 1.3770491803278688
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0438950819672131,
+                  "o43": 0.0438950819672131,
+                  "o44": 0.0438950819672131
+                },
+                "median": 0.0438950819672131,
+                "min": 0.0438950819672131,
+                "max": 0.0438950819672131
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.1568127925209382,
+            "wind": 0.19751381002610374,
+            "solar": 0.08053866604327901
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": -0.253,
+            "solar": -0.331
+          }
+        }
+      ]
+    },
+    "subset": {
+      "gammas": [
+        0.25,
+        0.75,
+        1.0,
+        1.5,
+        3.0
+      ],
+      "n_days": 12,
+      "points": [
+        {
+          "gamma": 0.25,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.01663258655263108,
+            "wind": 0.01849675941122628,
+            "solar": 0.013659461688945336
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6241.399166666667,
+                  "o43": 6243.249999999999,
+                  "o44": 6237.077499999999
+                },
+                "median": 6241.399166666667,
+                "min": 6237.077499999999,
+                "max": 6243.249999999999
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 1.946925,
+                  "o43": 2.026441666666667,
+                  "o44": 1.9992833333333335
+                },
+                "median": 1.9992833333333335,
+                "min": 1.946925,
+                "max": 2.026441666666667
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6012.804166666666,
+                  "o43": 6012.804166666666,
+                  "o44": 6012.804166666666
+                },
+                "median": 6012.804166666666,
+                "min": 6012.804166666666,
+                "max": 6012.804166666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.8300666666666667,
+                  "o43": 2.8300666666666667,
+                  "o44": 2.8300666666666667
+                },
+                "median": 2.8300666666666667,
+                "min": 2.8300666666666667,
+                "max": 2.8300666666666667
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.083333333333333,
+                  "o43": 4.083333333333333,
+                  "o44": 4.083333333333333
+                },
+                "median": 4.083333333333333,
+                "min": 4.083333333333333,
+                "max": 4.083333333333333
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.05495833333333334,
+                  "o43": 0.05495833333333334,
+                  "o44": 0.05495833333333334
+                },
+                "median": 0.05495833333333334,
+                "min": 0.05495833333333334,
+                "max": 0.05495833333333334
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.016632586552631078,
+            "wind": 0.01849675941122628,
+            "solar": 0.013659461688945336
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": 0.0,
+            "solar": 0.0
+          }
+        },
+        {
+          "gamma": 0.75,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.04989775965789323,
+            "wind": 0.05549027823367884,
+            "solar": 0.040978385066836015
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6272.75,
+                  "o43": 6248.624166666667,
+                  "o44": 6240.003333333334
+                },
+                "median": 6248.624166666667,
+                "min": 6240.003333333334,
+                "max": 6272.75
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 1.9970749999999997,
+                  "o43": 1.9959916666666666,
+                  "o44": 2.002975
+                },
+                "median": 1.9970749999999997,
+                "min": 1.9959916666666666,
+                "max": 2.002975
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6008.903333333333,
+                  "o43": 6008.903333333333,
+                  "o44": 6008.903333333333
+                },
+                "median": 6008.903333333333,
+                "min": 6008.903333333333,
+                "max": 6008.903333333333
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.8373000000000004,
+                  "o43": 2.8373000000000004,
+                  "o44": 2.8373000000000004
+                },
+                "median": 2.8373000000000004,
+                "min": 2.8373000000000004,
+                "max": 2.8373000000000004
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.166666666666667,
+                  "o43": 4.166666666666667,
+                  "o44": 4.166666666666667
+                },
+                "median": 4.166666666666667,
+                "min": 4.166666666666667,
+                "max": 4.166666666666667
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.05505833333333333,
+                  "o43": 0.05505833333333333,
+                  "o44": 0.05505833333333333
+                },
+                "median": 0.05505833333333333,
+                "min": 0.05505833333333333,
+                "max": 0.05505833333333333
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.04989775965789323,
+            "wind": 0.055490278233678844,
+            "solar": 0.04097838506683601
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": -0.0,
+            "solar": 0.0
+          }
+        },
+        {
+          "gamma": 1.0,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.06653034621052431,
+            "wind": 0.07398703764490512,
+            "solar": 0.054637846755781344
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6270.575833333332,
+                  "o43": 6250.284166666667,
+                  "o44": 6244.974999999999
+                },
+                "median": 6250.284166666667,
+                "min": 6244.974999999999,
+                "max": 6270.575833333332
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.1449083333333334,
+                  "o43": 2.040483333333333,
+                  "o44": 2.0622083333333334
+                },
+                "median": 2.0622083333333334,
+                "min": 2.040483333333333,
+                "max": 2.1449083333333334
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6008.083333333333,
+                  "o43": 6008.083333333333,
+                  "o44": 6008.083333333333
+                },
+                "median": 6008.083333333333,
+                "min": 6008.083333333333,
+                "max": 6008.083333333333
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.838908333333333,
+                  "o43": 2.838908333333333,
+                  "o44": 2.838908333333333
+                },
+                "median": 2.838908333333333,
+                "min": 2.838908333333333,
+                "max": 2.838908333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 3.8333333333333335,
+                  "o43": 3.8333333333333335,
+                  "o44": 3.8333333333333335
+                },
+                "median": 3.8333333333333335,
+                "min": 3.8333333333333335,
+                "max": 3.8333333333333335
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.05431666666666667,
+                  "o43": 0.05431666666666667,
+                  "o44": 0.05431666666666667
+                },
+                "median": 0.05431666666666667,
+                "min": 0.05431666666666667,
+                "max": 0.05431666666666667
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.06653034621052431,
+            "wind": 0.07398703764490512,
+            "solar": 0.054637846755781344
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": 0.0,
+            "solar": 0.0
+          }
+        },
+        {
+          "gamma": 1.5,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.09979551931578647,
+            "wind": 0.11090208241449472,
+            "solar": 0.08195677013367203
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6299.155000000002,
+                  "o43": 6258.988333333332,
+                  "o44": 6289.229166666667
+                },
+                "median": 6289.229166666667,
+                "min": 6258.988333333332,
+                "max": 6299.155000000002
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.1591,
+                  "o43": 2.1144583333333333,
+                  "o44": 2.191191666666666
+                },
+                "median": 2.1591,
+                "min": 2.1144583333333333,
+                "max": 2.191191666666666
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6018.943333333333,
+                  "o43": 6018.943333333333,
+                  "o44": 6018.943333333333
+                },
+                "median": 6018.943333333333,
+                "min": 6018.943333333333,
+                "max": 6018.943333333333
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.8298166666666664,
+                  "o43": 2.8298166666666664,
+                  "o44": 2.8298166666666664
+                },
+                "median": 2.8298166666666664,
+                "min": 2.8298166666666664,
+                "max": 2.8298166666666664
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 3.5833333333333335,
+                  "o43": 3.5833333333333335,
+                  "o44": 3.5833333333333335
+                },
+                "median": 3.5833333333333335,
+                "min": 3.5833333333333335,
+                "max": 3.5833333333333335
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.052866666666666666,
+                  "o43": 0.052866666666666666,
+                  "o44": 0.052866666666666666
+                },
+                "median": 0.052866666666666666,
+                "min": 0.052866666666666666,
+                "max": 0.052866666666666666
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.09979551931578647,
+            "wind": 0.11098055646735769,
+            "solar": 0.08195677013367202
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": -0.071,
+            "solar": 0.0
+          }
+        },
+        {
+          "gamma": 3.0,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.19959103863157293,
+            "wind": 0.22031363100608592,
+            "solar": 0.15922008090762738
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6305.224999999999,
+                  "o43": 6308.699166666666,
+                  "o44": 6329.454166666666
+                },
+                "median": 6308.699166666666,
+                "min": 6305.224999999999,
+                "max": 6329.454166666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.2670416666666666,
+                  "o43": 2.2611583333333334,
+                  "o44": 2.2998416666666666
+                },
+                "median": 2.2670416666666666,
+                "min": 2.2611583333333334,
+                "max": 2.2998416666666666
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.16666666666666666,
+                  "o44": 0.3333333333333333
+                },
+                "median": 0.16666666666666666,
+                "min": 0.0,
+                "max": 0.3333333333333333
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6065.255,
+                  "o43": 6065.255,
+                  "o44": 6065.255
+                },
+                "median": 6065.255,
+                "min": 6065.255,
+                "max": 6065.255
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.7753333333333337,
+                  "o43": 2.7753333333333337,
+                  "o44": 2.7753333333333337
+                },
+                "median": 2.7753333333333337,
+                "min": 2.7753333333333337,
+                "max": 2.7753333333333337
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 3.4166666666666665,
+                  "o43": 3.4166666666666665,
+                  "o44": 3.4166666666666665
+                },
+                "median": 3.4166666666666665,
+                "min": 3.4166666666666665,
+                "max": 3.4166666666666665
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.04406666666666667,
+                  "o43": 0.04406666666666667,
+                  "o44": 0.04406666666666667
+                },
+                "median": 0.04406666666666667,
+                "min": 0.04406666666666667,
+                "max": 0.04406666666666667
+              }
+            }
+          },
+          "linear_mae_mw": {
+            "load": 0.19959103863157293,
+            "wind": 0.22196111293471538,
+            "solar": 0.16391354026734403
+          },
+          "mae_deviation_pct": {
+            "load": 0.0,
+            "wind": -0.742,
+            "solar": -2.863
+          }
+        }
+      ]
+    },
+    "attribution": {
+      "gamma": 0.0,
+      "n_days": 12,
+      "per_target": {
+        "load": {
+          "gamma": 0.0,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.0,
+            "wind": 0.07398703764490512,
+            "solar": 0.054637846755781344
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6247.263333333333,
+                  "o43": 6235.565833333334,
+                  "o44": 6224.882500000001
+                },
+                "median": 6235.565833333334,
+                "min": 6224.882500000001,
+                "max": 6247.263333333333
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.06345,
+                  "o43": 2.05565,
+                  "o44": 1.9756333333333334
+                },
+                "median": 2.05565,
+                "min": 1.9756333333333334,
+                "max": 2.06345
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 5998.632500000001,
+                  "o43": 5998.632500000001,
+                  "o44": 5998.632500000001
+                },
+                "median": 5998.632500000001,
+                "min": 5998.632500000001,
+                "max": 5998.632500000001
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.8683833333333335,
+                  "o43": 2.8683833333333335,
+                  "o44": 2.8683833333333335
+                },
+                "median": 2.8683833333333335,
+                "min": 2.8683833333333335,
+                "max": 2.8683833333333335
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.333333333333333,
+                  "o43": 4.333333333333333,
+                  "o44": 4.333333333333333
+                },
+                "median": 4.333333333333333,
+                "min": 4.333333333333333,
+                "max": 4.333333333333333
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.055850000000000004,
+                  "o43": 0.055850000000000004,
+                  "o44": 0.055850000000000004
+                },
+                "median": 0.055850000000000004,
+                "min": 0.055850000000000004,
+                "max": 0.055850000000000004
+              }
+            }
+          }
+        },
+        "wind": {
+          "gamma": 0.0,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.06653034621052431,
+            "wind": 0.0,
+            "solar": 0.054637846755781344
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6272.750833333333,
+                  "o43": 6261.329999999999,
+                  "o44": 6241.711666666666
+                },
+                "median": 6261.329999999999,
+                "min": 6241.711666666666,
+                "max": 6272.750833333333
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.0362499999999994,
+                  "o43": 2.0680666666666663,
+                  "o44": 2.0115499999999997
+                },
+                "median": 2.0362499999999994,
+                "min": 2.0115499999999997,
+                "max": 2.0680666666666663
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6027.231666666667,
+                  "o43": 6027.231666666667,
+                  "o44": 6027.231666666667
+                },
+                "median": 6027.231666666667,
+                "min": 6027.231666666667,
+                "max": 6027.231666666667
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.8362416666666665,
+                  "o43": 2.8362416666666665,
+                  "o44": 2.8362416666666665
+                },
+                "median": 2.8362416666666665,
+                "min": 2.8362416666666665,
+                "max": 2.8362416666666665
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 4.083333333333333,
+                  "o43": 4.083333333333333,
+                  "o44": 4.083333333333333
+                },
+                "median": 4.083333333333333,
+                "min": 4.083333333333333,
+                "max": 4.083333333333333
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.053,
+                  "o43": 0.053,
+                  "o44": 0.053
+                },
+                "median": 0.053,
+                "min": 0.053,
+                "max": 0.053
+              }
+            }
+          }
+        },
+        "solar": {
+          "gamma": 0.0,
+          "n_days": 12,
+          "measured_mae_mw": {
+            "load": 0.06653034621052431,
+            "wind": 0.07398703764490512,
+            "solar": 0.0
+          },
+          "per_method": {
+            "rule": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6163.051666666666,
+                  "o43": 6163.051666666666,
+                  "o44": 6163.051666666666
+                },
+                "median": 6163.051666666666,
+                "min": 6163.051666666666,
+                "max": 6163.051666666666
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 3.177483333333333,
+                  "o43": 3.177483333333333,
+                  "o44": 3.177483333333333
+                },
+                "median": 3.177483333333333,
+                "min": 3.177483333333333,
+                "max": 3.177483333333333
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 8.0,
+                  "o43": 8.0,
+                  "o44": 8.0
+                },
+                "median": 8.0,
+                "min": 8.0,
+                "max": 8.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.1125,
+                  "o43": 0.1125,
+                  "o44": 0.1125
+                },
+                "median": 0.1125,
+                "min": 0.1125,
+                "max": 0.1125
+              }
+            },
+            "nsga3": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6246.010833333334,
+                  "o43": 6223.668333333334,
+                  "o44": 6259.488333333334
+                },
+                "median": 6246.010833333334,
+                "min": 6223.668333333334,
+                "max": 6259.488333333334
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.036308333333334,
+                  "o43": 1.997025,
+                  "o44": 2.012458333333333
+                },
+                "median": 2.012458333333333,
+                "min": 1.997025,
+                "max": 2.036308333333334
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.0,
+                  "o43": 0.0,
+                  "o44": 0.0
+                },
+                "median": 0.0,
+                "min": 0.0,
+                "max": 0.0
+              }
+            },
+            "rl": {
+              "cost_eur": {
+                "per_seed_mean": {
+                  "o42": 6009.922500000001,
+                  "o43": 6009.922500000001,
+                  "o44": 6009.922500000001
+                },
+                "median": 6009.922500000001,
+                "min": 6009.922500000001,
+                "max": 6009.922500000001
+              },
+              "peak_mw": {
+                "per_seed_mean": {
+                  "o42": 2.7996250000000003,
+                  "o43": 2.7996250000000003,
+                  "o44": 2.7996250000000003
+                },
+                "median": 2.7996250000000003,
+                "min": 2.7996250000000003,
+                "max": 2.7996250000000003
+              },
+              "tie_violation_steps": {
+                "per_seed_mean": {
+                  "o42": 3.5,
+                  "o43": 3.5,
+                  "o44": 3.5
+                },
+                "median": 3.5,
+                "min": 3.5,
+                "max": 3.5
+              },
+              "terminal_soc_dev": {
+                "per_seed_mean": {
+                  "o42": 0.05427500000000001,
+                  "o43": 0.05427500000000001,
+                  "o44": 0.05427500000000001
+                },
+                "median": 0.05427500000000001,
+                "min": 0.05427500000000001,
+                "max": 0.05427500000000001
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "perfect_biased": {
+    "mech": "perfect_biased",
+    "bias_mw": {
+      "load": -0.008088392775663752,
+      "wind": -0.01339853848980782,
+      "solar": -0.006946618194523201
+    },
+    "bias_source": "validation split (Oct 2024) midnight windows; never the test days",
+    "n_days": 61,
+    "opt_seeds": [
+      42,
+      43,
+      44
+    ],
+    "measured_mae_mw": {
+      "load": 0.008088392775663866,
+      "wind": 0.012970495309038373,
+      "solar": 0.0022723059279098567
+    },
+    "per_method": {
+      "rule": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5317.495245901639,
+            "o43": 5317.495245901639,
+            "o44": 5317.495245901639
+          },
+          "median": 5317.495245901639,
+          "min": 5317.495245901639,
+          "max": 5317.495245901639
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 2.9654524590163933,
+            "o43": 2.9654524590163933,
+            "o44": 2.9654524590163933
+          },
+          "median": 2.9654524590163933,
+          "min": 2.9654524590163933,
+          "max": 2.9654524590163933
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 4.590163934426229,
+            "o43": 4.590163934426229,
+            "o44": 4.590163934426229
+          },
+          "median": 4.590163934426229,
+          "min": 4.590163934426229,
+          "max": 4.590163934426229
+        },
+        "terminal_soc_dev": {
+          "per_seed_mean": {
+            "o42": 0.1125,
+            "o43": 0.1125,
+            "o44": 0.1125
+          },
+          "median": 0.1125,
+          "min": 0.1125,
+          "max": 0.1125
+        }
+      },
+      "nsga3": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5467.766393442623,
+            "o43": 5450.009508196723,
+            "o44": 5420.397540983607
+          },
+          "median": 5450.009508196723,
+          "min": 5420.397540983607,
+          "max": 5467.766393442623
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 1.8602557377049178,
+            "o43": 1.8171983606557378,
+            "o44": 1.7214803278688524
+          },
+          "median": 1.8171983606557378,
+          "min": 1.7214803278688524,
+          "max": 1.8602557377049178
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 0.0,
+            "o43": 0.0,
+            "o44": 0.0
+          },
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        },
+        "terminal_soc_dev": {
+          "per_seed_mean": {
+            "o42": 0.0,
+            "o43": 0.0,
+            "o44": 0.0
+          },
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "rl": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5234.150655737704,
+            "o43": 5234.150655737704,
+            "o44": 5234.150655737704
+          },
+          "median": 5234.150655737704,
+          "min": 5234.150655737704,
+          "max": 5234.150655737704
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 2.564663934426229,
+            "o43": 2.564663934426229,
+            "o44": 2.564663934426229
+          },
+          "median": 2.564663934426229,
+          "min": 2.564663934426229,
+          "max": 2.564663934426229
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 1.819672131147541,
+            "o43": 1.819672131147541,
+            "o44": 1.819672131147541
+          },
+          "median": 1.819672131147541,
+          "min": 1.819672131147541,
+          "max": 1.819672131147541
+        },
+        "terminal_soc_dev": {
+          "per_seed_mean": {
+            "o42": 0.05332295081967213,
+            "o43": 0.05332295081967213,
+            "o44": 0.05332295081967213
+          },
+          "median": 0.05332295081967213,
+          "min": 0.05332295081967213,
+          "max": 0.05332295081967213
+        }
+      }
+    }
+  }
+}

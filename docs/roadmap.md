@@ -111,9 +111,12 @@ directly, and an RL safety evaluation can reuse them as the violation metric.
 **Time-boxed resumable execution.** Both `trainer.fit` and
 `compare_dispatch.py` checkpoint and resume on a wall-clock budget
 (`time budget 470s reached (44 items done this run); re-run to resume`). Cost
-scoping should use the per-item rate — the comparison ran 241 work items at
-about 10.7 s each — not the wall-clock span of a log file, which includes gaps
-between resumed chunks.
+scoping should use the per-item rate — not the wall-clock span of a log file,
+which includes gaps between resumed chunks. The rate is machine-specific:
+~10.7 s per NSGA-III solve on the Windows-era machine (241 work items), and a
+measured **3.49 s** on the macOS machine the project moved to in task 05
+(08 log / task file §10). Quote the rate for the machine that will run the
+work.
 
 **Checkpoint identity.** `forecast/checkpoints.py` resolves a run directory from
 `run_name`/`model_cfg.name` and raises `CheckpointMismatchError` on a mismatch,
@@ -170,9 +173,21 @@ Two axes, not one:
   699.95, seasonal persistence 1093.26. Where a real anchor sits relative to the
   synthetic curve is a result in itself.
 
-Deliverable: a curve and one sentence of the form "each 100 MW of wind forecast
-error costs X EUR/day, and the curve flattens below Y, beyond which further
-forecast improvement has no economic value."
+Deliverable — **measured, task 08
+([spec](tasks/08-forecast-value.md), results in
+[08-forecast-value-log.md](experiments/08-forecast-value-log.md), §11 is the
+synthesis).** The sentence originally planned here — "each 100 MW of wind
+forecast error costs X EUR/day, and the curve flattens below Y" — is retired:
+no configuration-free EUR-per-MW number exists in the measurements, because
+cost prices the error's *structure*, not its size (at matched MAE, real
+hours-correlated error costs ≈ 2.5× what white noise does, and the γ curve
+prices scaled operational-LSTM error only — the real anchors land on or below
+it). What was actually found, at three optimiser seeds against a measured
+28.46 EUR/day seed-noise floor: perfect foresight is worth ≈ 0 EUR/day on
+cost (median +17.94, *upward*, inside the noise) plus a small range-disjoint
+0.033 MW of tie-line peak; degrading the forecast costs both money and peak;
+and across real tiers only seasonal persistence separates on cost
+(+36.74 EUR/day).
 
 **One trap to avoid on the x axis.** Do not use a tier's published test MAE as
 its coordinate. Those numbers were computed over 721 windows at `stride: 8`,
@@ -188,7 +203,10 @@ about 10.7 s each. The week is analysis and writing, not machine time.
 **The curve may be flat**, if battery capacity and ramp limits make dispatch
 cost insensitive to forecast error. Flat is a result: "in this configuration
 forecast accuracy is not the binding constraint, storage capacity is." This
-project already publishes negative results.
+project already publishes negative results. *(This is what was measured — on
+the cost channel. The peak channel is where forecast value shows up, and task
+08 §11's gated follow-on — shrink the battery or tie-line to find where
+forecasts start paying — fired on that basis and awaits its own spec.)*
 
 ### C — optimisation line
 
@@ -243,7 +261,7 @@ and triggering recalibration closes that loop.
 |---|---|---|---|
 | 1 | A1 documentation sync | days | undocumented results do not exist; a README carrying retracted claims is worse than no README |
 | 2 | A2 scaling curve | hours of compute | closes Phase 3 with a mechanism rather than a bare loss |
-| 3 | **B transfer function** | ~1 week, mostly analysis | highest value; makes three modules one project; reuses existing code |
+| 3 | **B transfer function — done, [task 08](tasks/08-forecast-value.md)** | ~1 week, mostly analysis | measured: forecast value lands on tie-line peak, not cost; results in [08-forecast-value-log.md](experiments/08-forecast-value-log.md) |
 | 4 | C2 MILP gap | ~3 days | largest credibility gain per unit of work |
 | 5 | split B — [task 07](tasks/07-split-b.md) | ~1 week | removes the "61 winter days only" caveat from everything above; scoped out of task 05 because its numbers may never share a table with split A's, so it is a parallel result set rather than a phase |
 | 6 | C1 rolling MPC | ~1.5 weeks | largest single improvement to the optimisation line |
@@ -291,7 +309,7 @@ mix split A/A-wide numbers with split B numbers.
 | standalone no-NWP, split A-wide, 3-seed median | 699.95 / 296.03 † / 136.44 |
 | LSTM parameters / PatchTST parameters | 38,531 / 536,652 |
 | dispatch mean realised cost — rule / NSGA-III / SAC | 5317 / 5456 / 5220 EUR/day |
-| NSGA-III solve, per work item | ~10.7 s |
+| NSGA-III solve, per work item | ~10.7 s (Windows-era) / 3.49 s (macOS machine, task 08) |
 | seed spread of test MAE, ~2,700 windows (8 arms) | 0.95%–19.16%, median 6.3% |
 | seed spread of test MAE, ~17k windows, split A | 7.7%–12.2% |
 | seed spread of test MAE, ~17k windows, split A-wide | wind 1.7%, load 7.7%, solar 11.6% |

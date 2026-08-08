@@ -27,6 +27,7 @@ flowchart LR
 | PatchTST vs LSTM architecture comparison — LSTM wins on wind, three-seed ranges disjoint | Complete |
 | NSGA-III multi-objective dispatch + entropy-weighted TOPSIS | Complete |
 | DRL dispatch policy (SAC) + three-way comparison | Complete |
+| Forecast-value transfer function — what forecast accuracy is worth to dispatch | Complete |
 | PostgreSQL data layer | Complete |
 | LLM data agent (natural language → SQL) | Complete |
 
@@ -384,8 +385,11 @@ data as well as for weather.
   here supports a claim about summer, and no seasonal comparison is possible
   without changing the frozen split.
 - **The dispatch and RL results below were produced with the original
-  single-year LSTM forecasts** and have not been re-run against any of the
-  newer forecasting models.
+  single-year LSTM forecasts.** The newer forecasters were later fed through
+  the same dispatch as alternative input tiers (see "What is forecast accuracy
+  worth to dispatch?"): on realised cost they are indistinguishable from the
+  original LSTM, so re-basing the published comparison on them would not
+  change its conclusions.
 - The standalone forecaster's wind error is ~1.85× Elia's (341.62 vs 185.08).
   The honest framing is not that it beats the TSO — it does not — but that it
   uses **none of Elia's outputs**: only public weather data and its own
@@ -397,9 +401,10 @@ data as well as for weather.
 
 > **Note**: the numbers in this section and the next were produced with the
 > *single-year* LSTM forecasts (`models/*_lstm/`, not the improved
-> `*_lstm_multiyear` runs). Re-running the whole downstream chain on the better
-> forecasts, and quantifying how much a more accurate forecast is actually worth
-> in realised dispatch cost, is outstanding work.
+> `*_lstm_multiyear` runs) and are kept as published. How much a more accurate
+> forecast is actually worth to this dispatch has since been **measured** — see
+> "What is forecast accuracy worth to dispatch?" below; the short answer is
+> that on cost, it is worth almost nothing.
 
 The national-scale forecasts are **downscaled** to a notional microgrid (peak load 4 MW, wind capacity 2 MW, solar capacity 3 MW; scaling factors derived from each series' maximum, defined in `configs/system/default.yaml`). For a given day (96 × 15 min) the day-ahead Pareto front is solved over three objectives: **operating cost / CO₂ emissions / grid peak power**. Decision variables are the per-step outputs of the micro gas turbine and the battery, `x = [P_mt(96), P_bat(96)]` (`P_bat > 0` discharging, `< 0` charging); the grid tie-line power is the **slack** of the power balance and never enters the decision vector. SoC bounds, terminal SoC (intra-day energy neutrality), tie-line ±3 MW and turbine ramp ±0.5 MW/step enter pymoo's **constraint vector G** (not folded into penalty terms).
 
@@ -445,6 +450,77 @@ Day-ahead dispatch is recast as a **sequential decision** problem: one day of 96
 - **The rule baseline has the lowest CO₂ and is training-free and interpretable**, but the worst peak shaving (2.97 MW, close to the tie-line limit), the largest terminal SoC drift and the most violations; since it ignores forecasts, its robustness curve is a flat line.
 
 In one line: **offline with hard-constraint guarantees → NSGA-III; online, real-time and robust to forecast error → RL; a minimal interpretable floor → rule baseline.** The value is not "RL wins" but an honest, reproducible comparison of all three on the same physics engine and the same forecasts.
+
+### What is forecast accuracy worth to dispatch? (the forecast-value transfer function)
+
+Everything above treats the forecast as a given input. This section measures
+the converse: if the forecast were better — or perfect — what would dispatch
+actually gain? The complete record is
+[docs/experiments/08-forecast-value-log.md](docs/experiments/08-forecast-value-log.md)
+(its §11 is the synthesis); machine-readable aggregates sit in
+`models/comparison/block_b/`.
+
+**Method.** The same NSGA-III dispatch is fed forecasts of controlled quality
+over the same 61 winter test days. One synthetic knob is **residual scaling**:
+per day, the real forecast error is shrunk or stretched by a factor γ — γ=0 is
+perfect foresight (the measured series used as the forecast, an upper bound,
+not a model), γ=1 the operational forecast, γ=2 doubles the error while keeping
+its hour-to-hour shape. The white-noise sweep above is kept as a second,
+separately-labelled axis. On top of both, four **real forecast tiers** — Elia's
+day-ahead, the standalone NWP forecaster, the standalone no-NWP model, seasonal
+persistence ("tomorrow = same time yesterday") — are placed at their MAE
+measured on exactly these 61 days. Because the genetic optimiser's own random
+seed also moves the answer, **every point runs at three optimiser seeds** and a
+difference only counts when the three-seed min–max ranges do not overlap; the
+measured seed noise at the nominal forecast is **28.46 EUR/day**. (These runs
+are all from one machine; the task-04 tables above are the earlier published
+record from another, and the two are never mixed in one table — a same-seed
+change of CPU alone was measured to move the NSGA-III mean by 0.092%, about a
+fifth of the entire white-noise effect.)
+
+**The transfer function** (61 Nov–Dec 2024 days, one system configuration,
+deterministic time-of-use prices):
+
+- **Perfect foresight is worth ≈ 0 EUR/day on cost.** Replacing the
+  operational forecast with the measured truth moves the median cost by
+  +17.94 EUR/day — *upward*, and inside the 28.46 EUR/day optimiser noise.
+  The one channel that clears the noise is the tie-line peak: −0.033 MW,
+  ranges disjoint.
+- **Degrading the forecast has a measured price in both.** Doubling the real
+  error: +24.67 EUR/day and +0.097 MW of peak, both range-disjoint. Tripling
+  white noise: +40.64 EUR/day (+0.65%) and +0.219 MW (+10.6%).
+- **Cost prices the error's *structure*; peak prices its *size*.** At matched
+  net-load MAE, real hours-correlated error costs ≈ 560 EUR/day per MW of MAE
+  against white noise's ≈ 220 — a factor of 2.5, ranges disjoint — while the
+  two peak curves lie on top of each other. A scalar MAE is a sufficient
+  x-axis for peak and an insufficient one for cost.
+- **Among the real tiers, only doing no forecasting at all costs money.**
+  Seasonal persistence — at 3.7× the operational MAE — is the only tier
+  range-disjoint on cost (+36.74 EUR/day) and the only one whose plans brush
+  the ±3 MW tie limit; Elia's day-ahead and both standalone models are
+  indistinguishable from the operational LSTM on cost. The whole span from
+  "no forecasting" to the operational forecaster is worth ≈ 37 EUR/day
+  (0.7% of realised cost) and ≈ 0.14 MW of peak.
+
+In one sentence: **on this configuration, going from the current forecast to a
+perfect one is worth at most ≈ 0 EUR/day and 0.033 MW of tie-line peak — most
+of what forecasting buys is already banked by any reasonable forecaster, and it
+shows up in peak and tie-limit compliance, not on the bill.** The mechanism is
+measured, not guessed: the tariff is a fixed hour-of-day lookup, so the
+arbitrage schedule needs no forecast, and the ≈ 0.15 MW net-load error is small
+against every actuator (0.5 MW/step turbine ramp, ±1 MW battery, ±3 MW tie).
+This is the negative result the roadmap explicitly priced in — now with its
+upper bound measured rather than assumed.
+
+![Cost and tie-line peak vs measured net-load MAE — residual scaling vs white noise, three optimiser seeds](reports/figures/mae_axis_mechanisms.png)
+
+![Real forecast tiers placed on the synthetic curve at their measured 61-day MAE](reports/figures/forecast_value_anchors.png)
+
+A methodological footnote: at a single optimiser seed the white-noise cost
+curve is non-monotone (f=3 lands below f=2 — the published task-04 curve shows
+the same inversion), while the three-seed median curve is monotone. The
+≥3-seed protocol this project adopted for forecasting turned out to change the
+shape of a dispatch curve as well.
 
 ### SQL data layer + data agent (natural-language querying)
 
@@ -574,7 +650,7 @@ data/               # raw / interim / processed (git-ignored)
 5. **Complete** — DRL: SAC closed-loop dispatch policy, three-way comparison vs NSGA-III / rule baseline (cost / CO₂ / peak / decision latency / forecast-error robustness); physics reused from the single source system.py; time-boxed resumable training
 6. **Complete** — SQL layer: PostgreSQL, 5 tables ~260k rows, idempotent loading (COPY + ON CONFLICT), business comments on every table/column, 8 analysis queries
 7. **Complete** — Data agent: LLM tool-calling loop (explore schema → write SQL → self-correct on errors), belt-and-braces read-only safety (pure-function validator + READ ONLY transactions), any OpenAI-compatible endpoint, fully offline unit tests via an injected fake LLM client
-8. **Planned** — Re-run the downstream dispatch and RL comparison on the improved multi-year forecasts, quantifying how much forecast accuracy is actually worth in realised dispatch cost
+8. **Complete** — The forecast-value transfer function: dispatch re-run across forecast-quality tiers from perfect foresight to seasonal persistence, every point at three optimiser seeds against a measured 28.46 EUR/day seed-noise floor. Finding: perfect foresight is worth ≈ 0 EUR/day on cost (the median moves +17.94, *upward*, inside the noise) and a small range-disjoint 0.033 MW of tie-line peak; degrading the forecast costs both; cost responds to error *structure* (real correlated error ≈ 2.5× the cost per MW of white noise at matched MAE) while peak responds to error *size*; only seasonal persistence separates from the operational forecast on cost (+36.74 EUR/day). The originally planned re-basing of the published three-way comparison was narrowed away by the result itself: the newer forecasters are indistinguishable on cost, and single-platform discipline keeps the published record as it is
 9. **Blocked** — Full history (17.8k windows) + NWP: very likely the best deployable forecaster, untested because the NWP forecast archive only reaches back to 2024-02 (the one documented multi-year alternative was probed and closed — see the forecasting section)
 10. **Complete** — PatchTST vs LSTM on the full standalone no-NWP dataset, three seeds per architecture on identical windows. PatchTST is a transformer forecaster that splits each input series into short patches and attends across the patches rather than across all 96 time steps. **The LSTM wins on wind with disjoint three-seed ranges (699.95 vs 724.28, a 3.5% cost for the transformer), load is indistinguishable, solar likely LSTM**; 536,652 parameters lose to 38,531. The bar was deliberately the LSTM, **not Elia**: with no NWP and no TSO input the model cannot approach Elia's 185.08, and judging a controlled architecture comparison against Elia would have guaranteed a failure verdict. Getting there first required repairing the measurement: three-seed baselines at full scale, and a four-fold wider validation window that cut wind's seed spread from 10.2% to 1.7%. The sample-size scaling curve then supplied the mechanism: **the two curves cross** — PatchTST is 7.1% better at 1,674 windows and saturates around four thousand, while the LSTM is still improving at seventeen thousand. It also corrected an earlier claim: "wind is information-limited" holds only while Elia's forecast is an input; without it, 10× the windows is worth −15.9%
 11. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table. Scoped out of the forecasting task into its own, precisely because a result set that may never share a table with the others is not a phase of them
