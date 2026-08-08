@@ -1,6 +1,7 @@
 # Task 07 — Split B: a full-year test split, and the seasonality question
 
-**Status**: ⬜ pending. Scoped out of [task 05](05-patchtst.md) Phase 4 rather
+**Status**: 🔄 active (since 2026-08-08, at the close of task S3). Scoped out
+of [task 05](05-patchtst.md) Phase 4 rather
 than dropped — the reason is in that file's Phase 4 section and repeated in §1
 below. All result numbers live in
 [docs/experiments/05-forecast-experiment-log.md](../experiments/05-forecast-experiment-log.md);

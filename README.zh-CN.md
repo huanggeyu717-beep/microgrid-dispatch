@@ -560,9 +560,13 @@ RL 策略**闭环**滚动(边观测真值边决策);规则基线闭环。
 ## SQL 数据层 + 数据 Agent(自然语言查询)
 
 管道的产出(实测、预测、调度实验)原先散落在 parquet/JSON 文件里,现在被装载进一个
-**PostgreSQL 关系层**:5 张表、约 26 万行、幂等批量装载(COPY 进临时表 +
+**PostgreSQL 关系层**:5 张表、共 1,210,642 行(raw_measurements 578,326 +
+forecasts 631,496 + dispatch_results 723 + dispatch_solution 1 +
+dispatch_schedule 96)、幂等批量装载(COPY 进临时表 +
 `ON CONFLICT DO UPDATE`)、每张表每个字段都有业务 `COMMENT`,外加 8 条带业务结论的
-分析查询(`sql/analysis/`)。
+分析查询(`sql/analysis/`)。数据层覆盖 2019-01-01 至 2024-12-31 的完整历史;
+缺测即缺行,从不写 NULL(装载器会逐序列报告丢弃行数),而 Elia 的光伏序列
+2020-06-30 才开始,跨序列查询必须留意各序列的覆盖范围。
 
 数据库之上是一个 **LLM 数据 Agent**(`scripts/ask_data.py`):通过
 `list_tables / get_schema / run_query` 三个工具,模型自主探索表结构(建表时写的
@@ -583,7 +587,9 @@ python scripts/ask_data.py --show-trace "2024 年哪个月的风电预测误差�
 ![第 3 步 修正后的对比:发现 TSO 的 35136 行与 LSTM 的 5856 行不可比,于是改用公共子集——结论与离线评估一致(TSO MAE 185.2 vs LSTM 225.6 MW)](reports/figures/agent_demo3.png)
 
 第 2、3 步**没有任何人工提示**:第一次 LEFT JOIN 得到的 TSO MAE 是 204.5,被全年
-数据稀释了;Agent 自己检查了覆盖范围并修正了对比口径。
+数据稀释了;Agent 自己检查了覆盖范围并修正了对比口径。(这段轨迹录制于任务 S3
+装载完整历史之前:截图里的行数反映的是当时只有 2024 年数据的数据层——如今 TSO
+序列覆盖 2019–2024,这种覆盖范围检查只会更重要,不会更不重要。)
 
 值得一提的是,这个 Agent 独立算出的 185.2 vs 225.6,与上文预测章节的离线诊断
 (185.1 vs 225.1)相互印证——两条完全不同的代码路径得到同一个结论。
@@ -653,6 +659,9 @@ python scripts/ask_data.py --show-trace "哪种调度方法最便宜?"   # 打�
 # 单元测试(不需要真实数据;重型运行默认排除)
 pytest              # 快速套件(pyproject 里预置了 -m "not slow")
 pytest -m slow      # 场景端到端 + RL 冒烟:降预算 NSGA-III / 小规模 SAC 训练 + 断言
+# 四个 SQL 往返测试(标记 db)需要可连通的 PostgreSQL 且设置 PGDATABASE=microgrid;
+# 缺任一条件时自动跳过。它们在一次性 schema 里运行,绝不触碰已装载的数据。
+PGDATABASE=microgrid pytest tests/test_sql_layer.py
 ```
 
 # 设计原则
@@ -726,7 +735,8 @@ data/               # raw / interim / processed(git 忽略)
    选点、命名场景系统
 5. **已完成** —— 强化学习:SAC 闭环调度策略,与 NSGA-III / 规则基线的三方对比(成本 / CO₂ /
    峰值 / 决策延迟 / 预测误差鲁棒性);物理复用单一来源 system.py;限时可续训练
-6. **已完成** —— SQL 层:PostgreSQL,5 张表约 26 万行,幂等装载(COPY + ON CONFLICT),每张表
+6. **已完成** —— SQL 层:PostgreSQL,5 张表共 1,210,642 行,覆盖 2019-2024 完整历史
+   (任务 S3;缺测即缺行,光伏覆盖自 2020-06-30 起),幂等装载(COPY + ON CONFLICT),每张表
    每个字段的业务注释,8 条分析查询
 7. **已完成** —— 数据 Agent:LLM 工具调用循环(探索表结构 → 编写 SQL → 出错自我纠正)、双保险
    只读安全(纯函数校验器 + READ ONLY 事务)、任意 OpenAI 兼容端点、通过注入假

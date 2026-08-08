@@ -124,10 +124,10 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 05 | Transferable forecaster: diagnose -> NWP -> model comparison | ✅ done | [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md) |
 | S1 | SQL layer (5 tables, idempotent load, 8 analysis queries) | ✅ done (branch `feat/sql-layer`) | no spec file; see 求职素材_微电网SQL层 doc |
 | 06 | Data agent: NL Q&A over the SQL layer (this branch) | ✅ done | [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md) |
-| 07 | Split B: full-year test split + seasonality | ⬜ pending | [docs/tasks/07-split-b.md](docs/tasks/07-split-b.md) — scoped out of task 05 Phase 4; split A and split B numbers may never share a table |
+| 07 | Split B: full-year test split + seasonality | 🔄 active | [docs/tasks/07-split-b.md](docs/tasks/07-split-b.md) — scoped out of task 05 Phase 4; split A and split B numbers may never share a table |
 | 08 | Forecast-value transfer function (roadmap block B) | ✅ done | [docs/tasks/08-forecast-value.md](docs/tasks/08-forecast-value.md) — results in [docs/experiments/08-forecast-value-log.md](docs/experiments/08-forecast-value-log.md) (§11 is the synthesis); dispatch numbers computed on different platforms or different optimiser seeds may never share a table |
 | S2 | SQL layer: carry the task-08 dispatch-cache key through | ✅ done | [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) — plumbing only; no number in any README, task file or log may change |
-| S3 | SQL layer over the full 2019-2024 history (NaN = absent measurement) | ⬜ pending | no spec file yet — chosen by the owner during S2's live verification; see the ACTIVE TASK note |
+| S3 | SQL layer over the full 2019-2024 history (NaN = absent measurement) | ✅ done | [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md) — a NaN is an absent measurement: dropped by design, count reported, never imputed; solar coverage starts 2020-06-30 |
 
 Cross-cutting plan for what to deepen after the forecasting line, and which
 pieces already exist so they do not get rebuilt: [docs/roadmap.md](docs/roadmap.md).
@@ -137,39 +137,30 @@ It is explicitly not binding — it says so at the top.
 
 > **The active task is 07 — Split B: full-year test split + seasonality:
 > [docs/tasks/07-split-b.md](docs/tasks/07-split-b.md).**
-> It is the complete instruction for the current work: goal, design decisions,
-> and scope. **Read it before doing anything on this repository.** When the
-> task completes, flip its board row to ✅, point this section at the next task
-> file, and write the archive summary at the top of the finished task file.
+> It is the complete instruction for the current work.
+> **Read it before doing anything on this repository.**
 >
-> **But read this first: the owner has chosen S3 as the next thing to do, and
-> S3 has no spec file yet.** S2's live verification against a real PostgreSQL
-> surfaced that the SQL layer's `raw` and `forecasts` groups now fail: task 05
-> extended `data/processed/elia_dataset.parquet` from one year to 2019-01-01 →
-> 2024-12-31 (210,432 rows), over which `solar_measured` is 24.95% NaN (longest
-> run 52,504 steps — Elia's solar series does not reach back to 2019) and
-> `wind_measured` 0.221%, while `extract.measurements_long` still asserts no
-> NaN anywhere. The owner picked the fuller of the two repairs: load the whole
-> history and treat a NaN as an **absent measurement**, dropped by design with
-> the dropped count reported, rather than clamping the SQL layer back to 2024.
-> That choice reopens the eight analysis queries and the task-06 agent's
-> assumptions, so it needs a spec before any code. **If this section still
-> points at 07 and no `docs/tasks/S3-*.md` exists, writing that spec is the
-> next piece of work, not starting 07.**
+> The constraint of task 07 that is easy to violate by accident: **split A and
+> split B numbers may never appear in the same table** (05 log §7/§11) — split
+> B produces a parallel result set, not an extension of the existing one. And
+> split B is only usable by models that need no NWP, because the NWP forecast
+> archive begins 2024-02: putting all of 2024 in test would leave NWP models
+> with no training data.
 >
-> Two notes on the ordering behind 07 itself, carried over: roadmap §6 places
-> C2 (the MILP optimality gap) between task 08 and split B, and task 08's gated
-> follow-on (the battery/tie-line sizing sweep, task 08 §11) fired and awaits a
-> spec — both are owner decisions.
+> Two notes carried over from the S3 close, both owner decisions still open:
+> roadmap §6 places C2 (the MILP optimality gap) between task 08 and split B,
+> and task 08's gated follow-on (the battery/tie-line sizing sweep, task 08
+> §11) fired and awaits a spec. Neither has a spec yet; do not start either
+> without one.
 >
-> The constraint of task 07 that is easy to violate by accident, repeated here
-> because it is the reason the task exists: **split A and split B numbers may
-> never appear in the same table** (05 log §7/§11). Split B is only usable by
-> models that need no NWP — the NWP archive begins 2024-02.
->
-> Tasks 04, 05, 06, 08 and S2 are done — archive summaries at the top of
+> Tasks 04, 05, 06, 08, S2 and S3 are done — archive summaries at the top of
 > [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md),
 > [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md),
 > [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md),
-> [docs/tasks/08-forecast-value.md](docs/tasks/08-forecast-value.md) and
-> [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md).
+> [docs/tasks/08-forecast-value.md](docs/tasks/08-forecast-value.md),
+> [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) and
+> [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md).
+> S3's rule outlives the task: in the SQL layer a NaN is an absent
+> measurement — dropped with the count reported, never imputed, never NULL —
+> and solar coverage starts 2020-06-30, so cross-series SQL must mind
+> per-series coverage.

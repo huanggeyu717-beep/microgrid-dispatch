@@ -524,7 +524,7 @@ shape of a dispatch curve as well.
 
 ### SQL data layer + data agent (natural-language querying)
 
-The pipeline's outputs (measurements, forecasts, dispatch experiments), previously scattered across parquet/JSON files, are loaded into a **PostgreSQL relational layer**: 5 tables, ~260k rows, idempotent bulk loading (COPY into a staging table + `ON CONFLICT DO UPDATE`), business `COMMENT`s on every table and column, plus 8 analysis queries with business conclusions (`sql/analysis/`).
+The pipeline's outputs (measurements, forecasts, dispatch experiments), previously scattered across parquet/JSON files, are loaded into a **PostgreSQL relational layer**: 5 tables, 1,210,642 rows (raw_measurements 578,326 + forecasts 631,496 + dispatch_results 723 + dispatch_solution 1 + dispatch_schedule 96), idempotent bulk loading (COPY into a staging table + `ON CONFLICT DO UPDATE`), business `COMMENT`s on every table and column, plus 8 analysis queries with business conclusions (`sql/analysis/`). The layer covers the full 2019-01-01 – 2024-12-31 history; an absent measurement is an absent row, never a NULL (the loader reports the per-series dropped counts), and Elia's solar series only starts on 2020-06-30, so cross-series queries must mind the coverage.
 
 On top of the database sits an **LLM data agent** (`scripts/ask_data.py`): through three tools — `list_tables / get_schema / run_query` — the model autonomously explores the schema (the column comments double as its semantic annotations), writes and executes SQL, self-corrects after errors, and answers with cited numbers in the language of the question.
 
@@ -540,7 +540,7 @@ A real traced run (question asked in Chinese — "Which wind forecast is more ac
 
 ![Step 3 — corrected comparison: finding the TSO's 35,136 rows vs LSTM's 5,856 incomparable, it switches to the common subset — the conclusion matches the offline evaluation (TSO MAE 185.2 vs LSTM 225.6 MW)](reports/figures/agent_demo3.png)
 
-Steps 2 and 3 happened **without any human prompting**: the first LEFT JOIN produced a TSO MAE of 204.5 MW, diluted by full-year data; the agent checked the coverage itself and corrected the comparison basis.
+Steps 2 and 3 happened **without any human prompting**: the first LEFT JOIN produced a TSO MAE of 204.5 MW, diluted by full-year data; the agent checked the coverage itself and corrected the comparison basis. (The trace predates task S3's full-history load: the row counts in the screenshots reflect the then-2024-only layer — the TSO series now spans 2019–2024, which makes exactly this kind of coverage check matter more, not less.)
 
 Safety is **belt-and-braces**: a pure-function SQL validator (single SELECT/WITH statements only; blocks write keywords, multi-statement injection, `SELECT INTO`, and data-modifying CTEs) + database-side `READ ONLY` transactions with a statement timeout — **model-generated SQL is never trusted; the database enforces the rules** (the same philosophy as unique-key constraints). Any OpenAI-compatible endpoint works (`configs/agent/default.yaml`); API keys are read from environment variables only.
 
@@ -602,6 +602,9 @@ python scripts/ask_data.py --show-trace "Which dispatch method is cheapest?"   #
 # Run the unit tests (no real data needed; heavy runs excluded by default)
 pytest              # fast suite (-m "not slow" preconfigured in pyproject)
 pytest -m slow      # scenario end-to-end + RL smoke: reduced-budget NSGA-III / small SAC training + assertions
+# The four SQL round-trip tests (marked db) need a reachable PostgreSQL and PGDATABASE=microgrid;
+# without both they self-skip. They run inside a throwaway schema and never touch the loaded data.
+PGDATABASE=microgrid pytest tests/test_sql_layer.py
 ```
 
 ## Design principles
@@ -648,7 +651,7 @@ data/               # raw / interim / processed (git-ignored)
 3. **Complete** — Forecasting (phase 2): **NWP weather features** at an operationally legal 48 h lead. Headline finding: NWP's value is conditional on what else is in the input — inert while Elia's day-ahead forecast (itself an NWP product) is an input, worth −75.3% on wind once that input is removed. Established the multi-seed protocol (≥3 seeds, median with min–max range) after measuring seed noise at ~10% of MAE at this training scale; applying it retracted two single-seed conclusions
 4. **Complete** — Optimisation: pymoo NSGA-III day-ahead dispatch (cost/CO₂/grid-peak, pluggable objectives), entropy-weighted TOPSIS pick, named-scenario system
 5. **Complete** — DRL: SAC closed-loop dispatch policy, three-way comparison vs NSGA-III / rule baseline (cost / CO₂ / peak / decision latency / forecast-error robustness); physics reused from the single source system.py; time-boxed resumable training
-6. **Complete** — SQL layer: PostgreSQL, 5 tables ~260k rows, idempotent loading (COPY + ON CONFLICT), business comments on every table/column, 8 analysis queries
+6. **Complete** — SQL layer: PostgreSQL, 5 tables, 1,210,642 rows over the full 2019-2024 history (task S3; an absent measurement is an absent row, solar coverage starts 2020-06-30), idempotent loading (COPY + ON CONFLICT), business comments on every table/column, 8 analysis queries
 7. **Complete** — Data agent: LLM tool-calling loop (explore schema → write SQL → self-correct on errors), belt-and-braces read-only safety (pure-function validator + READ ONLY transactions), any OpenAI-compatible endpoint, fully offline unit tests via an injected fake LLM client
 8. **Complete** — The forecast-value transfer function: dispatch re-run across forecast-quality tiers from perfect foresight to seasonal persistence, every point at three optimiser seeds against a measured 28.46 EUR/day seed-noise floor. Finding: perfect foresight is worth ≈ 0 EUR/day on cost (the median moves +17.94, *upward*, inside the noise) and a small range-disjoint 0.033 MW of tie-line peak; degrading the forecast costs both; cost responds to error *structure* (real correlated error ≈ 2.5× the cost per MW of white noise at matched MAE) while peak responds to error *size*; only seasonal persistence separates from the operational forecast on cost (+36.74 EUR/day). The originally planned re-basing of the published three-way comparison was narrowed away by the result itself: the newer forecasters are indistinguishable on cost, and single-platform discipline keeps the published record as it is
 9. **Blocked** — Full history (17.8k windows) + NWP: very likely the best deployable forecaster, untested because the NWP forecast archive only reaches back to 2024-02 (the one documented multi-year alternative was probed and closed — see the forecasting section)
