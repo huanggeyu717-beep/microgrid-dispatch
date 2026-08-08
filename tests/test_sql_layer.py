@@ -69,16 +69,28 @@ def solution_json(tmp_path):
     return path
 
 
-@pytest.fixture()
-def cache_dir(tmp_path):
-    """A cache directory with two files spanning factor/seed variants."""
-    d = tmp_path / "cache"
-    d.mkdir()
-    metrics = {"cost_eur": 100.0, "co2_tco2": 1.0, "peak_mw": 2.0, "terminal_soc_dev": 0.0,
+def _cache_item(cost=100.0):
+    """One cache item as compare_dispatch writes it: three method summaries plus
+    the non-method keys (forecast_mae_mw, nsga3_planned) that must never
+    become dispatch_results rows."""
+    metrics = {"cost_eur": cost, "co2_tco2": 1.0, "peak_mw": 2.0, "terminal_soc_dev": 0.0,
                "tie_violation_steps": 0, "tie_violation_mw": 0.0, "projection_mw": 0.0,
                "decision_latency_s": 0.1, "per_step_ms": 0.01}
-    for name in ("2024-11-15_f0_s0.json", "2024-11-15_f2_s3.json"):
-        (d / name).write_text(json.dumps({m: dict(metrics) for m in ("rule", "nsga3", "rl")}))
+    return {"forecast_mae_mw": {"load": 0.1, "wind": 0.05, "solar": 0.02},
+            "nsga3_planned": {"front_size": 3, "objectives": {"cost": cost}},
+            **{m: dict(metrics) for m in ("rule", "nsga3", "rl")}}
+
+
+@pytest.fixture()
+def cache_dir(tmp_path):
+    """A cache directory in the real task-08 key format, spanning factor, noise
+    seed and TWO optimiser seeds (the last two names differ only in opt_seed)."""
+    d = tmp_path / "cache"
+    d.mkdir()
+    for name in ("lstm_dispatch_whitenoise_2024-11-15_f0.0_s0_o42.json",
+                 "lstm_dispatch_whitenoise_2024-11-15_f2.0_s3_o42.json",
+                 "lstm_dispatch_whitenoise_2024-11-15_f2.0_s3_o43.json"):
+        (d / name).write_text(json.dumps(_cache_item()))
     return d
 
 
@@ -121,10 +133,49 @@ def test_forecasts_long_merges_lstm(wide_parquet, tmp_path):
 
 def test_dispatch_results_rows(cache_dir):
     r = extract.dispatch_results_rows(cache_dir)
-    assert len(r) == 6  # 2 files x 3 methods
+    assert len(r) == 9  # 3 files x 3 methods; non-method keys never become rows
+    assert list(r.columns) == extract.DISPATCH_RESULT_COLUMNS
     assert set(r["method"]) == {"rule", "nsga3", "rl"}
-    row = r[(r["forecast_factor"] == 2.0) & (r["noise_seed"] == 3)].iloc[0]
+    assert (r["tier"] == "lstm_dispatch").all()
+    assert (r["mechanism"] == "whitenoise").all()
+    row = r[(r["forecast_factor"] == 2.0) & (r["noise_seed"] == 3) & (r["opt_seed"] == 42)].iloc[0]
     assert str(row["day"]) == "2024-11-15"
+
+
+def test_dispatch_results_files_differing_only_in_opt_seed_yield_distinct_rows(cache_dir):
+    """Regression for task S2 §2: without opt_seed in the key, the two f2.0_s3
+    files (o42 vs o43) would collapse onto one upsert key and silently
+    overwrite each other."""
+    r = extract.dispatch_results_rows(cache_dir)
+    noisy = r[(r["forecast_factor"] == 2.0) & (r["noise_seed"] == 3)]
+    assert sorted(noisy["opt_seed"].unique()) == [42, 43]
+    assert len(noisy) == 6  # 2 opt seeds x 3 methods, two rows per method
+    key_cols = ["day", "method", "tier", "mechanism", "forecast_factor", "noise_seed", "opt_seed"]
+    assert not r.duplicated(subset=key_cols).any()
+
+
+def test_dispatch_results_old_format_name_raises(tmp_path):
+    """A pre-task-08 filename must fail loudly, naming the file — a skipped
+    file would make a half-empty table look complete."""
+    d = tmp_path / "cache"
+    d.mkdir()
+    (d / "2024-11-15_f0_s0.json").write_text(json.dumps(_cache_item()))
+    with pytest.raises(ValueError, match="2024-11-15_f0_s0"):
+        extract.dispatch_results_rows(d)
+
+
+def test_real_cache_fully_parses_and_extracts():
+    """Opportunistic sweep of the published task-04 cache (241 files): every
+    filename parses and every file contributes its method rows."""
+    cache = project_root() / "models" / "comparison" / "cache"
+    files = sorted(cache.glob("*.json")) if cache.exists() else []
+    if not files:
+        pytest.skip("real dispatch cache not present in this environment")
+    r = extract.dispatch_results_rows(cache)  # raises if any name fails to parse
+    file_keys = r[["day", "tier", "mechanism", "forecast_factor",
+                   "noise_seed", "opt_seed"]].drop_duplicates()
+    assert len(file_keys) == len(files)
+    assert set(r["method"]) <= {"rule", "nsga3", "rl"}
 
 
 def test_dispatch_solution_and_schedule(solution_json):
@@ -180,6 +231,66 @@ def test_schema_applies(scratch_conn):
         cur.execute("SELECT to_regclass('forecasts'), to_regclass('dispatch_schedule')")
         reg = cur.fetchone()
     assert reg[0] is not None and reg[1] is not None
+
+
+def _dispatch_results_shape(conn):
+    """(ordered column list, unique-key column list) of dispatch_results."""
+    with conn.cursor() as cur:
+        cur.execute(
+            "SELECT column_name FROM information_schema.columns "
+            "WHERE table_name = 'dispatch_results' AND table_schema = current_schema() "
+            "ORDER BY ordinal_position")
+        cols = [r[0] for r in cur.fetchall()]
+        cur.execute(
+            "SELECT a.attname FROM pg_constraint c "
+            "JOIN unnest(c.conkey) WITH ORDINALITY AS k(attnum, ord) ON true "
+            "JOIN pg_attribute a ON a.attrelid = c.conrelid AND a.attnum = k.attnum "
+            "WHERE c.conname = 'dispatch_results_key' "
+            "AND c.conrelid = to_regclass('dispatch_results') ORDER BY k.ord")
+        key = [r[0] for r in cur.fetchall()]
+    return cols, key
+
+
+@pytest.mark.db
+def test_dispatch_results_migration_from_old_table_and_reapply(scratch_conn):
+    """Task S2 §4.5: a pre-task-08 dispatch_results (4-column key, one old row)
+    must be migrated in place — columns added, the row backfilled with what it
+    factually is (lstm_dispatch / whitenoise / 42), the key re-spanned over
+    seven columns — and applying the schema a second time must change nothing."""
+    with scratch_conn.cursor() as cur:
+        # the module-scoped scratch schema may already hold the new table from
+        # an earlier apply_schema; start from the genuine pre-task-08 state
+        cur.execute("DROP TABLE IF EXISTS dispatch_results")
+        cur.execute("""
+            CREATE TABLE dispatch_results (
+                day date NOT NULL, method text NOT NULL,
+                forecast_factor real NOT NULL, noise_seed integer NOT NULL,
+                cost_eur double precision, co2_tco2 double precision,
+                peak_mw double precision, terminal_soc_dev double precision,
+                tie_violation_steps integer, tie_violation_mw double precision,
+                projection_mw double precision, decision_latency_s double precision,
+                per_step_ms double precision,
+                CONSTRAINT dispatch_results_key UNIQUE (day, method, forecast_factor, noise_seed))
+        """)
+        cur.execute("INSERT INTO dispatch_results (day, method, forecast_factor, noise_seed, cost_eur) "
+                    "VALUES ('2024-11-15', 'nsga3', 0, 0, 7395.7)")
+    scratch_conn.commit()
+
+    db.apply_schema(scratch_conn, project_root() / "sql" / "schema")
+    cols1, key1 = _dispatch_results_shape(scratch_conn)
+    assert {"tier", "mechanism", "opt_seed"} <= set(cols1)
+    assert set(key1) == {"day", "method", "tier", "mechanism",
+                         "forecast_factor", "noise_seed", "opt_seed"}
+    with scratch_conn.cursor() as cur:
+        cur.execute("SELECT tier, mechanism, opt_seed, cost_eur FROM dispatch_results")
+        assert cur.fetchall() == [("lstm_dispatch", "whitenoise", 42, 7395.7)]
+
+    # second application: a no-op, not an error and not a different table
+    db.apply_schema(scratch_conn, project_root() / "sql" / "schema")
+    assert _dispatch_results_shape(scratch_conn) == (cols1, key1)
+    with scratch_conn.cursor() as cur:
+        cur.execute("SELECT count(*) FROM dispatch_results")
+        assert cur.fetchone()[0] == 1
 
 
 @pytest.mark.db

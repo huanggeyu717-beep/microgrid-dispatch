@@ -65,7 +65,8 @@ def main() -> None:
         if "dispatch" in groups:
             r = extract.dispatch_results_rows(args.cache_dir)
             n = db.copy_upsert(conn, "dispatch_results", r,
-                               key_cols=["day", "method", "forecast_factor", "noise_seed"])
+                               key_cols=["day", "method", "tier", "mechanism",
+                                         "forecast_factor", "noise_seed", "opt_seed"])
             print(f"dispatch_results: {n:,} rows")
 
             sol = extract.dispatch_solution_row(args.solution)

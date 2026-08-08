@@ -224,6 +224,30 @@ def test_rollout_cost_matches_vectorized_system(sys_cfg, params):
 
 
 # --------------------------------------------------------------------------- #
+# best-model bar (task 08 §5.1)
+# --------------------------------------------------------------------------- #
+def test_read_best_bar_requires_best_checkpoint(tmp_path):
+    """The best-so-far bar means "the val_cost of the policy in best.zip", so
+    it exists only while best.zip does. eval.csv is append-only tracked text
+    and outlives the untracked checkpoints across a machine move; a bar
+    inherited from a vanished checkpoint silently blocked _save("best") for an
+    entire fresh 300k-step run."""
+    from microgrid.rl.train import _read_best
+
+    # neither eval.csv nor best.zip: no history, no bar
+    assert _read_best(tmp_path) == float("inf")
+
+    # eval.csv present but best.zip absent: the record outlived the artifact
+    (tmp_path / "eval.csv").write_text(
+        "step,val_cost\n10000,4825.58\n20000,4900.0\n30000,4850.25\n")
+    assert _read_best(tmp_path) == float("inf")
+
+    # both present (a genuine resume): the bar is the recorded minimum
+    (tmp_path / "best.zip").write_bytes(b"placeholder checkpoint bytes")
+    assert _read_best(tmp_path) == 4825.58
+
+
+# --------------------------------------------------------------------------- #
 # assembler guard
 # --------------------------------------------------------------------------- #
 def test_build_rl_algorithm_requires_target():

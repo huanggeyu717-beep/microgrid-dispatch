@@ -3,6 +3,9 @@
 -- axis -- this surfaces the cost / CO2 / grid-peak / constraint-violation /
 -- decision-speed trade-off across all 61 test days.
 -- Source: dispatch_results at forecast_factor = 0.
+-- Scope note (task S2): pinned to the task-04 sweep's rows (one forecast tier,
+-- white-noise perturbation, optimiser seed 42) so the published answer cannot
+-- drift when other tiers, mechanisms or optimiser seeds are loaded later.
 
 SELECT
     method,
@@ -14,5 +17,6 @@ SELECT
     round(avg(decision_latency_s)::numeric, 4)  AS mean_latency_s
 FROM dispatch_results
 WHERE forecast_factor = 0
+  AND tier = 'lstm_dispatch' AND mechanism = 'whitenoise' AND opt_seed = 42
 GROUP BY method
 ORDER BY mean_cost_eur;

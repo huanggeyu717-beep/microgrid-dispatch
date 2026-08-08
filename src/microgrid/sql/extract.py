@@ -13,6 +13,8 @@ from pathlib import Path
 
 import pandas as pd
 
+from microgrid.pipeline.dispatch_cache import parse_cache_name
+
 # Wide parquet column -> series label used in raw_measurements.series / forecasts.series.
 _MEASURED = {"wind_measured": "wind", "solar_measured": "solar", "load_measured": "load"}
 _FORECAST_DA = {"wind": "wind_forecast_da", "solar": "solar_forecast_da", "load": "load_forecast_da"}
@@ -20,10 +22,14 @@ QUALITY_FLAG = "measured"
 
 FORECAST_COLUMNS = ["target_time", "series", "model", "quantile", "value_mw", "issued_at", "horizon_min"]
 DISPATCH_RESULT_COLUMNS = [
-    "day", "method", "forecast_factor", "noise_seed", "cost_eur", "co2_tco2", "peak_mw",
-    "terminal_soc_dev", "tie_violation_steps", "tie_violation_mw", "projection_mw",
-    "decision_latency_s", "per_step_ms",
+    "day", "method", "tier", "mechanism", "forecast_factor", "noise_seed", "opt_seed",
+    "cost_eur", "co2_tco2", "peak_mw", "terminal_soc_dev", "tie_violation_steps",
+    "tie_violation_mw", "projection_mw", "decision_latency_s", "per_step_ms",
 ]
+# The per-method summary keys a cache item may hold. Items also carry
+# non-method keys (forecast_mae_mw, nsga3_planned) that must never become
+# rows, so methods are selected explicitly rather than iterating the dict.
+_METHODS = ("rule", "nsga3", "rl")
 
 
 # --- raw_measurements ------------------------------------------------------
@@ -96,21 +102,26 @@ def _forecasts_dtypes(df: pd.DataFrame) -> pd.DataFrame:
 
 # --- dispatch_results ------------------------------------------------------
 
-def _parse_cache_name(stem: str) -> tuple[str, float, int]:
-    """'2024-11-15_f0_s0' -> (day, forecast_factor, noise_seed)."""
-    day, f_part, s_part = stem.split("_")
-    return day, float(f_part[1:]), int(s_part[1:])
-
-
 def dispatch_results_rows(cache_dir: Path) -> pd.DataFrame:
-    """One row per (method) per cache file under models/comparison/cache/."""
+    """One row per (method) per cache file under models/comparison/cache/.
+
+    Filenames carry the full task-08 key (tier, mechanism, day, factor, noise
+    seed, optimiser seed); an unparsable name raises with the filename in the
+    message — a silently skipped file would make a half-empty table look
+    complete.
+    """
     rows = []
     for path in sorted(Path(cache_dir).glob("*.json")):
-        day, factor, seed = _parse_cache_name(path.stem)
+        key = parse_cache_name(path.name)
         item = json.loads(path.read_text())
-        for method, m in item.items():
+        for method in _METHODS:
+            m = item.get(method)
+            if m is None:
+                continue
             rows.append({
-                "day": day, "method": method, "forecast_factor": factor, "noise_seed": seed,
+                "day": key.day, "method": method, "tier": key.tier, "mechanism": key.mech,
+                "forecast_factor": key.factor, "noise_seed": key.noise_seed,
+                "opt_seed": key.opt_seed,
                 "cost_eur": m.get("cost_eur"), "co2_tco2": m.get("co2_tco2"),
                 "peak_mw": m.get("peak_mw"), "terminal_soc_dev": m.get("terminal_soc_dev"),
                 "tie_violation_steps": m.get("tie_violation_steps"),

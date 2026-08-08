@@ -24,7 +24,11 @@ UTC. Five tables:
   project's quantile forecast (quantile in 0.10 / 0.50 / 0.90).
 - dispatch_results: cost / CO2 / peak metrics for three dispatch methods
   (NSGA-III, SAC reinforcement learning, rule-based) across many
-  experiment runs (days x forecast-noise factors x seeds).
+  experiment runs (days x forecast tiers x perturbation mechanisms x
+  factors x noise seeds x optimiser seeds). Careful: the factor's meaning
+  depends on the mechanism (whitenoise: 0 = nominal forecast; residual:
+  0 = perfect foresight, 1 = nominal), so always filter tier, mechanism
+  and opt_seed before aggregating.
 - dispatch_solution + dispatch_schedule: one selected day-ahead plan and
   its 96-step power schedule (join on solution id).
 Units: power MW, cost EUR, emissions tCO2. Table and column COMMENTs are

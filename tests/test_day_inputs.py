@@ -163,6 +163,86 @@ def test_day_profiles_explicit_source_raises_when_checkpoint_missing(tmp_path, d
                            forecast_source="model")
 
 
+def test_run_name_target_placeholder_serves_all_targets(tmp_path, day_df):
+    """A run_name containing {target} expands per target, so one setting can
+    point the dispatch chain at a whole run family (task 08 phase 1c)."""
+    from microgrid.forecast.checkpoints import load_checkpoint
+
+    for t in ("wind", "solar", "load"):
+        _write_checkpoint(tmp_path, day_df, t, dir_name=f"{t}_custom_family")
+    for t in ("wind", "solar", "load"):
+        ckpt, path = load_checkpoint(tmp_path, t, _model_cfg("lstm"),
+                                     run_name="{target}_custom_family")
+        assert ckpt["forecast_cfg"]["target"] == t
+        assert path.parent.name == f"{t}_custom_family"
+
+
+def test_non_placeholder_run_name_still_raises_on_other_targets(tmp_path, day_df):
+    """A literal run_name still names ONE run: the identity check must keep
+    rejecting the two targets it does not match (the placeholder's safety net)."""
+    from microgrid.forecast.checkpoints import load_checkpoint
+
+    _write_checkpoint(tmp_path, day_df, "load")
+    for t in ("wind", "solar"):
+        with pytest.raises(CheckpointMismatchError, match="load"):
+            load_checkpoint(tmp_path, t, _model_cfg("lstm"), run_name="load_lstm")
+
+
+def test_measured_source_is_perfect_foresight(tmp_path, day_df):
+    """forecast_source=measured feeds the measured series as the forecast — an
+    upper bound only, and it must equal the actuals exactly (no cascade)."""
+    di = _inputs(day_df, tmp_path, _model_cfg("lstm"), source="measured")
+    assert all(src == "measured" for src in di.sources.values()), di.sources
+    expected = day_df.loc[di.times, "load_measured"].to_numpy(float) * 1e-3
+    assert np.allclose(di.load, np.clip(expected, 0.0, None))
+
+    sys_cfg = OmegaConf.create(SYS)
+    (profile,) = build_day_profiles(day_df, [DAY], sys_cfg, tmp_path, _model_cfg("lstm"),
+                                    forecast_source="measured")
+    assert np.array_equal(profile.fc_load, profile.load)
+    assert np.array_equal(profile.fc_wind, profile.wind)
+    assert np.array_equal(profile.fc_solar, profile.solar)
+
+
+def test_explicit_tso_source_raises_on_missing_data(tmp_path, day_df):
+    """forecast_source=tso must serve the TSO column or raise — never fall back
+    to measured values behind an explicit request."""
+    di = _inputs(day_df, tmp_path, _model_cfg("lstm"), source="tso")
+    assert all(src == "tso" for src in di.sources.values()), di.sources
+
+    holey = day_df.copy()
+    holey.loc[holey.index[96 * 4 + 10], "load_forecast_da"] = np.nan  # one NaN inside DAY
+    with pytest.raises(ValueError, match="tso"):
+        _inputs(holey, tmp_path, _model_cfg("lstm"), source="tso")
+    sys_cfg = OmegaConf.create(SYS)
+    with pytest.raises(ValueError, match="tso"):
+        build_day_profiles(holey, [DAY], sys_cfg, tmp_path, _model_cfg("lstm"),
+                           forecast_source="tso")
+
+
+def test_persistence_source_is_previous_day_measured(tmp_path, day_df):
+    """forecast_source=persistence serves yesterday's measured series as the
+    forecast — the baselines.py seasonal_persistence definition (24 h shift) —
+    and raises when the previous day is absent, never falling back."""
+    sys_cfg = OmegaConf.create(SYS)
+    (profile,) = build_day_profiles(day_df, [DAY], sys_cfg, tmp_path, _model_cfg("lstm"),
+                                    forecast_source="persistence")
+    times = pd.date_range(DAY, periods=96, freq="15min", tz="UTC")
+    expected = day_df.loc[times - pd.Timedelta("1D"), "load_measured"].to_numpy(float) * 1e-3
+    assert np.allclose(profile.fc_load, np.clip(expected, 0.0, None))
+    assert not np.array_equal(profile.fc_load, profile.load)  # a real (lagged) forecast
+
+    with pytest.raises(ValueError, match="persistence"):     # dataset starts on 2024-01-01
+        build_day_profiles(day_df, ["2024-01-01"], sys_cfg, tmp_path, _model_cfg("lstm"),
+                           forecast_source="persistence")
+
+
+def test_unknown_forecast_source_raises(tmp_path, day_df):
+    """A typo'd source must raise, not silently drop into the TSO cascade."""
+    with pytest.raises(ValueError, match="unknown forecast_source"):
+        _inputs(day_df, tmp_path, _model_cfg("lstm"), source="measrued")
+
+
 def test_export_rows_carry_model_name(tmp_path, day_df):
     """export_forecasts.py wrote a literal "lstm" into every parquet row,
     making two models' rows indistinguishable in the SQL layer."""
