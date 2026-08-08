@@ -27,10 +27,14 @@ runs/
 Thumbs.db
 
 # model checkpoints & training artifacts (binary; metrics/history/diagnosis
-# text files are deliberately KEPT so results stay reviewable in the repo)
-models/**/*.pt
-models/**/*.pkl          # SB3 replay buffer (large; only needed to resume training)
-models/**/*.zip          # SB3 RL checkpoints (best/last)
+# text files are deliberately KEPT so results stay reviewable in the repo).
+# Global patterns on purpose: the models/**-scoped versions left binaries at
+# any other path one `git add -A` away from entering history permanently.
+*.pt
+# SB3 replay buffer (large; only needed to resume training)
+*.pkl
+# SB3 RL checkpoints (best/last)
+*.zip
 .claude/
 
 # Per-run training-loss curves. 52 files, 1.8 MB, and none is cited by either
@@ -43,3 +47,11 @@ reports/figures/learning_curve_*.png
 # The ones already committed stay tracked until untracked explicitly:
 #   git rm --cached *.log
 *.log
+
+# Task 08 per-item dispatch cache: 3,354 intermediate JSONs, regenerable from
+# the commands in docs/experiments/08-forecast-value-log.md and resumable.
+# The published record is models/comparison/block_b/comparison.json, the four
+# tiers/ subdirectories, the two .md tables and the log itself.
+# models/comparison/cache/ (task 04, 241 files) stays tracked: log section 1 is
+# a re-aggregation of exactly those files.
+models/comparison/block_b/cache/

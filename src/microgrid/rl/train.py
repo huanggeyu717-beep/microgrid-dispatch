@@ -66,7 +66,7 @@ class TrainMonitor(BaseCallback):
         n = min(n_eval_days, len(val_profiles))
         self.eval_idx = sorted(rng.choice(len(val_profiles), size=n, replace=False).tolist())
         self._ep_buf: list[dict] = []
-        self.best_val_cost = _read_best(out_dir / "eval.csv")
+        self.best_val_cost = _read_best(out_dir)
         self._ep_csv = out_dir / "episodes.csv"
         self._eval_csv = out_dir / "eval.csv"
         self._start = perf_counter()
@@ -143,8 +143,18 @@ def _append_csv(path: Path, rows: list[dict]) -> None:
         w.writerows(rows)
 
 
-def _read_best(eval_csv: Path) -> float:
-    """Best (min) val_cost recorded so far, so a resumed run keeps the same bar."""
+def _read_best(out_dir: Path) -> float:
+    """Best (min) val_cost recorded so far, so a resumed run keeps the same bar.
+
+    The bar means "the validation cost of the policy currently in best.zip", so
+    it only exists while best.zip does: eval.csv is append-only, tracked text
+    and can outlive the untracked checkpoints (e.g. across a machine move), and
+    a bar inherited from a vanished checkpoint would block _save("best") for an
+    entire fresh run — that happened; see task 08 §5.1.
+    """
+    if not (out_dir / "best.zip").exists():
+        return float("inf")
+    eval_csv = out_dir / "eval.csv"
     if not eval_csv.exists():
         return float("inf")
     try:

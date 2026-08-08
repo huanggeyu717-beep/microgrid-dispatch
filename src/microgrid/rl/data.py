@@ -92,8 +92,47 @@ def _national_forecast(
     df: pd.DataFrame, times: pd.DatetimeIndex, target: str, day: str,
     lstm: dict[str, np.ndarray], pref: str,
 ) -> tuple[np.ndarray, str]:
-    """One target's national-MW forecast via the model → TSO → measured cascade."""
-    if pref in ("auto", "lstm", "model") and day in lstm:
+    """One target's national-MW forecast for the requested ``pref``.
+
+    ``auto``/``lstm``/``model`` use the model → TSO → measured cascade. Three
+    explicit sources never fall back — an explicitly requested source that
+    cannot be served raises instead of silently degrading:
+
+    * ``tso`` — the Elia day-ahead forecast column; raises if any step is NaN.
+    * ``measured`` — the measured series itself, i.e. **perfect foresight**.
+      This is not a deployable configuration (the real value is unknowable at
+      planning time) and may only be reported as an explicitly labelled upper
+      bound on forecast value (task 08), never as a model score.
+    * ``persistence`` — seasonal persistence exactly as
+      :func:`microgrid.forecast.baselines.seasonal_persistence` defines it:
+      tomorrow = the same 24 h yesterday (measured series shifted by one day).
+      At a midnight issue time yesterday's measurements are fully known, so
+      the source is leakage-free; raises if the previous day is absent or NaN.
+    """
+    if pref == "measured":
+        return df.loc[times, schema.wide_column(target, schema.KIND_MEASURED)].to_numpy(float), "measured"
+    if pref == "tso":
+        tso = df.loc[times, schema.wide_column(target, schema.KIND_FORECAST_DA)].to_numpy(float)
+        if np.isnan(tso).any():
+            raise ValueError(f"{target} {day}: forecast_source=tso requested but the TSO "
+                             "day-ahead column has NaN steps — refusing to fall back")
+        return tso, "tso"
+    if pref == "persistence":
+        prev_times = times - pd.Timedelta("1D")
+        col = schema.wide_column(target, schema.KIND_MEASURED)
+        if not prev_times.isin(df.index).all():
+            raise ValueError(f"{target} {day}: forecast_source=persistence needs the measured "
+                             "series 24 h before the window and it is not in the dataset — "
+                             "refusing to fall back")
+        prev = df.loc[prev_times, col].to_numpy(float)
+        if np.isnan(prev).any():
+            raise ValueError(f"{target} {day}: forecast_source=persistence found NaN in the "
+                             "previous day's measured series — refusing to fall back")
+        return prev, "persistence"
+    if pref not in ("auto", "lstm", "model"):
+        raise ValueError(f"unknown forecast_source '{pref}' "
+                         "(expected auto/lstm/model/tso/measured/persistence)")
+    if day in lstm:
         return lstm[day], "model"
     tso = df.loc[times, schema.wide_column(target, schema.KIND_FORECAST_DA)].to_numpy(float)
     if not np.isnan(tso).any():

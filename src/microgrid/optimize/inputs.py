@@ -11,6 +11,11 @@ Per target the wind/solar/load profile comes from, in order of preference:
      source raises instead of falling back;
   3. the measured value, logged as a warning (last resort).
 
+``forecast_source=tso`` and ``forecast_source=measured`` select those sources
+explicitly, with no fallback (see :func:`_series_for_day`); ``measured`` is
+perfect foresight and is only legal as a labelled upper bound, never as a
+deployable configuration.
+
 National Elia series (GW-scale) are downscaled to the notional microgrid by the
 per-series factors in system.yaml (see :mod:`microgrid.optimize.system`).
 """
@@ -105,17 +110,38 @@ def _series_for_day(
     model_cfg: DictConfig,
     run_name: str | None,
 ) -> tuple[np.ndarray, str]:
-    """National-MW profile for one target with the model -> TSO -> measured cascade."""
-    if source_pref in ("auto", "lstm", "model"):
-        try:
-            vals, ckpt_path = _model_median(df, models_dir, target, day, model_cfg, run_name)
-            return vals, str(ckpt_path)
-        except CheckpointMismatchError:
-            raise  # a wrong checkpoint must never be silently replaced by a fallback
-        except Exception as e:  # noqa: BLE001 — unloadable checkpoint
-            if source_pref != "auto":
-                raise  # the model source was requested explicitly — do not fall back
-            log.warning("%s: model forecast unavailable (%s); falling back to TSO day-ahead", target, e)
+    """National-MW profile for one target for the requested ``source_pref``.
+
+    ``auto``/``lstm``/``model`` use the model -> TSO -> measured cascade
+    (``auto`` falls back on load failure, an explicit model source raises).
+    Two further explicit sources never fall back:
+
+    * ``tso`` — the Elia day-ahead forecast column; raises if any step is NaN.
+    * ``measured`` — the measured series itself, i.e. **perfect foresight**.
+      Not a deployable configuration (the real value is unknowable at planning
+      time); may only be reported as an explicitly labelled upper bound on
+      forecast value (task 08), never as a model score.
+    """
+    if source_pref == "measured":
+        return df.loc[times, schema.wide_column(target, schema.KIND_MEASURED)].to_numpy(float), "measured"
+    if source_pref == "tso":
+        vals = df.loc[times, schema.wide_column(target, schema.KIND_FORECAST_DA)].to_numpy(float)
+        if np.isnan(vals).any():
+            raise ValueError(f"{target} {day}: forecast_source=tso requested but the TSO "
+                             "day-ahead column has NaN steps — refusing to fall back")
+        return vals, "tso"
+    if source_pref not in ("auto", "lstm", "model"):
+        raise ValueError(f"unknown forecast_source '{source_pref}' "
+                         "(expected auto/lstm/model/tso/measured)")
+    try:
+        vals, ckpt_path = _model_median(df, models_dir, target, day, model_cfg, run_name)
+        return vals, str(ckpt_path)
+    except CheckpointMismatchError:
+        raise  # a wrong checkpoint must never be silently replaced by a fallback
+    except Exception as e:  # noqa: BLE001 — unloadable checkpoint
+        if source_pref != "auto":
+            raise  # the model source was requested explicitly — do not fall back
+        log.warning("%s: model forecast unavailable (%s); falling back to TSO day-ahead", target, e)
     tso_col = schema.wide_column(target, schema.KIND_FORECAST_DA)
     vals = df.loc[times, tso_col].to_numpy(float)
     if not np.isnan(vals).any():

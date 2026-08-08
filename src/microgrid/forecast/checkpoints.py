@@ -29,7 +29,18 @@ class CheckpointMismatchError(RuntimeError):
 
 
 def run_dir(models_dir: Path, target: str, model_name: str, run_name: str | None = None) -> Path:
-    """Run directory for one trained forecaster: ``run_name`` wins when set."""
+    """Run directory for one trained forecaster: ``run_name`` wins when set.
+
+    A ``run_name`` containing the literal ``{target}`` placeholder is expanded
+    per target (e.g. ``{target}_standalone_valwide_s42`` →
+    ``wind_standalone_valwide_s42``), so one setting can point the dispatch
+    chain at a whole family of runs. A literal ``run_name`` without the
+    placeholder behaves exactly as before: it names a single run directory and
+    can serve only its own target — :func:`load_checkpoint`'s identity check
+    enforces that either way, which is what makes the placeholder safe.
+    """
+    if run_name and "{target}" in run_name:
+        run_name = run_name.format(target=target)
     return Path(models_dir) / (run_name or f"{target}_{model_name}")
 
 

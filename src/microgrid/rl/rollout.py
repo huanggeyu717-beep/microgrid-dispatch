@@ -43,6 +43,9 @@ class RolloutResult:
     tie_violation_steps: int         # steps with |P_grid| > tie_limit
     tie_violation_mag: float         # summed MW over the limit
     projection: float                # summed |requested - projected| setpoint magnitude
+    export_steps: int                # steps with P_grid < 0 (exporting to the grid)
+    export_mwh: float                # energy exported over the day [MWh]
+    peak_hour: int                   # UTC hour of the day's max |P_grid|
     decision_latency_s: float        # wall time spent deciding actions (whole day)
     per_step_ms: float               # mean per-step decision latency
     P_mt: np.ndarray = field(repr=False)
@@ -60,6 +63,9 @@ class RolloutResult:
             "tie_violation_steps": int(self.tie_violation_steps),
             "tie_violation_mw": round(self.tie_violation_mag, 4),
             "projection_mw": round(self.projection, 4),
+            "export_steps": int(self.export_steps),
+            "export_mwh": round(self.export_mwh, 4),
+            "peak_hour": int(self.peak_hour),
             "decision_latency_s": round(self.decision_latency_s, 5),
             "per_step_ms": round(self.per_step_ms, 4),
         }
@@ -105,11 +111,18 @@ def simulate(
         E, prev_mt = o.E_next, o.p_mt
 
     latency = decide_s if decision_latency_s is None else decision_latency_s
+    # Export accounting (task 08 §9.1 H4) and the daily-peak hour (§9.3): the
+    # cost decomposition of §2.1 is linear only while P_grid >= 0, so the
+    # fraction of exporting steps bounds how far that argument can be trusted.
+    exporting = P_grid < 0
     return RolloutResult(
         day=day.day, method=method,
         cost=cost, co2=co2, peak=peak,
         terminal_soc_dev=abs(E - p.e_init) / p.bat_capacity,
         tie_violation_steps=tie_steps, tie_violation_mag=tie_mag, projection=proj,
+        export_steps=int(exporting.sum()),
+        export_mwh=float(-P_grid[exporting].sum() * p.dt_h),
+        peak_hour=int(np.argmax(np.abs(P_grid)) * p.dt_h),
         decision_latency_s=latency, per_step_ms=1000.0 * decide_s / H,
         P_mt=P_mt, P_bat=P_bat, P_grid=P_grid, soc=soc,
     )

@@ -24,6 +24,28 @@ compare:
   robust_subset: 12    # seeded day subset for the forecast-error robustness curve
   subset_seed: 20241109
   max_seconds: null    # time-boxed + resumable (per-day cache); null = run to completion
+  methods: [rule, nsga3, rl]   # subset to e.g. [rule, nsga3] to run without an RL checkpoint
+  opt_seeds: [42]      # NSGA-III optimiser-seed axis (overrides optimize.seed per work item);
+                       # distinct from subset_seed (which picks robustness days) and from the
+                       # forecast-noise seeds. >=3 seeds for any headline point (task 08 §8).
+  cache_dir: null      # scratch-run override; null = models/comparison/cache
+  out_dir: null        # scratch-run override for comparison.json AND figures; null = models/comparison (figures then go to paths.figures_dir)
+  # Residual-scaling γ grids (task 08 phase 2): fc_γ = clip(actual + γ·(fc_nominal − actual), 0, None).
+  # γ=0 perfect foresight, γ=1 nominal (served from the cached nominal, never re-solved), γ>1 scales
+  # the real forecast error up. The curve's x axis is the measured MAE stored per point, never γ.
+  residual_gammas: []          # γ values run on ALL test days, e.g. [0.0, 0.5, 2.0]
+  residual_subset_gammas: []   # extra γ values on the robust_subset days only, e.g. [0.25, 0.75, 1.5, 3.0]
+  attribution_targets: []      # per-target attribution on the subset days: γ=0 on this series alone,
+                               # the other two at the nominal forecast; e.g. [load, wind, solar]
+  days: []                     # restrict the run to an explicit day list (task 08 §9 scratch runs);
+                               # [] = the full test period. Unknown days raise, never silently drop.
+  tier: null                   # forecast tier for this run's cache entries (task 08 §7); null =
+                               # lstm_dispatch. One run = one tier; set rl.train.forecast_source
+                               # (+ forecast.run_name for model tiers) to match, e.g.
+                               #   compare.tier=tso rl.train.forecast_source=tso
+  perfect_biased: false        # task 08 §9.1 H3: add mechanism perfect_biased — perfect foresight plus
+                               # each series' signed mean forecast error measured on the VALIDATION
+                               # split (never the test days), one point per test day per opt seed
 
 paths:
   interim_dir: data/interim
