@@ -105,6 +105,100 @@ def test_measurements_long(wide_parquet):
     assert len(m) == 12  # 4 timestamps x 3 series
     assert set(m["series"]) == {"wind", "solar", "load"}
     assert (m["quality"] == "measured").all()
+    assert m.attrs["dropped_by_series"] == {"wind": 0, "solar": 0, "load": 0}
+
+
+# --- task S3: a NaN is an absent measurement — dropped, counted, never imputed
+
+
+@pytest.fixture()
+def gappy_parquet(tmp_path):
+    """A wide dataset with NaN gaps in two of three series (measured and TSO),
+    like the 2019-2024 parquet where solar does not reach back to 2019."""
+    nan = float("nan")
+    idx = pd.date_range("2019-06-01", periods=6, freq="15min", tz="UTC")
+    df = pd.DataFrame(
+        {
+            "wind_measured": [100.1, nan, 120.3, 130.4, nan, 150.6],
+            "solar_measured": [nan, nan, nan, 15.4, 20.5, 25.6],
+            "load_measured": [900.1, 910.2, 920.3, 930.4, 940.5, 950.6],
+            "wind_forecast_da": [105.0, nan, 118.0, 125.0, nan, 148.0],
+            "solar_forecast_da": [nan, nan, nan, 16.0, 21.0, 26.0],
+            "load_forecast_da": [890.0, 915.0, 905.0, 940.0, 935.0, 955.0],
+        },
+        index=idx,
+    )
+    df.index.name = "timestamp"
+    path = tmp_path / "gappy.parquet"
+    df.to_parquet(path)
+    return path
+
+
+def test_measurements_long_drops_absent_rows_and_reports(gappy_parquet):
+    m = extract.measurements_long(gappy_parquet)
+    assert not m["value"].isna().any()
+    assert len(m) == 13  # 18 slots minus 2 wind and 3 solar gaps
+    assert m.attrs["dropped_by_series"] == {"wind": 2, "solar": 3, "load": 0}
+
+
+def test_measurements_long_all_nan_series_raises(tmp_path):
+    """A series with zero surviving rows is corruption, not a coverage gap."""
+    idx = pd.date_range("2019-06-01", periods=3, freq="15min", tz="UTC")
+    df = pd.DataFrame(
+        {
+            "wind_measured": [100.0, 110.0, 120.0],
+            "solar_measured": [float("nan")] * 3,
+            "load_measured": [900.0, 910.0, 920.0],
+        },
+        index=idx,
+    )
+    df.index.name = "timestamp"
+    path = tmp_path / "corrupt.parquet"
+    df.to_parquet(path)
+    with pytest.raises(ValueError, match="solar"):
+        extract.measurements_long(path)
+
+
+def test_measurements_long_kept_values_are_untouched(gappy_parquet):
+    """Dropping the absent rows must not touch the values that survive:
+    bit-identical to the parquet, no rounding, no fill."""
+    src = pd.read_parquet(gappy_parquet)
+    m = extract.measurements_long(gappy_parquet)
+    for series, col in [("wind", "wind_measured"), ("solar", "solar_measured"),
+                        ("load", "load_measured")]:
+        kept = m[m["series"] == series].set_index("timestamp_utc")["value"]
+        expected = src[col].dropna()
+        assert list(kept.index) == list(expected.index)
+        assert (kept.to_numpy() == expected.to_numpy()).all()
+
+
+def test_tso_forecasts_long_reports_drops(gappy_parquet):
+    f = extract.tso_forecasts_long(gappy_parquet)
+    assert not f["value_mw"].isna().any()
+    assert len(f) == 13
+    assert f.attrs["dropped_by_series"] == {"wind": 2, "solar": 3, "load": 0}
+
+
+def test_forecasts_long_carries_drop_report_through_concat(gappy_parquet):
+    both = extract.forecasts_long(gappy_parquet, None)
+    assert both.attrs["dropped_by_series"] == {"wind": 2, "solar": 3, "load": 0}
+
+
+def test_real_parquet_drop_counts_match_quality_report():
+    """Opportunistic: on the real 2019-2024 parquet, the dropped counts must
+    match nan_pct x rows from the published quality report to within +/-2."""
+    parquet = project_root() / "data" / "processed" / "elia_dataset.parquet"
+    report_path = project_root() / "data" / "processed" / "elia_quality_report.json"
+    if not (parquet.exists() and report_path.exists()):
+        pytest.skip("real parquet / quality report not present in this environment")
+    report = json.loads(report_path.read_text())
+    rows = report["rows"]
+    m = extract.measurements_long(parquet)
+    dropped = m.attrs["dropped_by_series"]
+    for series, col in [("wind", "wind_measured"), ("solar", "solar_measured"),
+                        ("load", "load_measured")]:
+        expected = report["columns"][col]["nan_pct"] / 100.0 * rows
+        assert abs(dropped[series] - expected) <= 2, (series, dropped[series], expected)
 
 
 def test_tso_forecasts_have_null_quantile(wide_parquet):
@@ -313,6 +407,49 @@ def test_forecasts_upsert_is_idempotent_with_null_quantile(scratch_conn):
                         key_cols=["series", "model", "target_time", "quantile"],
                         conflict_constraint="forecasts_key")
     assert n1 == 2 and n2 == 2  # NULLS NOT DISTINCT: the TSO (NULL quantile) row upserts, not duplicates
+
+
+@pytest.mark.db
+def test_analysis_bucketing_is_time_zone_independent(scratch_conn):
+    """Task S3 round 2: date_trunc()/extract() on a timestamptz are evaluated
+    in the SESSION time zone, so the three bucketing queries must pin UTC with
+    an explicit AT TIME ZONE 'UTC'. Regression: under Europe/London the live
+    database reported n_slots = 4 for 2020-06 where UTC bucketing gives 8.
+
+    Synthetic rows straddle the June/July UTC month boundary at 22:00-23:45
+    UTC — the shape of the real solar series start — and the three queries
+    must return identical, UTC-correct buckets under two different session
+    time zones (SET TIME ZONE inside the test transaction, discarded by the
+    rollback that ends it)."""
+    db.apply_schema(scratch_conn, project_root() / "sql" / "schema")
+    slots = pd.date_range("2020-06-30 22:00", periods=12, freq="15min", tz="UTC")
+    with scratch_conn.cursor() as cur:
+        for ts in slots:
+            for series in ("wind", "solar", "load"):
+                cur.execute(
+                    "INSERT INTO raw_measurements (timestamp_utc, series, value, quality) "
+                    "VALUES (%s, %s, 100.0, 'measured')", (ts, series))
+                cur.execute(
+                    "INSERT INTO forecasts (target_time, series, model, value_mw) "
+                    "VALUES (%s, %s, 'tso', 110.0)", (ts, series))
+    scratch_conn.commit()
+
+    analysis = project_root() / "sql" / "analysis"
+    names = ["renewable_share", "forecast_error_by_month", "forecast_error_by_hour"]
+    per_zone = {}
+    for tz in ("Europe/London", "Pacific/Auckland"):
+        with scratch_conn.cursor() as cur:
+            cur.execute("SET LOCAL TIME ZONE %s", (tz,))
+            per_zone[tz] = {n: cur.execute((analysis / f"{n}.sql").read_text())
+                            or cur.fetchall() for n in names}
+        scratch_conn.rollback()  # ends the transaction, discarding SET LOCAL
+
+    london, auckland = per_zone["Europe/London"], per_zone["Pacific/Auckland"]
+    assert london == auckland
+    # and the buckets are the UTC ones: 8 slots in June, 4 in July, hours 22/23/0
+    assert [(r[0], r[1]) for r in london["renewable_share"]] == [("2020-06", 8), ("2020-07", 4)]
+    assert {(r[1], r[2]) for r in london["forecast_error_by_month"]} == {("2020-06", 8), ("2020-07", 4)}
+    assert {(r[1], r[2]) for r in london["forecast_error_by_hour"]} == {(22, 4), (23, 4), (0, 4)}
 
 
 @pytest.mark.db

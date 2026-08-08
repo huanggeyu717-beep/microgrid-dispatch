@@ -32,10 +32,36 @@ DISPATCH_RESULT_COLUMNS = [
 _METHODS = ("rule", "nsga3", "rl")
 
 
+def _drop_absent(long: pd.DataFrame, value_col: str) -> tuple[pd.DataFrame, dict[str, int]]:
+    """Drop NaN rows (absent measurements) and count the drops per series.
+
+    A NaN is an absent measurement, not a value: the row is removed — never
+    imputed, never written as NULL — and the exact per-series count (zeros
+    included) is returned so callers can report it. A series that ends with
+    zero rows is real corruption, not a coverage gap, and raises with the
+    series name. Kept rows are returned untouched (a boolean-mask slice, so
+    the values that survive are bit-identical to the input).
+    """
+    series_order = list(long["series"].unique())
+    absent = long[value_col].isna()
+    counts = long.loc[absent, "series"].value_counts()
+    dropped = {s: int(counts.get(s, 0)) for s in series_order}
+    kept = long[~absent].reset_index(drop=True)
+    empty = [s for s in series_order if s not in set(kept["series"])]
+    if empty:
+        raise ValueError(f"series lost every row (all values NaN): {', '.join(empty)}")
+    return kept, dropped
+
+
 # --- raw_measurements ------------------------------------------------------
 
 def measurements_long(parquet_path: Path) -> pd.DataFrame:
-    """Reshape the three measured series from the wide parquet to long format."""
+    """Reshape the three measured series from the wide parquet to long format.
+
+    The parquet spans 2019-2024 and not every Elia series reaches back that
+    far (solar starts mid-2020). NaN rows are dropped by ``_drop_absent`` and
+    the per-series counts are recorded in ``.attrs["dropped_by_series"]``.
+    """
     df = pd.read_parquet(parquet_path)
     missing = [c for c in _MEASURED if c not in df.columns]
     if missing:
@@ -48,15 +74,21 @@ def measurements_long(parquet_path: Path) -> pd.DataFrame:
         .melt(id_vars="timestamp_utc", var_name="series", value_name="value")
     )
     long["quality"] = QUALITY_FLAG
-    if long["value"].isna().any():
-        raise ValueError("found NaN values in measured series; aborting")
-    return long[["timestamp_utc", "series", "value", "quality"]]
+    kept, dropped = _drop_absent(long, "value")
+    out = kept[["timestamp_utc", "series", "value", "quality"]]
+    out.attrs["dropped_by_series"] = dropped
+    return out
 
 
 # --- forecasts -------------------------------------------------------------
 
 def tso_forecasts_long(parquet_path: Path) -> pd.DataFrame:
-    """TSO day-ahead point forecasts (quantile NULL) for all series, full year."""
+    """TSO day-ahead point forecasts (quantile NULL) for all series, 2019-2024.
+
+    Same absence rule as ``measurements_long``: NaN rows (the solar forecast
+    does not exist before mid-2020) are dropped by ``_drop_absent`` and the
+    counts recorded in ``.attrs["dropped_by_series"]``.
+    """
     df = pd.read_parquet(parquet_path)
     frames = []
     for series, col in _FORECAST_DA.items():
@@ -71,8 +103,10 @@ def tso_forecasts_long(parquet_path: Path) -> pd.DataFrame:
         s["issued_at"] = pd.NaT
         s["horizon_min"] = pd.NA
         frames.append(s)
-    out = pd.concat(frames, ignore_index=True).dropna(subset=["value_mw"])
-    return _forecasts_dtypes(out[FORECAST_COLUMNS])
+    kept, dropped = _drop_absent(pd.concat(frames, ignore_index=True), "value_mw")
+    out = _forecasts_dtypes(kept[FORECAST_COLUMNS])
+    out.attrs["dropped_by_series"] = dropped
+    return out
 
 
 def lstm_forecasts_long(lstm_parquet_path: Path) -> pd.DataFrame:
@@ -85,11 +119,19 @@ def lstm_forecasts_long(lstm_parquet_path: Path) -> pd.DataFrame:
 
 
 def forecasts_long(parquet_path: Path, lstm_parquet_path: Path | None) -> pd.DataFrame:
-    """Full-year TSO point forecasts plus (if present) the LSTM quantile forecasts."""
-    frames = [tso_forecasts_long(parquet_path)]
+    """2019-2024 TSO point forecasts plus (if present) the LSTM quantile forecasts.
+
+    ``.attrs["dropped_by_series"]`` carries the TSO drop counts (pd.concat
+    would silently lose them, so they are re-attached explicitly); the LSTM
+    export is already gap-free by construction.
+    """
+    tso = tso_forecasts_long(parquet_path)
+    frames = [tso]
     if lstm_parquet_path is not None and Path(lstm_parquet_path).exists():
         frames.append(lstm_forecasts_long(lstm_parquet_path))
-    return pd.concat(frames, ignore_index=True)
+    out = pd.concat(frames, ignore_index=True)
+    out.attrs["dropped_by_series"] = tso.attrs["dropped_by_series"]
+    return out
 
 
 def _forecasts_dtypes(df: pd.DataFrame) -> pd.DataFrame:

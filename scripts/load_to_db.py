@@ -26,6 +26,17 @@ ALL_TABLES = [
 ]
 
 
+def _report_drops(label: str, df) -> None:
+    """Print one line per series that lost rows to absent (NaN) measurements.
+
+    An absent measurement is dropped by design, never imputed and never
+    silent — the count is the report (task S3 §4.2).
+    """
+    for series, count in df.attrs.get("dropped_by_series", {}).items():
+        if count:
+            print(f"{label}: dropped {count:,} {series} rows (absent measurements)")
+
+
 def main() -> None:
     root = project_root()
     parser = argparse.ArgumentParser(description=__doc__)
@@ -52,11 +63,13 @@ def main() -> None:
 
         if "raw" in groups:
             m = extract.measurements_long(args.parquet)
+            _report_drops("raw_measurements", m)
             n = db.copy_upsert(conn, "raw_measurements", m, key_cols=["series", "timestamp_utc"])
             print(f"raw_measurements: {n:,} rows")
 
         if "forecasts" in groups:
             f = extract.forecasts_long(args.parquet, args.lstm_parquet)
+            _report_drops("forecasts (tso)", f)
             n = db.copy_upsert(conn, "forecasts", f,
                                key_cols=["series", "model", "target_time", "quantile"],
                                conflict_constraint="forecasts_key")

@@ -10,6 +10,9 @@
 --    real key, so a TSO row still upserts cleanly.
 --  * The LSTM value is the day-ahead forecast issued at 00:00 UTC for that day
 --    (one forecast per 15-min slot); horizon_min = target_time - issued_at.
+--  * Spans differ by model: TSO covers 2019-2024 (its solar forecast, like the
+--    solar actuals, starts mid-2020 — absent slots are absent rows, never
+--    NULL); the LSTM rows cover only its 2024 test window.
 
 CREATE TABLE IF NOT EXISTS forecasts (
     target_time timestamptz      NOT NULL,
@@ -25,9 +28,9 @@ CREATE TABLE IF NOT EXISTS forecasts (
 
 CREATE INDEX IF NOT EXISTS forecasts_lookup_idx ON forecasts (series, model, target_time);
 
-COMMENT ON TABLE  forecasts             IS '预测时序表（长格式）：TSO 日前点预测（model=tso，quantile 为空）与 LSTM 日前分位数预测（model=lstm，quantile=0.10/0.50/0.90）；可按 series + 时间戳与 raw_measurements 实测值对齐比较。';
+COMMENT ON TABLE  forecasts             IS '预测时序表（长格式）：TSO 日前点预测（model=tso，quantile 为空，覆盖 2019-2024）与 LSTM 日前分位数预测（model=lstm，quantile=0.10/0.50/0.90，仅覆盖其 2024 测试窗口）；可按 series + 时间戳与 raw_measurements 实测值对齐比较。缺失预测即缺行（不写 NULL）：TSO 光伏日前预测约 2020 年年中才开始。';
 COMMENT ON COLUMN forecasts.target_time IS '被预测的目标时间戳，UTC，15 分钟分辨率。';
-COMMENT ON COLUMN forecasts.series      IS '序列名称：wind / solar / load。';
+COMMENT ON COLUMN forecasts.series      IS '序列名称：wind / solar / load。solar 的 TSO 预测自约 2020 年年中起才有数据。';
 COMMENT ON COLUMN forecasts.model       IS '预测来源：tso（电网运营商日前预测）或 lstm（本项目 LSTM 模型）。';
 COMMENT ON COLUMN forecasts.quantile    IS '分位数：LSTM 取 0.10/0.50/0.90；TSO 为点预测，此列为空（NULL）。';
 COMMENT ON COLUMN forecasts.value_mw    IS '预测数值，单位兆瓦（MW）。';
