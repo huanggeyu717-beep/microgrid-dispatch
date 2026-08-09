@@ -191,6 +191,14 @@ def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list
     carries it. If it ever differs, the LP has picked up state it should not
     have.
 
+    ``milp_exec`` (task 11 §5.4) is covered too: the LP is deterministic and
+    the open-loop rollout is deterministic given the plan, so its physical
+    summary (timing metrics excluded) must be identical across seeds.
+    ``milp_eps_exec`` is excluded — seed-dependent by construction, its
+    ceilings come from that seed's own TOPSIS plan (same rule as ``epsilon``
+    in :func:`milp_physical`); its provenance is protected by
+    :func:`check_milp_epsilon_ceilings` instead.
+
     ``load(day, mech, f, noise_seed, opt_seed)`` returns a cached item dict;
     ``triples`` are the (day, mech, f, noise_seed) combinations to check.
     Returns the number of comparisons made (0 with fewer than two seeds).
@@ -219,6 +227,18 @@ def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list
             if milp_physical(load(day, mech, f, s, o)["milp_planned"]) != ref:
                 raise RuntimeError(
                     f"optimiser seed leaked into 'milp_planned': record for "
+                    f"(day={day}, mech={mech}, f={f}, noise_seed={s}) differs between "
+                    f"opt_seed={opt_seeds[0]} and opt_seed={o}")
+            checked += 1
+    for day, mech, f, s in triples:
+        first = load(day, mech, f, s, opt_seeds[0])
+        if "milp_exec" not in first:
+            continue
+        ref = physical(first["milp_exec"])
+        for o in opt_seeds[1:]:
+            if physical(load(day, mech, f, s, o)["milp_exec"]) != ref:
+                raise RuntimeError(
+                    f"optimiser seed leaked into 'milp_exec': physical summary for "
                     f"(day={day}, mech={mech}, f={f}, noise_seed={s}) differs between "
                     f"opt_seed={opt_seeds[0]} and opt_seed={o}")
             checked += 1
@@ -638,7 +658,8 @@ def _lp_objectives(P_mt, P_bat, planning: DayProfile, params) -> dict:
             "peak_grid": float(objective_fns.peak_grid(ctx))}
 
 
-def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict | None) -> dict:
+def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict | None,
+               return_solutions: bool = False):
     """The milp_planned cache record for one item (task 09 §6.2 + §8).
 
     Base solve always; with an ``nsga3_planned`` record also the ε-constrained
@@ -648,6 +669,12 @@ def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict
     result. The §3.5 decomposition identity
     ``topsis_cost − lower_bound == gap_delivered + price_of_compromise``
     is asserted here to ``feas_tol`` rather than merely reported.
+
+    ``return_solutions`` (task 11 §5.2) additionally returns the two
+    :class:`~microgrid.optimize.milp.MilpResult` objects — the record itself
+    stores no schedule (Round 1 check 1), so ``compare.milp_execute`` needs
+    the in-scope solutions to roll out. Returns ``(record, base, eps)``;
+    ``eps`` is None when no ε solve ran.
     """
     n_tangents, feas_tol = int(milp_cfg["n_tangents"]), float(milp_cfg["feas_tol"])
 
@@ -664,6 +691,7 @@ def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict
                           f"{e}{hint}") from e
 
     res = solve()
+    eps = None
     rec = {"lower_bound": res.lower_bound, "upper_bound": res.upper_bound,
            "solve_s": res.solve_s, "certificate": res.certificate,
            "n_tangents": n_tangents,
@@ -686,12 +714,100 @@ def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict
                           "lower_bound": eps.lower_bound, "upper_bound": eps.upper_bound,
                           "certificate": eps.certificate,
                           "objectives": _lp_objectives(eps.P_mt, eps.P_bat, planning, params)}
+    if return_solutions:
+        return rec, res, eps
     return rec
+
+
+def milp_execute_settings(cmp, milp_cfg: dict | None) -> float | None:
+    """Resolve ``compare.milp_execute`` + its R6 floor (task 11 §5.1 + §5.3b).
+
+    Returns None when the flag is off; otherwise the material-violation floor
+    in MW (``compare.tie_violation_floor_mw``, defaulting to
+    ``optimize.milp.feas_tol``). The flag requires ``compare.milp=true`` — the
+    schedules come from the LP solve — and raises naming both keys rather than
+    silently doing nothing.
+    """
+    if not bool(cmp.get("milp_execute", False)):
+        return None
+    if milp_cfg is None:
+        raise ValueError(
+            "compare.milp_execute=true requires compare.milp=true (the LP schedules "
+            "to execute come from the compare.milp solve); set compare.milp=true or "
+            "drop compare.milp_execute")
+    floor = cmp.get("tie_violation_floor_mw")
+    return float(floor) if floor is not None else float(milp_cfg["feas_tol"])
+
+
+def _execution_extras(roll, p, floor_mw: float) -> dict:
+    """R6 + R7 execution metrics from the RolloutResult's stored trajectory
+    (task 11 §5.3b) — computed here, NEVER by changing RolloutResult.summary().
+
+    summary()'s key set is the shared contract of every cache item this
+    repository writes, and ``_metric_keys`` derives the aggregation's columns
+    from the first cached summary it sees, so widening it for one task would
+    let a mixed-vintage cache directory silently change what gets aggregated.
+    These keys are added beside the summary instead, for EVERY arm of a
+    milp_execute run, so the columns stay comparable across arms.
+
+    R6: the raw counter (`> 0`, what summary() reports) has no tolerance while
+    HiGHS-fed plans carry tolerance-scale planned overshoot (32/61 base-LP
+    plans, max 2.315e-7 MW), so a second count at `> floor_mw` separates
+    solver artefact from physics; both are always reported together. R7: the
+    unsigned terminal_soc_dev cannot distinguish a drained battery from an
+    overfilled one; the signed form (end minus start, negative = drained) can.
+    """
+    over = np.clip(np.abs(roll.P_grid) - p.tie_limit, 0.0, None)
+    raw = over > 0.0
+    material = over > floor_mw
+    sub = raw & ~material
+    return {
+        "tie_violation_steps_material": int(material.sum()),
+        "tie_violation_mw_material": round(float(over[material].sum()), 4),
+        # unrounded: tolerance-scale (1e-7) overshoots must survive storage
+        "max_single_step_overshoot_mw": float(over.max()),
+        "subfloor_violation_steps": int(sub.sum()),
+        "max_subfloor_overshoot_mw": float(over[sub].max()) if bool(sub.any()) else 0.0,
+        "terminal_soc_dev_signed": round(float(roll.soc[-1] - p.e_init / p.bat_capacity), 6),
+    }
+
+
+def _assert_lp_replay(roll, p, feas_tol: float, arm: str) -> None:
+    """The two §5.3 assertions, per item, when an LP arm is computed.
+
+    The terminal comparison is NON-STRICT, and that is load-bearing: the
+    cost-optimal LP drains the battery to the floor of its terminal allowance,
+    so the bound *binds exactly* on essentially every day (11 log §1.2) — a
+    strict inequality would raise on correct behaviour. How often it binds is
+    reported per R7, not silently tolerated.
+    """
+    tol = feas_tol * len(roll.P_grid)   # feas_tol scaled for the 96-step sum
+    if roll.projection > tol:
+        raise RuntimeError(
+            f"day {roll.day}, arm {arm!r}: projection_mw {roll.projection:.3e} exceeds "
+            f"{tol:.1e} — the LP model and rl.env.advance disagree about the physics "
+            "(task 11 §3.4); this would invalidate task 09's gaps too, stop and explain")
+    bound = p.terminal_tol / p.bat_capacity + tol
+    if roll.terminal_soc_dev > bound:
+        raise RuntimeError(
+            f"day {roll.day}, arm {arm!r}: terminal_soc_dev {roll.terminal_soc_dev:.6f} "
+            f"exceeds terminal_tol/bat_capacity + tol = {bound:.6f}; the replayed SoC "
+            "path left the planned terminal window")
+
+
+def _terminal_at_bound(dev_signed: float, p) -> bool:
+    """True when |signed terminal deviation| sits at the terminal bound (R7).
+
+    Binding is expected for the cost-optimal LP (stored energy is worth
+    money); the count of at-the-bound days is reported, never asserted away.
+    """
+    return abs(abs(dev_signed) - p.terminal_tol / p.bat_capacity) <= 1e-6
 
 
 def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, params, objectives,
                   opt_cfg, rl_model, env_cfg, baseline, subset_seed, methods: list[str],
-                  bias: dict | None = None, milp_cfg: dict | None = None) -> dict:
+                  bias: dict | None = None, milp_cfg: dict | None = None,
+                  tie_floor_mw: float | None = None) -> dict:
     """Run the requested methods on one (day, mech, factor, noise draw); return their summaries.
 
     ``noise_seed`` selects the forecast-noise realization for whitenoise f>0
@@ -705,6 +821,13 @@ def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, par
     LP is deterministic, so the record is duplicated identically across
     optimiser seeds (each cache entry stays self-contained), which
     :func:`check_opt_seed_invariance` turns into a free correctness check.
+
+    ``tie_floor_mw`` (task 11, non-None exactly when ``compare.milp_execute``
+    is on; resolved by :func:`milp_execute_settings`) additionally EXECUTES
+    both LP schedules open-loop against the actuals — item keys ``milp_exec``
+    and ``milp_eps_exec``, outside :data:`METHODS` — with the LP's own solve
+    time as the decision latency, asserts the §5.3 replay invariants, and adds
+    the R6/R7 keys of :func:`_execution_extras` to every arm's summary dict.
     """
     planning = _planning_profile(profile, mech, f, noise_seed, subset_seed, bias)
     # Task 08 §9.2: the cost decomposition's plan-independent term
@@ -715,18 +838,63 @@ def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, par
         assert getattr(planning, attr) is getattr(profile, attr), \
             f"perturbation mechanism {mech!r} replaced {attr}; every γ result would be void"
     out = {"forecast_mae_mw": forecast_mae(planning, profile)}
+    rollouts = {}   # arm -> RolloutResult, kept so §5.3b can read the trajectories
     if "rule" in methods:
-        out["rule"] = simulate(profile, params, baseline.act, "rule").summary()
+        rollouts["rule"] = simulate(profile, params, baseline.act, "rule")
+        out["rule"] = rollouts["rule"].summary()
     if "nsga3" in methods:
         plan_mt, plan_bat, solve_s, planned = _solve_nsga(planning, params, objectives, opt_cfg)
-        out["nsga3"] = simulate(profile, params, plan_decider(plan_mt, plan_bat), "nsga3",
-                                decision_latency_s=solve_s).summary()
+        rollouts["nsga3"] = simulate(profile, params, plan_decider(plan_mt, plan_bat), "nsga3",
+                                     decision_latency_s=solve_s)
+        out["nsga3"] = rollouts["nsga3"].summary()
         out["nsga3_planned"] = planned
     if "rl" in methods:
-        out["rl"] = simulate(_with_forecast(profile, planning), params,
-                             policy_decider(rl_model, params, env_cfg), "rl").summary()
+        rollouts["rl"] = simulate(_with_forecast(profile, planning), params,
+                                  policy_decider(rl_model, params, env_cfg), "rl")
+        out["rl"] = rollouts["rl"].summary()
     if milp_cfg is not None:
-        out["milp_planned"] = _milp_item(planning, params, milp_cfg, out.get("nsga3_planned"))
+        if tie_floor_mw is None:
+            out["milp_planned"] = _milp_item(planning, params, milp_cfg,
+                                             out.get("nsga3_planned"))
+        else:
+            rec, lp_base, lp_eps = _milp_item(planning, params, milp_cfg,
+                                              out.get("nsga3_planned"),
+                                              return_solutions=True)
+            out["milp_planned"] = rec
+            feas_tol = float(milp_cfg["feas_tol"])
+            for arm, lp in (("milp_exec", lp_base), ("milp_eps_exec", lp_eps)):
+                if lp is None:
+                    continue
+                rollouts[arm] = simulate(profile, params, plan_decider(lp.P_mt, lp.P_bat),
+                                         arm, decision_latency_s=lp.solve_s)
+                _assert_lp_replay(rollouts[arm], params, feas_tol, arm)
+                out[arm] = rollouts[arm].summary()
+            # §5.3c: the ε arm must really execute the ε schedule. Where the ε
+            # ceilings bite (ε bound above the base bound by more than
+            # feas_tol) the two EXECUTED setpoint trajectories cannot be
+            # element-wise equal; a transposition rolling both arms out from
+            # lp_base would otherwise be silent, because the invariance check
+            # deliberately excludes milp_eps_exec (§5.4). Where the bounds
+            # agree the ceilings did not bind, identical schedules are the
+            # correct answer, and the skip is counted (eps_ceilings_slack) —
+            # "the ε constraint never bit on N days" is itself a Phase-4 fact.
+            if lp_eps is not None:
+                slack = lp_eps.lower_bound - lp_base.lower_bound <= feas_tol
+                if not slack and (
+                        np.array_equal(rollouts["milp_exec"].P_mt,
+                                       rollouts["milp_eps_exec"].P_mt)
+                        and np.array_equal(rollouts["milp_exec"].P_bat,
+                                           rollouts["milp_eps_exec"].P_bat)):
+                    raise RuntimeError(
+                        f"day {planning.day}: the ε ceilings bind (ε bound exceeds the "
+                        f"base bound by {lp_eps.lower_bound - lp_base.lower_bound:g} > "
+                        f"feas_tol {feas_tol:g}) but the two executed schedules are "
+                        "element-wise equal — milp_eps_exec is not executing the ε "
+                        "schedule (task 11 §5.3c)")
+                out["milp_eps_exec"]["eps_ceilings_slack"] = bool(slack)
+    if tie_floor_mw is not None:
+        for arm, roll in rollouts.items():
+            out[arm].update(_execution_extras(roll, params, tie_floor_mw))
     return out
 
 
@@ -760,7 +928,8 @@ def _aggregate(day_summaries: list[dict], methods: list[str]) -> dict:
     return agg
 
 
-def _paired(day_summaries: list[dict], metric: str, methods: list[str]) -> dict:
+def _paired(day_summaries: list[dict], metric: str, methods: list[str],
+            pairs: tuple | None = None) -> dict:
     """Paired per-day comparison of one metric for each method pair.
 
     Day-to-day variation is far larger than the between-method gap (for cost,
@@ -769,13 +938,22 @@ def _paired(day_summaries: list[dict], metric: str, methods: list[str]) -> dict:
     for pair (a, b) we report the mean and std of the per-day difference
     ``metric_a - metric_b`` (negative ⇒ a lower) and a's win rate (fraction of
     days a is strictly lower).
+
+    ``pairs`` (task 11 §6) names explicit (a, b) arm pairs — e.g. the LP
+    execution arms against nsga3 — read straight off the item dicts, bypassing
+    the ``methods`` filter. The default None keeps the legacy three pairs, so
+    existing readers of comparison.json see byte-identical blocks.
     """
-    vals = {m: np.array([d[m][metric] for d in day_summaries], dtype=float) for m in methods}
+    legacy = pairs is None
+    if legacy:
+        pairs = (("rl", "rule"), ("rl", "nsga3"), ("nsga3", "rule"))
     out = {}
-    for a, b in (("rl", "rule"), ("rl", "nsga3"), ("nsga3", "rule")):
-        if a not in methods or b not in methods:
+    for a, b in pairs:
+        if legacy and (a not in methods or b not in methods):
             continue
-        diff = vals[a] - vals[b]
+        va = np.array([d[a][metric] for d in day_summaries], dtype=float)
+        vb = np.array([d[b][metric] for d in day_summaries], dtype=float)
+        diff = va - vb
         out[f"{a}_vs_{b}"] = {
             "mean_diff": round(float(diff.mean()), 4),   # a - b
             "std_diff": round(float(diff.std()), 4),
@@ -1000,6 +1178,397 @@ def milp_gap_markdown(block: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+# --------------------------------------------------------------------------- #
+# LP-plan execution aggregation (task 11 §6)
+# --------------------------------------------------------------------------- #
+# The five arms of a milp_execute run. The two LP arms are ITEM KEYS, not
+# methods: they never enter METHODS / _METHODS, so they cannot become an
+# _aggregate column or a dispatch_results row (Round 1 check 4).
+EXEC_ARMS = ("rule", "nsga3", "rl", "milp_exec", "milp_eps_exec")
+# Arms whose physical summary is proved identical across optimiser seeds by
+# check_opt_seed_invariance — reported ONCE, never as a seed range (task 11
+# §9: a three-seed range for a seedless arm is one number dressed as evidence).
+EXEC_SEED_INVARIANT = ("rule", "rl", "milp_exec")
+# The R1 metric set: every table with a realised cost carries all of these.
+EXEC_METRICS = ("cost_eur", "peak_mw", "tie_violation_steps",
+                "tie_violation_steps_material", "tie_violation_mw",
+                "tie_violation_mw_material", "max_single_step_overshoot_mw",
+                "terminal_soc_dev", "terminal_soc_dev_signed", "projection_mw")
+EXEC_PAIRED_METRICS = ("cost_eur", "peak_mw", "tie_violation_steps",
+                       "tie_violation_steps_material")
+# The noise floor of every cost comparison in task 11: NSGA-III's three-seed
+# realised cost range, QUOTED from 08 log §4.1 — a citation, never a result.
+NSGA3_COST_NOISE_FLOOR = {"value": 28.46,
+                          "source": "NSGA-III three-seed realised cost range, "
+                                    "08 log §4.1, quoted"}
+
+
+def breakeven_eur(nsga3_cost_sum: float, arm_cost_sum: float,
+                  arm_viol_sum: float, nsga3_viol_sum: float) -> dict:
+    """One R3 breakeven: the violation price at which the comparison flips.
+
+    ``(nsga3_cost − arm_cost) / (arm_viol − nsga3_viol)`` over 61-day sums,
+    read as "the arm is cheaper only if one unit over the tie limit costs less
+    than this". A non-positive violation difference has no breakeven (the arm
+    is not the more-violating one) and writes null, never NaN (the task-08
+    Phase-1f guard); an arm both dearer and more violating loses outright and
+    also has none. The ``reason`` says which case produced the null.
+    """
+    extra_viol = arm_viol_sum - nsga3_viol_sum
+    if extra_viol <= 0.0:
+        return {"value": None, "reason": "non-positive violation difference"}
+    saving = nsga3_cost_sum - arm_cost_sum
+    if saving < 0.0:
+        return {"value": None, "reason": "arm dearer AND more violating: loses outright"}
+    return {"value": float(saving / extra_viol), "reason": None}
+
+
+def _exec_arm_stats(items: list[dict], days: list[str], arm: str, p) -> dict | None:
+    """The R1/R2 statistics of one arm over one seed's items, or None absent.
+
+    Median with min–max across days AND the mean (08 log §4.1's yardsticks are
+    means), the worst cost day and the worst violation day named separately
+    (they are probably different days), and the day counts R1 requires. All
+    days the arm was computed on, always — no day is ever excluded (R2).
+    """
+    have = {d: it[arm] for d, it in zip(days, items) if arm in it}
+    if not have:
+        return None
+    metrics = {}
+    for m in EXEC_METRICS:
+        v = [float(s[m]) for s in have.values()]
+        metrics[m] = {"mean": float(np.mean(v)), "median": float(np.median(v)),
+                      "min": float(min(v)), "max": float(max(v))}
+    cost = {d: float(s["cost_eur"]) for d, s in have.items()}
+    viol = {d: float(s["tie_violation_mw_material"]) for d, s in have.items()}
+    worst_cost = max(cost, key=cost.get)
+    worst_viol = max(viol, key=viol.get) if any(v > 0 for v in viol.values()) else None
+    return {
+        "n_days": len(have),
+        "metrics": metrics,
+        "days_with_any_violation": sum(1 for s in have.values()
+                                       if s["tie_violation_steps"] > 0),
+        "days_with_material_violation": sum(1 for s in have.values()
+                                            if s["tie_violation_steps_material"] > 0),
+        "days_at_terminal_bound": sum(1 for s in have.values()
+                                      if _terminal_at_bound(s["terminal_soc_dev_signed"], p)),
+        "worst_cost_day": {"day": worst_cost, "cost_eur": cost[worst_cost]},
+        "worst_violation_day": None if worst_viol is None else {
+            "day": worst_viol, "tie_violation_mw_material": viol[worst_viol],
+            "tie_violation_steps_material": int(have[worst_viol]
+                                                ["tie_violation_steps_material"])},
+    }
+
+
+def milp_exec_block(items_by_seed: dict[int, list[dict]], days: list[str], by_day,
+                    p, floor_mw: float) -> dict:
+    """The milp_exec block of comparison.json (task 11 §6).
+
+    Tabulation only — the §8 readings happen in the log, against the quoted
+    NSGA-III column. Coverage is loud (n_missing_milp_exec, mirroring the
+    Round-3 guard of milp_gap_block); empty subsets write null, never NaN.
+    ``by_day`` maps day -> DayProfile and prices R7's borrowed-energy bound at
+    each day's own maximum buy price.
+    """
+    opt_seeds = sorted(int(o) for o in items_by_seed)
+    base = opt_seeds[0]
+    base_items = items_by_seed[base]
+    n_missing = sum(1 for it in base_items if "milp_exec" not in it)
+    if n_missing == len(base_items):
+        raise RuntimeError(
+            f"compare.milp_execute is on but none of the {n_missing} cached nominal items "
+            "carries milp_exec — the cache predates the flag (resume skips existing "
+            "files); re-solve into a fresh compare.cache_dir instead of resuming onto it")
+    n_missing_eps = sum(1 for it in base_items if "milp_eps_exec" not in it)
+    # §5.3c skip count: items where the ε bound equals the base bound within
+    # feas_tol, so the schedule-distinctness assertion was skipped — reported
+    # because "the ε constraint never bit on N days" is a Phase-4 fact.
+    eps_slack = {f"o{o}": sum(1 for it in items_by_seed[o]
+                              if (it.get("milp_eps_exec") or {})
+                              .get("eps_ceilings_slack") is True)
+                 for o in opt_seeds}
+
+    arms: dict[str, dict] = {}
+    for arm in EXEC_ARMS:
+        if arm in EXEC_SEED_INVARIANT:
+            arms[arm] = {
+                "seed_axis": "invariant — proved by check_opt_seed_invariance, "
+                             "reported once, never as a seed range (task 11 §9)",
+                "stats": _exec_arm_stats(base_items, days, arm, p),
+            }
+        else:
+            per_seed = {f"o{o}": _exec_arm_stats(items_by_seed[o], days, arm, p)
+                        for o in opt_seeds}
+            across = {}
+            for m in EXEC_METRICS:
+                v = [ps["metrics"][m]["mean"] for ps in per_seed.values() if ps is not None]
+                across[m] = _median_range(v) if v else None
+            arms[arm] = {"seed_axis": "per_seed", "per_seed": per_seed,
+                         "across_seed_means": across}
+
+    paired, breakevens = {}, {}
+    for arm in ("milp_exec", "milp_eps_exec"):
+        paired[f"{arm}_vs_nsga3"] = {}
+        breakevens[arm] = {}
+        for o in opt_seeds:
+            items = [it for it in items_by_seed[o] if arm in it and "nsga3" in it]
+            if not items:
+                paired[f"{arm}_vs_nsga3"][f"o{o}"] = None
+                breakevens[arm][f"o{o}"] = None
+                continue
+            paired[f"{arm}_vs_nsga3"][f"o{o}"] = {
+                m: _paired(items, m, [], pairs=((arm, "nsga3"),))[f"{arm}_vs_nsga3"]
+                for m in EXEC_PAIRED_METRICS}
+            nc = sum(it["nsga3"]["cost_eur"] for it in items)
+            ac = sum(it[arm]["cost_eur"] for it in items)
+            breakevens[arm][f"o{o}"] = {
+                "eur_per_mw": breakeven_eur(
+                    nc, ac, sum(it[arm]["tie_violation_mw_material"] for it in items),
+                    sum(it["nsga3"]["tie_violation_mw_material"] for it in items)),
+                "eur_per_step": breakeven_eur(
+                    nc, ac, sum(it[arm]["tie_violation_steps_material"] for it in items),
+                    sum(it["nsga3"]["tie_violation_steps_material"] for it in items)),
+                "floor_mw": floor_mw,
+            }
+
+    # R6 threshold split, once for the whole run: the artefact's size, stated.
+    split_per_arm: dict[str, dict | None] = {}
+    total_steps, total_max = 0, 0.0
+    for arm in EXEC_ARMS:
+        steps, mx, changed, n = 0, 0.0, 0, 0
+        for o in opt_seeds:
+            for it in items_by_seed[o]:
+                s = it.get(arm)
+                if s is None:
+                    continue
+                n += 1
+                steps += int(s["subfloor_violation_steps"])
+                mx = max(mx, float(s["max_subfloor_overshoot_mw"]))
+                if s["tie_violation_steps"] > 0 and s["tie_violation_steps_material"] == 0:
+                    changed += 1
+        split_per_arm[arm] = None if n == 0 else {
+            "subfloor_steps": steps, "max_subfloor_overshoot_mw": mx,
+            "item_days_changing_category": changed, "n_item_days": n}
+        total_steps += steps
+        total_max = max(total_max, mx)
+    threshold_split = {"floor_mw": floor_mw, "per_arm": split_per_arm,
+                       "total_subfloor_steps": total_steps,
+                       "max_subfloor_overshoot_mw": total_max}
+
+    # P1 split (milp_exec only, base seed — the arm and the milp_planned record
+    # are both seed-invariant), with the planned-overshoot count beside it so
+    # the split cannot be read without it (32/61 at Phase 0, tolerance scale).
+    p1 = None
+    rows = [(d, it) for d, it in zip(days, base_items)
+            if "milp_exec" in it and "milp_planned" in it]
+    if rows:
+        pinned = unpinned = vp = vu = above = 0
+        above_max = 0.0
+        for d, it in rows:
+            peak = float(it["milp_planned"]["objectives"]["peak_grid"])
+            is_pinned = abs(peak - p.tie_limit) < 1e-6
+            violates = it["milp_exec"]["tie_violation_steps_material"] > 0
+            pinned += is_pinned
+            unpinned += not is_pinned
+            vp += is_pinned and violates
+            vu += (not is_pinned) and violates
+            if peak > p.tie_limit:
+                above += 1
+                above_max = max(above_max, peak - p.tie_limit)
+        p1 = {"pinned_definition": "|milp_planned.objectives.peak_grid - tie_limit| < 1e-6",
+              "n_pinned": pinned, "n_unpinned": unpinned,
+              "material_violating_pinned": vp, "material_violating_unpinned": vu,
+              "planned_peak_above_limit_days": above,
+              "max_planned_overshoot_mw": above_max}
+
+    # R7: the terminal-SoC asymmetry, signed, with the euro bound on the
+    # borrowed energy at each day's own (maximum) buy price. A caveat, not a
+    # correction: nothing is subtracted from any cost.
+    bound = p.terminal_tol / p.bat_capacity
+    terminal: dict = {"bound_soc_fraction": bound, "per_arm": {},
+                      "noise_floor_eur_per_day": dict(NSGA3_COST_NOISE_FLOOR)}
+    for arm in EXEC_ARMS:
+        seeds = [base] if arm in EXEC_SEED_INVARIANT else opt_seeds
+        per_seed = {}
+        for o in seeds:
+            have = [(d, it[arm]) for d, it in zip(days, items_by_seed[o]) if arm in it]
+            if not have:
+                per_seed[f"o{o}"] = None
+                continue
+            signed = [float(s["terminal_soc_dev_signed"]) for _, s in have]
+            eur = [max(0.0, -sg * p.bat_capacity) * float(np.max(by_day[d].price_buy))
+                   for (d, _), sg in zip(have, signed)]
+            per_seed[f"o{o}"] = {
+                "n_days": len(have),
+                "mean_terminal_soc_dev_signed": float(np.mean(signed)),
+                "days_at_bound": sum(1 for v in signed if _terminal_at_bound(v, p)),
+                "borrowed_energy_eur_bound": {"mean": float(np.mean(eur)),
+                                              "median": float(np.median(eur)),
+                                              "max": float(np.max(eur))},
+            }
+        terminal["per_arm"][arm] = per_seed
+
+    return {
+        "n_days": len(days),
+        "opt_seeds": opt_seeds,
+        "tie_violation_floor_mw": floor_mw,
+        "n_missing_milp_exec": n_missing,
+        "n_missing_milp_eps_exec": n_missing_eps,
+        "n_eps_ceilings_slack": {"per_seed": eps_slack,
+                                 "total": sum(eps_slack.values())},
+        "arms": arms,
+        "paired_vs_nsga3": paired,
+        "breakevens": breakevens,
+        "threshold_split": threshold_split,
+        "p1_pinned_split": p1,
+        "terminal_soc": terminal,
+    }
+
+
+def milp_exec_markdown(block: dict) -> str:
+    """Pasteable milp_exec tables, §3.6-compliant. Tabulation only — the §8
+    readings belong to the log, not this function."""
+    floor = block["tie_violation_floor_mw"]
+    awaiting = "— (awaiting Batch D-A)"
+    lines = [
+        "Every number below is REALISED: executed open-loop against the measured",
+        "actuals through rl.rollout.simulate. No planned cost, LP lower bound or",
+        "optimality gap appears in this file. The rule / nsga3 / rl rows reproduce",
+        "08 log §4.1 (asserted item by item before any comparison); NSGA-III's",
+        "realised numbers are QUOTED from that log, never results of task 11.",
+        "",
+        f"Violation counts at two thresholds (R6), floor = {floor:g} MW: raw counts",
+        "overshoot > 0 (the stored summary's definition), material counts",
+        "overshoot > floor. Neither is quoted without the other; headlines use",
+        "MATERIAL. Neither the LP nor NSGA-III prices violations in its objective;",
+        "both carry the tie limit as a hard constraint on the FORECAST (R5), so a",
+        "zero count is headroom, not virtue.",
+        "",
+        "| arm | seed | metric | mean | median [min, max] |",
+        "|---|---|---|---:|---|",
+    ]
+
+    def stat_rows(arm: str, label: str, st: dict | None):
+        if st is None:
+            lines.append(f"| {arm} | {label} | {awaiting} | — | — |")
+            return
+        for m in EXEC_METRICS:
+            v = st["metrics"][m]
+            lines.append(f"| {arm} | {label} | `{m}` | {v['mean']:.4f} | "
+                         f"{v['median']:.4f} [{v['min']:.4f}, {v['max']:.4f}] |")
+
+    for arm, entry in block["arms"].items():
+        if "stats" in entry:
+            stat_rows(arm, "—", entry["stats"])
+        else:
+            for ok, st in entry["per_seed"].items():
+                stat_rows(arm, ok, st)
+    lines += ["", "| arm | seed | n days | days any viol (raw) | days material viol | "
+              "days at terminal bound | worst cost day | worst violation day |",
+              "|---|---|---:|---:|---:|---:|---|---|"]
+    for arm, entry in block["arms"].items():
+        seed_stats = ([("—", entry["stats"])] if "stats" in entry
+                      else list(entry["per_seed"].items()))
+        for label, st in seed_stats:
+            if st is None:
+                lines.append(f"| {arm} | {label} | {awaiting} | — | — | — | — | — |")
+                continue
+            wc = st["worst_cost_day"]
+            wv = st["worst_violation_day"]
+            wv_s = "—" if wv is None else (f"{wv['day']} ({wv['tie_violation_mw_material']:.4f} "
+                                           f"MW, {wv['tie_violation_steps_material']} steps)")
+            lines.append(
+                f"| {arm} | {label} | {st['n_days']} | {st['days_with_any_violation']} | "
+                f"{st['days_with_material_violation']} | {st['days_at_terminal_bound']} | "
+                f"{wc['day']} ({wc['cost_eur']:.2f} EUR) | {wv_s} |")
+
+    lines += ["", "Paired per-day vs nsga3 (mean diff ± std, arm-lower win rate; "
+              "negative diff = arm cheaper/lower):", "",
+              "| pair | seed | metric | mean diff | std | win rate % | n |",
+              "|---|---|---|---:|---:|---:|---:|"]
+    for pair, per_seed in block["paired_vs_nsga3"].items():
+        for ok, st in per_seed.items():
+            if st is None:
+                lines.append(f"| {pair} | {ok} | {awaiting} | — | — | — | — |")
+                continue
+            for m, d in st.items():
+                lines.append(f"| {pair} | {ok} | `{m}` | {d['mean_diff']:.4f} | "
+                             f"{d['std_diff']:.4f} | {d['a_lower_win_rate_pct']:.1f} | "
+                             f"{d['n_days']} |")
+
+    lines += ["", f"Breakevens (R3), on MATERIAL counts (floor {floor:g} MW): the arm is "
+              "cheaper only if one MW (one step) over the tie limit costs less than:", "",
+              "| arm | seed | EUR per MW | EUR per step |",
+              "|---|---|---|---|"]
+
+    def bk(cell):
+        return "null — " + cell["reason"] if cell["value"] is None else f"{cell['value']:.2f}"
+
+    for arm, per_seed in block["breakevens"].items():
+        for ok, st in per_seed.items():
+            if st is None:
+                lines.append(f"| {arm} | {ok} | {awaiting} | — |")
+            else:
+                lines.append(f"| {arm} | {ok} | {bk(st['eur_per_mw'])} | "
+                             f"{bk(st['eur_per_step'])} |")
+
+    ts = block["threshold_split"]
+    lines += ["", f"R6 threshold split (whole run, floor {ts['floor_mw']:g} MW): "
+              f"{ts['total_subfloor_steps']} step-violation(s) are raw-but-not-material; "
+              f"largest such overshoot {ts['max_subfloor_overshoot_mw']:.3e} MW.", "",
+              "| arm | subfloor steps | max subfloor overshoot (MW) | item-days changing category |",
+              "|---|---:|---:|---:|"]
+    for arm, st in ts["per_arm"].items():
+        if st is None:
+            lines.append(f"| {arm} | {awaiting} | — | — |")
+        else:
+            lines.append(f"| {arm} | {st['subfloor_steps']} | "
+                         f"{st['max_subfloor_overshoot_mw']:.3e} | "
+                         f"{st['item_days_changing_category']} |")
+
+    p1 = block["p1_pinned_split"]
+    if p1 is not None:
+        lines += ["", f"P1 split (milp_exec, material threshold): of {p1['n_pinned']} pinned "
+                  f"days ({p1['pinned_definition']}), {p1['material_violating_pinned']} violate; "
+                  f"of {p1['n_unpinned']} unpinned, {p1['material_violating_unpinned']} violate. "
+                  f"{p1['planned_peak_above_limit_days']} plan(s) carry a PLANNED peak above the "
+                  f"limit at tolerance scale (max {p1['max_planned_overshoot_mw']:.3e} MW) — "
+                  "read the split only beside this count."]
+
+    t = block["terminal_soc"]
+    nf = t["noise_floor_eur_per_day"]
+    lines += ["", f"R7 terminal SoC (bound = {t['bound_soc_fraction']:g} of capacity; signed: "
+              "negative = battery drained over the day, positive = filled). The euro bound",
+              "prices the borrowed energy at each day's own maximum buy price; it is a",
+              f"caveat, not a correction — nothing is subtracted. Noise floor: {nf['value']}",
+              f"EUR/day ({nf['source']}).", "",
+              "| arm | seed | mean signed dev | days at bound | borrowed-energy EUR bound "
+              "mean / median / max |", "|---|---|---:|---:|---|"]
+    for arm, per_seed in t["per_arm"].items():
+        for ok, st in per_seed.items():
+            if st is None:
+                lines.append(f"| {arm} | {ok} | {awaiting} | — | — |")
+                continue
+            b = st["borrowed_energy_eur_bound"]
+            lines.append(f"| {arm} | {ok} | {st['mean_terminal_soc_dev_signed']:+.6f} | "
+                         f"{st['days_at_bound']}/{st['n_days']} | "
+                         f"{b['mean']:.2f} / {b['median']:.2f} / {b['max']:.2f} |")
+
+    slack = block.get("n_eps_ceilings_slack")
+    if slack is not None:
+        per = ", ".join(f"{ok}: {n}" for ok, n in slack["per_seed"].items())
+        lines += ["", f"§5.3c: the ε ceilings did not bind (ε bound = base bound within "
+                  f"feas_tol, schedule-distinctness assertion skipped) on {per} item(s); "
+                  f"total {slack['total']}."]
+    if block["n_missing_milp_exec"]:
+        lines += ["", f"WARNING: {block['n_missing_milp_exec']} nominal item(s) lack milp_exec "
+                  "— the aggregates cover fewer items than the day count suggests."]
+    if block["n_missing_milp_eps_exec"]:
+        lines += ["", f"NOTE: {block['n_missing_milp_eps_exec']} nominal item(s) lack "
+                  "milp_eps_exec (no ε solve on those items)."]
+    return "\n".join(lines) + "\n"
+
+
 @hydra.main(config_path="../configs", config_name="pipeline", version_base=None)
 def main(cfg: DictConfig) -> None:
     df = pd.read_parquet(resolve(cfg.paths.processed_dir) / f"{cfg.data.name}_dataset.parquet")
@@ -1045,6 +1614,11 @@ def main(cfg: DictConfig) -> None:
     # lower bound per item on the same planning profile. Settings come from
     # optimize.milp and only from there (acceptance 3) — a missing node raises.
     milp_cfg = milp_settings(cfg.optimize) if bool(cmp.get("milp", False)) else None
+    # Task 11 §5.1/§5.3b: compare.milp_execute additionally executes both LP
+    # schedules open-loop against the actuals. tie_floor is the R6 material-
+    # violation floor and is non-None exactly when the flag is on; the flag
+    # without compare.milp raises inside milp_execute_settings.
+    tie_floor = milp_execute_settings(cmp, milp_cfg)
     # Forecast tier (task 08 §7): one run = one tier. The tier names the cache
     # entries; the profiles must come from the matching forecast source, which
     # the caller sets via rl.train.forecast_source (+ forecast.run_name for
@@ -1158,7 +1732,7 @@ def main(cfg: DictConfig) -> None:
             continue  # written as a nominal alias by an earlier item this run
         item = _compute_item(by_day[day], mech, f, s, params, objectives, opt_cfgs[o],
                              rl_model, env_cfg, baseline, subset_seed, methods, bias,
-                             milp_cfg=milp_cfg)
+                             milp_cfg=milp_cfg, tie_floor_mw=tie_floor)
         write_item(cache_dir, day, f, s, o, item, tier=tier, mech=mech)
         if mech != MECH_WHITENOISE or f == 0.0:
             letter = FACTOR_LETTER[mech]
@@ -1278,6 +1852,7 @@ def main(cfg: DictConfig) -> None:
     # Reads whatever gaps the cached records can support; the phase-4 ε solve
     # fills in gap_delivered / price_of_compromise later.
     milp_block = None
+    exec_block = None
     if milp_cfg is not None:
         milp_items_by_seed = {o: [load(p.day, MECH_WHITENOISE, 0.0, 0, o) for p in profiles]
                               for o in opt_seeds}
@@ -1291,6 +1866,12 @@ def main(cfg: DictConfig) -> None:
             log.warning("milp_gap: %d nominal item(s) were cached before compare.milp was "
                         "on and lack milp_planned; aggregates cover fewer items than the "
                         "day count suggests", milp_block["n_missing_milp"])
+        if tie_floor is not None:
+            exec_block = milp_exec_block(milp_items_by_seed, [p.day for p in profiles],
+                                         by_day, params, tie_floor)
+            log.info("milp_exec: %d items missing milp_exec, %d missing milp_eps_exec "
+                     "(floor %g MW)", exec_block["n_missing_milp_exec"],
+                     exec_block["n_missing_milp_eps_exec"], tie_floor)
 
     out_dir.mkdir(parents=True, exist_ok=True)
     prev_path = out_dir / "comparison.json"
@@ -1334,6 +1915,8 @@ def main(cfg: DictConfig) -> None:
         comparison["perfect_biased"] = biased_block
     if milp_block is not None:
         comparison["milp_gap"] = milp_block
+    if exec_block is not None:
+        comparison["milp_exec"] = exec_block
     prev_path.write_text(json.dumps(comparison, indent=2))
     log.info("comparison -> %s", prev_path)
     if spread is not None:
@@ -1348,6 +1931,10 @@ def main(cfg: DictConfig) -> None:
         mg_path = out_dir / "milp_gap.md"
         mg_path.write_text(milp_gap_markdown(milp_block))
         log.info("milp gap report -> %s", mg_path)
+    if exec_block is not None:
+        me_path = out_dir / "milp_exec.md"
+        me_path.write_text(milp_exec_markdown(exec_block))
+        log.info("milp execution report -> %s", me_path)
 
     fig_dir.mkdir(parents=True, exist_ok=True)
     report.plot_comparison_bars(agg, methods, fig_dir / "dispatch_comparison_bars.png", len(profiles))

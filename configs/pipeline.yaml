@@ -49,6 +49,14 @@ compare:
   milp: false                  # task 09 §6.2: additionally solve the deterministic LP lower bound per
                                # item on the SAME planning profile (planned-vs-planned, 09 §3.4), stored
                                # under the non-method item key milp_planned; settings from optimize.milp
+  milp_execute: false          # task 11 §5.1: additionally EXECUTE both LP schedules (base + ε)
+                               # open-loop against the measured actuals, stored under the non-method
+                               # item keys milp_exec / milp_eps_exec with the LP's own solve time as
+                               # decision latency; requires compare.milp=true (raises naming both keys)
+  tie_violation_floor_mw: null # task 11 §5.3b (R6): floor in MW separating a MATERIAL tie-limit
+                               # violation from solver-tolerance noise; null = optimize.milp.feas_tol.
+                               # Raw (>0) and material (>floor) counts are always reported together;
+                               # headlines use material. Only read when milp_execute is true
 
 paths:
   interim_dir: data/interim

@@ -29,6 +29,7 @@ flowchart LR
 | DRL dispatch policy (SAC) + three-way comparison | Complete |
 | Forecast-value transfer function — what forecast accuracy is worth to dispatch | Complete |
 | MILP optimality gap — how far the heuristic's plan is from the proven optimum | Complete |
+| LP-plan execution check — does the proven optimum survive contact with the actuals | Complete |
 | PostgreSQL data layer | Complete |
 | LLM data agent (natural language → SQL) | Complete |
 
@@ -574,10 +575,10 @@ carries more CO₂ (21.42 vs 18.93 t/day). The planning problem prices neither
 forecast error nor robustness — and NSGA-III's plans execute at 0.00 tie-line
 violations per day against the rule baseline's 4.59 and RL's 1.64 (08 log
 §4.1). **Part of the gap is therefore paid for in headroom that the objective
-function does not value.** How much of it would survive contact with the
-actuals is a recorded, deliberately unstarted follow-on (execute the LP plan
-through the same simulator and count its violations), as is the NSGA-III
-budget sweep the gap's size now justifies.
+function does not value.** How much of it survives contact with the actuals
+has since been **measured** — see "Does the proven optimum survive
+execution?" below. The NSGA-III budget sweep the gap's size justifies remains
+recorded and unstarted.
 
 The LP is a measuring instrument here, not a replacement dispatcher — and not
 because of the Pareto front (an ε-constraint scan over CO₂/peak ceilings
@@ -589,6 +590,70 @@ lower bound (4780.15 EUR/day, on the forecast) and the realised NSGA-III cost
 (5442.4993 EUR/day, against the actuals) live on opposite sides of the
 forecast/execute boundary — their difference is not a saving and must never
 be computed.
+
+### Does the proven optimum survive execution? (the LP-plan execution check)
+
+Task 09 measured how far the dispatched plan sits from the proven optimum *of
+the planning problem* and attached a caveat it deliberately did not test:
+part of that gap might be buying tie-line headroom the objective function
+does not price. This task prices the caveat. The complete record is
+[docs/experiments/11-lp-execution-log.md](docs/experiments/11-lp-execution-log.md)
+(its §5 is the synthesis); machine-readable aggregates sit in
+`models/comparison/block_d/`.
+
+**Method and scope.** Both LP schedules — the unconstrained cost optimum and
+the ε-constrained one (the cheapest plan at the dispatched plan's own planned
+CO₂ and peak) — are replayed **open-loop against the measured actuals**
+through the same simulator that scores every other method, over the same 61
+Nov–Dec 2024 days at three optimiser seeds. Everything is
+realised-versus-realised; no planned cost appears in any table. Violations
+are counted at two thresholds (raw > 0 and material > 1e-6 MW, the solver
+feasibility tolerance) because 32/61 LP plans carry a *planned* peak above
+the limit by up to 2.3e-7 MW — solver tolerance, not physics; in execution
+the two counts turned out identical everywhere, so the artefact is measured
+absent rather than assumed away. The replay itself is a physics check: the
+projection the simulator applies to infeasible requests stayed at float noise
+(1e-15 MW) on all 183 items, so the LP model and the execution physics agree.
+
+> Replayed open-loop against the measured actuals over the same 61 Nov–Dec 2024
+> days, the deterministic cost-optimal LP plan realises **4857.2320 EUR/day** —
+> 575–603 EUR/day below the dispatched NSGA-III plan (08 log §4.1, quoted) and
+> cheaper on 61 of 61 days at every optimiser seed — **but breaks the 3 MW tie
+> limit on 33 of those days, at 4.1475 material violation steps per day, 90 % of
+> the forecast-free rule baseline's rate, where the dispatched plan breaks it on
+> none.** Constrained to the dispatched plan's own planned CO2 and peak, the
+> same solver's plan realises 5036.5–5066.2 EUR/day — still 383–396 EUR/day
+> cheaper, still on 61 of 61 days at every seed — **while violating on 0–2 days**.
+> The 179–209 EUR/day between those two plans is what the three-objective
+> compromise costs in execution, and it is what buys 31 of the 33 violating days
+> away; the remaining 383–396 EUR/day is optimiser shortfall, and it is bankable
+> without spending any of the tie limit.
+
+Four findings behind the headline, each with its scope:
+
+- **The two-thirds/one-third split survives execution.** On the execution
+  side (all terms realised, against the same actuals) the optimiser-shortfall
+  share of the LP arm's advantage is 65–69 % across the three seeds; task 09
+  measured the same share on the planning side (all terms planned, on the
+  same forecast) at 63 %. The two ratios are compared; the underlying numbers
+  never cross the forecast/execute boundary.
+- **The violations sit exactly where the plan had no headroom.** A
+  pre-registered prediction, scored: of the 37 days whose LP plan pins the
+  tie line at 3.0 MW, 31 violate in execution; of the 24 unpinned days, 2 do.
+- **A small systematic asymmetry, bounded and not corrected.** Both LP plans
+  end every day with the battery drained to the terminal-SoC floor (0.05 MWh
+  down — stored energy is worth money, so the cost optimum spends its whole
+  terminal allowance), where the dispatched plan ends at exactly zero
+  deviation. Priced at each day's own maximum buy price that is at most
+  10.00 EUR/day — inside the 28.46 EUR/day optimiser-seed noise floor and far
+  below the 575–603 or 383–396 EUR/day differences — so it cannot explain any
+  headline number. Nothing is subtracted on account of it.
+- **What opens next, and what it must beat.** The gated tie-limit margin
+  sweep (re-solve the LP with a tightened limit until realised violations
+  reach zero) is promoted by these results — but the ε arm already
+  demonstrates ~390 EUR/day realised at 0–2 violating days, so both that
+  sweep and the recorded NSGA-III budget sweep now have the realised ~390
+  EUR/day as their target, not task 09's planned 453.
 
 ### SQL data layer + data agent (natural-language querying)
 
@@ -724,6 +789,7 @@ data/               # raw / interim / processed (git-ignored)
 8. **Complete** — The forecast-value transfer function: dispatch re-run across forecast-quality tiers from perfect foresight to seasonal persistence, every point at three optimiser seeds against a measured 28.46 EUR/day seed-noise floor. Finding: perfect foresight is worth ≈ 0 EUR/day on cost (the median moves +17.94, *upward*, inside the noise) and a small range-disjoint 0.033 MW of tie-line peak; degrading the forecast costs both; cost responds to error *structure* (real correlated error ≈ 2.5× the cost per MW of white noise at matched MAE) while peak responds to error *size*; only seasonal persistence separates from the operational forecast on cost (+36.74 EUR/day). The originally planned re-basing of the published three-way comparison was narrowed away by the result itself: the newer forecasters are indistinguishable on cost, and single-platform discipline keeps the published record as it is
 9. **Blocked** — Full history (17.8k windows) + NWP: very likely the best deployable forecaster, untested because the NWP forecast archive only reaches back to 2024-02 (the one documented multi-year alternative was probed and closed — see the forecasting section)
 10. **Complete** — PatchTST vs LSTM on the full standalone no-NWP dataset, three seeds per architecture on identical windows. PatchTST is a transformer forecaster that splits each input series into short patches and attends across the patches rather than across all 96 time steps. **The LSTM wins on wind with disjoint three-seed ranges (699.95 vs 724.28, a 3.5% cost for the transformer), load is indistinguishable, solar likely LSTM**; 536,652 parameters lose to 38,531. The bar was deliberately the LSTM, **not Elia**: with no NWP and no TSO input the model cannot approach Elia's 185.08, and judging a controlled architecture comparison against Elia would have guaranteed a failure verdict. Getting there first required repairing the measurement: three-seed baselines at full scale, and a four-fold wider validation window that cut wind's seed spread from 10.2% to 1.7%. The sample-size scaling curve then supplied the mechanism: **the two curves cross** — PatchTST is 7.1% better at 1,674 windows and saturates around four thousand, while the LSTM is still improving at seventeen thousand. It also corrected an earlier claim: "wind is information-limited" holds only while Elia's forecast is an input; without it, 10× the windows is worth −15.9%
-11. **Complete** — MILP optimality gap: the same planning problem formulated as an LP with tangent cuts (HiGHS/SciPy, no new dependency, no integer variable needed), certified per solve, equivalence to the NSGA-III problem unit-tested term by term. Planned-versus-planned on the same forecast, at three optimiser seeds against a ~19–30 EUR/day planned-cost noise floor: the dispatched plan costs 15.1% [15.0, 15.4] more than the proven optimum, decomposed exactly into 9.0% optimiser shortfall and 5.0% price of the three-objective compromise. Carried with the headline rather than behind it: the cost optimum pins the tie line at 3 MW on 37/61 days — part of the gap buys headroom the objective does not value. Two recorded, unstarted follow-ons: an NSGA-III budget sweep (targets the recoverable two thirds) and executing the LP plan against the actuals (prices the headroom caveat)
+11. **Complete** — MILP optimality gap: the same planning problem formulated as an LP with tangent cuts (HiGHS/SciPy, no new dependency, no integer variable needed), certified per solve, equivalence to the NSGA-III problem unit-tested term by term. Planned-versus-planned on the same forecast, at three optimiser seeds against a ~19–30 EUR/day planned-cost noise floor: the dispatched plan costs 15.1% [15.0, 15.4] more than the proven optimum, decomposed exactly into 9.0% optimiser shortfall and 5.0% price of the three-objective compromise. Carried with the headline rather than behind it: the cost optimum pins the tie line at 3 MW on 37/61 days — part of the gap buys headroom the objective does not value. Of its two recorded follow-ons, executing the LP plan against the actuals has since been done (item 14 below); the NSGA-III budget sweep remains recorded and unstarted
 12. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table. Scoped out of the forecasting task into its own, precisely because a result set that may never share a table with the others is not a phase of them
 13. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help
+14. **Complete** — LP-plan execution check: both LP schedules (the cost optimum and the ε-constrained plan) replayed open-loop against the measured actuals through the same simulator as every other method, realised-versus-realised throughout, three optimiser seeds. The cost optimum realises 4857.2320 EUR/day — 575–603 EUR/day below the dispatched plan, cheaper on 61/61 days at every seed — but breaks the 3 MW tie limit on 33 of 61 days at 4.1475 steps/day, 90% of the forecast-free rule baseline's rate; the violations concentrate on the 37 tie-pinned days (31/37 vs 2/24, pre-registered and held). The ε plan keeps 383–396 EUR/day at 0–2 violating days, so the compromise's 179–209 EUR/day is what buys the tie limit back, and the planning-side "two thirds optimiser shortfall" split survives execution (65–69% vs 63%). Gated follow-on promoted: the tie-limit margin sweep — which, like the budget sweep, must now beat the realised ~390 EUR/day, not the planned 453

@@ -228,6 +228,12 @@ forecasts start paying — fired on that basis and awaits its own spec.)*
   them are convex and exactly LP-representable**; the only genuine
   non-linearity is the convex quadratic fuel rate (tangent cuts, provable
   lower bound), and no integer variable was needed (the turbine is always on).
+  The headroom caveat this block's result carried was since measured by
+  [task 11](tasks/11-lp-plan-execution.md): executed against the actuals the
+  cost optimum stays 575–603 EUR/day cheaper but breaks the tie limit on 33 of
+  61 days, while the ε-constrained plan keeps 383–396 EUR/day at 0–2 violating
+  days — results in
+  [11-lp-execution-log.md](experiments/11-lp-execution-log.md) (§5).
   MILP and NSGA-III are still not substitutes, but the reason is the
   **model-class boundary** (task 09 §3.1b: add unit commitment, SoC-dependent
   efficiency or any non-convex term and the LP construction fails while the
@@ -278,7 +284,7 @@ and triggering recalibration closes that loop.
 | 1 | A1 documentation sync | days | undocumented results do not exist; a README carrying retracted claims is worse than no README |
 | 2 | A2 scaling curve | hours of compute | closes Phase 3 with a mechanism rather than a bare loss |
 | 3 | **B transfer function — done, [task 08](tasks/08-forecast-value.md)** | ~1 week, mostly analysis | measured: forecast value lands on tie-line peak, not cost; results in [08-forecast-value-log.md](experiments/08-forecast-value-log.md) |
-| 4 | **C2 MILP gap — done, [task 09](tasks/09-milp-gap.md)** | ~3 days | measured: the dispatched plan is 15.1 % above the proven optimum — two thirds optimiser shortfall, one third the price of the three-objective compromise, part of it buying tie-line headroom the objective does not value; results in [09-milp-gap-log.md](experiments/09-milp-gap-log.md) |
+| 4 | **C2 MILP gap — done, [task 09](tasks/09-milp-gap.md)** | ~3 days | measured: the dispatched plan is 15.1 % above the proven optimum — two thirds optimiser shortfall, one third the price of the three-objective compromise, part of it buying tie-line headroom the objective does not value; results in [09-milp-gap-log.md](experiments/09-milp-gap-log.md). The headroom part was since priced by [task 11](tasks/11-lp-plan-execution.md) ([11-lp-execution-log.md](experiments/11-lp-execution-log.md) §5) |
 | 5 | split B — [task 07](tasks/07-split-b.md) | ~1 week | removes the "61 winter days only" caveat from everything above; scoped out of task 05 because its numbers may never share a table with split A's, so it is a parallel result set rather than a phase |
 | 6 | C1 rolling MPC | ~1.5 weeks | largest single improvement to the optimisation line |
 | 7 | A3 + C3 | ~1.5 weeks | only meaningful after split B fixes the calibration-set season problem |
