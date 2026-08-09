@@ -27,8 +27,9 @@ DISPATCH_RESULT_COLUMNS = [
     "tie_violation_mw", "projection_mw", "decision_latency_s", "per_step_ms",
 ]
 # The per-method summary keys a cache item may hold. Items also carry
-# non-method keys (forecast_mae_mw, nsga3_planned) that must never become
-# rows, so methods are selected explicitly rather than iterating the dict.
+# non-method keys (forecast_mae_mw, nsga3_planned, milp_planned) that must
+# never become rows, so methods are selected explicitly rather than iterating
+# the dict.
 _METHODS = ("rule", "nsga3", "rl")
 
 

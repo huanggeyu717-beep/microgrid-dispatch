@@ -292,6 +292,214 @@ def test_opt_seed_invariance_check_is_vacuous_with_one_seed():
         _store_loader({}), [("2024-11-01", "whitenoise", 0.0, 0)], [42], ["rule", "rl"]) == 0
 
 
+# --------------------------------------------------------------------------- #
+# MILP wiring (task 09 phase 2)
+# --------------------------------------------------------------------------- #
+def _milp_record(lb, solve_s=0.01):
+    return {"lower_bound": lb, "upper_bound": lb + 0.02, "solve_s": solve_s,
+            "certificate": {"split_bat": 0.0, "split_grid": 0.0,
+                            "max_constraint": 0.0, "pwl_gap": 0.02},
+            "n_tangents": 49}
+
+
+def test_opt_seed_invariance_covers_milp_planned():
+    """milp_planned must be seed-invariant; only its wall-clock solve_s may differ."""
+    store = {("2024-11-01", "whitenoise", 0.0, 0, o): {"rule": _summary(5.0, 0.1),
+                                                       "milp_planned": _milp_record(90.0, 0.01 * o)}
+             for o in (42, 43, 44)}
+    n = compare_dispatch.check_opt_seed_invariance(
+        _store_loader(store), [("2024-11-01", "whitenoise", 0.0, 0)], [42, 43, 44], ["rule"])
+    assert n == 4  # rule x 2 non-reference seeds + milp_planned x 2
+
+
+def test_opt_seed_leak_into_milp_planned_detected():
+    """A lower bound changing with the optimiser seed must fail loudly (09 §6.3)."""
+    store = {("2024-11-01", "whitenoise", 0.0, 0, o):
+             {"rule": _summary(5.0, 0.1),
+              "milp_planned": _milp_record(90.0 if o == 42 else 90.5)}
+             for o in (42, 43)}
+    with pytest.raises(RuntimeError, match="optimiser seed leaked into 'milp_planned'"):
+        compare_dispatch.check_opt_seed_invariance(
+            _store_loader(store), [("2024-11-01", "whitenoise", 0.0, 0)], [42, 43], ["rule"])
+
+
+def test_planned_record_front_min_and_argmin():
+    """front_min is the per-objective minimum; front_argmin_cost the cheapest row (09 §6.1)."""
+    F = np.array([[10.0, 1.0, 3.0],   # TOPSIS pick (index 0)
+                  [8.0, 2.0, 4.0],    # cheapest
+                  [9.0, 0.5, 5.0]])
+    rec = compare_dispatch._planned_record(F, 0, ["cost", "co2", "peak_grid"])
+    assert rec["objectives"] == {"cost": 10.0, "co2": 1.0, "peak_grid": 3.0}
+    assert rec["front_min"] == {"cost": 8.0, "co2": 0.5, "peak_grid": 3.0}
+    assert rec["front_argmin_cost"] == {"cost": 8.0, "co2": 2.0, "peak_grid": 4.0}
+
+
+def test_compute_item_stores_milp_planned_keys(sys_cfg):
+    """compare.milp wiring: the §6.2 item key with exactly the frozen fields
+    (Round 4 added `objectives` — what the cost optimum looks like, not only
+    what it costs; no `epsilon` without an nsga3_planned record)."""
+    params = system.params_from_cfg(sys_cfg)
+    profile = _synthetic_day(sys_cfg)
+    out = compare_dispatch._compute_item(
+        profile, "whitenoise", 0.0, 0, params, None, None, None, None, None, 0,
+        methods=[], milp_cfg={"n_tangents": 13, "feas_tol": 1e-6})
+    rec = out["milp_planned"]
+    assert set(rec) == {"lower_bound", "upper_bound", "solve_s", "certificate",
+                        "n_tangents", "objectives"}
+    assert rec["n_tangents"] == 13
+    assert rec["lower_bound"] <= rec["upper_bound"] + 1e-9
+    assert set(rec["certificate"]) == {"split_bat", "split_grid", "max_constraint", "pwl_gap"}
+    assert set(rec["objectives"]) == {"cost", "co2", "peak_grid"}
+    # scored by the same objective functions: cost IS the upper bound
+    assert rec["objectives"]["cost"] == pytest.approx(rec["upper_bound"])
+    # off by default: no milp_cfg, no key
+    out_off = compare_dispatch._compute_item(
+        profile, "whitenoise", 0.0, 0, params, None, None, None, None, None, 0, methods=[])
+    assert "milp_planned" not in out_off
+
+
+def test_milp_item_epsilon_contract(sys_cfg):
+    """Round 4 Step 2: the ε solve's stored shape, bounds ordering, ceilings
+    honoured, and the additive identity holding by construction."""
+    params = system.params_from_cfg(sys_cfg)
+    profile = _synthetic_day(sys_cfg)
+    H_ = len(profile.load)
+    # a feasible reference plan standing in for the TOPSIS point, scored on the
+    # same forecast arrays through the same objective functions
+    ref = compare_dispatch._lp_objectives(np.full(H_, 0.5), np.zeros(H_), profile, params)
+    fake_planned = {"objectives": ref}
+    rec = compare_dispatch._milp_item(profile, params,
+                                      {"n_tangents": 13, "feas_tol": 1e-6}, fake_planned)
+    eps = rec["epsilon"]
+    assert set(eps) == {"co2_max", "peak_max", "lower_bound", "upper_bound",
+                        "certificate", "objectives"}
+    assert (eps["co2_max"], eps["peak_max"]) == (ref["co2"], ref["peak_grid"])
+    # ε only adds constraints, and the reference plan stays feasible for it
+    assert eps["lower_bound"] >= rec["lower_bound"] - 1e-6   # price_of_compromise >= 0
+    assert eps["lower_bound"] <= ref["cost"] + 1e-6          # gap_delivered >= 0
+    # the ε schedule really honours the ceilings it was solved under
+    assert eps["objectives"]["co2"] <= eps["co2_max"] + 1e-6
+    assert eps["objectives"]["peak_grid"] <= eps["peak_max"] + 1e-6
+    assert eps["objectives"]["cost"] == pytest.approx(eps["upper_bound"])
+
+
+def test_milp_item_epsilon_infeasible_names_the_day_as_bug(sys_cfg):
+    """An infeasible ε solve is a bug (the TOPSIS plan satisfies its own
+    ceilings), and the raise must say so with the day named."""
+    params = system.params_from_cfg(sys_cfg)
+    profile = _synthetic_day(sys_cfg)
+    fake_planned = {"objectives": {"cost": 1000.0, "co2": 0.0, "peak_grid": 0.0}}
+    with pytest.raises(compare_dispatch.milp.MilpInfeasibleError,
+                       match=r"day 2024-11-15 \(ε-constrained\).*bug, not a result"):
+        compare_dispatch._milp_item(profile, params,
+                                    {"n_tangents": 13, "feas_tol": 1e-6}, fake_planned)
+
+
+def test_milp_epsilon_ceiling_invariant_passes_and_detects_drift():
+    """Task 09 acceptance 10 (amended): each item's ε ceilings must equal its
+    OWN TOPSIS plan's planned CO2/peak — the seed-dependent replacement for
+    bit-identity, which epsilon cannot satisfy by construction."""
+    def item(co2, peak, ceil_co2=None, ceil_peak=None):
+        rec = _milp_record(90.0, 0.01)
+        rec["epsilon"] = {"co2_max": ceil_co2 if ceil_co2 is not None else co2,
+                          "peak_max": ceil_peak if ceil_peak is not None else peak,
+                          "lower_bound": 95.0, "upper_bound": 95.0,
+                          "certificate": {}, "objectives": {}}
+        return {"milp_planned": rec,
+                "nsga3_planned": {"objectives": {"cost": 100.0, "co2": co2,
+                                                 "peak_grid": peak}}}
+    days = ["2024-11-01", "2024-11-02"]
+    ok = {42: [item(1.0, 2.0), item(1.1, 2.1)], 43: [item(1.2, 2.2), item(1.3, 2.3)]}
+    assert compare_dispatch.check_milp_epsilon_ceilings(ok, days) == 4
+    # an item lacking epsilon (or nsga3) is skipped, not a failure
+    partial = {42: [item(1.0, 2.0), {"rule": _summary(5.0, 0.1)}]}
+    assert compare_dispatch.check_milp_epsilon_ceilings(partial, days) == 1
+    drift = {42: [item(1.0, 2.0), item(1.1, 2.1, ceil_co2=1.05)]}
+    with pytest.raises(RuntimeError, match="ε ceilings drifted .* day 2024-11-02, opt_seed 42"):
+        compare_dispatch.check_milp_epsilon_ceilings(drift, days)
+
+
+def test_opt_seed_invariance_ignores_seed_dependent_epsilon():
+    """epsilon's ceilings come from that seed's OWN TOPSIS plan, so it may
+    differ across seeds; the base LP record must still be bit-identical."""
+    def rec(o):
+        r = _milp_record(90.0, 0.01)
+        r["epsilon"] = {"co2_max": 1.0 + o, "peak_max": 2.0, "lower_bound": 91.0 + o,
+                        "upper_bound": 91.0 + o, "certificate": {}, "objectives": {}}
+        return r
+    store = {("2024-11-01", "whitenoise", 0.0, 0, o): {"rule": _summary(5.0, 0.1),
+                                                       "milp_planned": rec(o)}
+             for o in (42, 43)}
+    n = compare_dispatch.check_opt_seed_invariance(
+        _store_loader(store), [("2024-11-01", "whitenoise", 0.0, 0)], [42, 43], ["rule"])
+    assert n == 2  # rule + milp base, epsilon differences tolerated
+
+
+def _gap_item(lb, front_cost, topsis_cost):
+    return {"milp_planned": _milp_record(lb),
+            "nsga3_planned": {"front_size": 5,
+                              "objectives": {"cost": topsis_cost, "co2": 1.0, "peak_grid": 2.0},
+                              "front_min": {"cost": front_cost, "co2": 0.9, "peak_grid": 1.8},
+                              "front_argmin_cost": {"cost": front_cost, "co2": 1.1,
+                                                    "peak_grid": 2.2}}}
+
+
+def test_milp_gap_block_stats_and_nulls():
+    """gap_front stats per seed + across seeds; ε gaps are null (not NaN) before phase 4."""
+    days = ["2024-11-01", "2024-11-02"]
+    items_by_seed = {42: [_gap_item(100.0, 110.0, 115.0), _gap_item(200.0, 205.0, 210.0)],
+                     43: [_gap_item(100.0, 112.0, 115.0), _gap_item(200.0, 205.0, 210.0)]}
+    block = compare_dispatch.milp_gap_block(items_by_seed, days)
+    st = block["per_seed"]["o42"]["stats"]["gap_front"]
+    assert st["eur_per_day"] == {"median": 7.5, "min": 5.0, "max": 10.0}
+    assert (st["worst_day"], st["worst_eur"]) == ("2024-11-01", 10.0)
+    assert st["pct"]["max"] == pytest.approx(10.0)   # 10 EUR on LB=100
+    assert block["per_seed"]["o43"]["stats"]["gap_front"]["eur_per_day"]["median"] == 8.5
+    assert block["across_seeds"]["gap_front"]["eur_per_day"] == {
+        "median": 8.0, "min": 7.5, "max": 8.5}
+    # the ε-dependent gaps are null until phase 4 stores milp_planned.epsilon
+    for g in ("gap_delivered", "price_of_compromise"):
+        assert block["per_seed"]["o42"]["stats"][g] is None
+        assert block["across_seeds"][g] is None
+    assert block["certificate"] == {"n_items": 4, "max_pwl_gap_eur": 0.02}
+    json.dumps(block, allow_nan=False)               # null, never NaN
+    md = compare_dispatch.milp_gap_markdown(block)
+    assert "gap_front" in md and "awaiting the phase-4" in md
+    assert "realised" in md                          # states planned-vs-planned scope
+
+
+def test_milp_gap_block_raises_when_every_item_lacks_milp():
+    """Round 3 Step 1.1: a cache that entirely predates compare.milp must be loud,
+    not a silently absent block (originally this returned None)."""
+    days = ["2024-11-01"]
+    items = {42: [{"rule": _summary(5.0, 0.1)}]}
+    with pytest.raises(RuntimeError, match="none of the 1 cached nominal items"):
+        compare_dispatch.milp_gap_block(items, days)
+
+
+def test_milp_gap_block_counts_missing_milp_items():
+    """Round 3 Step 1.1: partial coverage is stated (n_missing_milp), never silent."""
+    days = ["2024-11-01", "2024-11-02"]
+    items = {42: [_gap_item(100.0, 110.0, 115.0), {"rule": _summary(5.0, 0.1)}]}
+    block = compare_dispatch.milp_gap_block(items, days)
+    assert block["n_missing_milp"] == 1
+    assert block["certificate"]["n_items"] == 1
+    assert block["per_seed"]["o42"]["stats"]["gap_front"]["n_days"] == 1
+    assert "WARNING: 1 nominal item(s) lack milp_planned" in \
+        compare_dispatch.milp_gap_markdown(block)
+
+
+def test_milp_settings_from_config_and_loud_on_missing():
+    """Round 3 Step 1.2: values come from optimize.milp or the run dies naming
+    the key — no silent literal fallback (acceptance criterion 3)."""
+    ok = OmegaConf.create({"milp": {"n_tangents": 13, "feas_tol": 1e-7}})
+    assert compare_dispatch.milp_settings(ok) == {"n_tangents": 13, "feas_tol": 1e-7}
+    with pytest.raises(KeyError, match="optimize.milp is missing"):
+        compare_dispatch.milp_settings(OmegaConf.create({}))
+    with pytest.raises(KeyError, match="feas_tol"):
+        compare_dispatch.milp_settings(OmegaConf.create({"milp": {"n_tangents": 13}}))
+
+
 def test_opt_seed_spread_median_and_range():
     """Median with min-max across seeds, from per-seed across-day means."""
     def day(cost):
@@ -579,11 +787,18 @@ def test_restrict_days_keeps_order_and_rejects_unknown():
 
 
 def test_planned_record_reads_the_selected_row():
-    """H1: the record carries the TOPSIS-selected planned objectives + front size."""
+    """H1: the record carries the TOPSIS-selected planned objectives + front size.
+
+    Exact-shape assertion, updated when task 09 §6.1 added the two front keys
+    (front_min / front_argmin_cost) — the record's shape is part of the cache
+    contract, so any further key must show up here.
+    """
     F = np.array([[10.0, 1.0, 2.0], [12.0, 0.5, 1.5]])
     rec = compare_dispatch._planned_record(F, 1, ["cost", "co2", "peak_grid"])
     assert rec == {"front_size": 2,
-                   "objectives": {"cost": 12.0, "co2": 0.5, "peak_grid": 1.5}}
+                   "objectives": {"cost": 12.0, "co2": 0.5, "peak_grid": 1.5},
+                   "front_min": {"cost": 10.0, "co2": 0.5, "peak_grid": 1.5},
+                   "front_argmin_cost": {"cost": 10.0, "co2": 1.0, "peak_grid": 2.0}}
 
 
 def test_summary_export_and_peak_hour_metrics(sys_cfg):

@@ -124,10 +124,18 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 05 | Transferable forecaster: diagnose -> NWP -> model comparison | ✅ done | [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md) |
 | S1 | SQL layer (5 tables, idempotent load, 8 analysis queries) | ✅ done (branch `feat/sql-layer`) | no spec file; see 求职素材_微电网SQL层 doc |
 | 06 | Data agent: NL Q&A over the SQL layer (this branch) | ✅ done | [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md) |
-| 07 | Split B: full-year test split + seasonality | 🔄 active | [docs/tasks/07-split-b.md](docs/tasks/07-split-b.md) — scoped out of task 05 Phase 4; split A and split B numbers may never share a table |
+| 07 | Split B: full-year test split + seasonality | ⬜ pending | [docs/tasks/07-split-b.md](docs/tasks/07-split-b.md) — scoped out of task 05 Phase 4; split A and split B numbers may never share a table |
 | 08 | Forecast-value transfer function (roadmap block B) | ✅ done | [docs/tasks/08-forecast-value.md](docs/tasks/08-forecast-value.md) — results in [docs/experiments/08-forecast-value-log.md](docs/experiments/08-forecast-value-log.md) (§11 is the synthesis); dispatch numbers computed on different platforms or different optimiser seeds may never share a table |
+| 09 | MILP optimality gap: how far NSGA-III is from the deterministic optimum (roadmap C2) | ✅ done | [docs/tasks/09-milp-gap.md](docs/tasks/09-milp-gap.md) — results in [docs/experiments/09-milp-gap-log.md](docs/experiments/09-milp-gap-log.md) (§5 is the synthesis); gaps are planned-versus-planned on the forecast, never against a realised cost; dispatched plan +15.1 % vs the proven optimum, two thirds optimiser shortfall, one third compromise price, part of it buying unpriced tie-line headroom |
+| 10 | Multi-day episodes: is there cross-day value, and does RL capture it? | ⬜ pending | [docs/tasks/10-multiday-episode.md](docs/tasks/10-multiday-episode.md) — its own spec places it after C1 (rolling MPC); additive to task 04, whose daily-arm numbers stay frozen |
+| 11 | LP-plan execution check: realised cost + tie violations of the LP schedule (task 09 §11 follow-on) | ⬜ next, spec not yet written | no spec file yet — it will be written before work starts; prices the task-09 headroom caveat; 61 rollouts, no solve; owns realised numbers, so its results never enter the 09 log's tables |
 | S2 | SQL layer: carry the task-08 dispatch-cache key through | ✅ done | [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) — plumbing only; no number in any README, task file or log may change |
 | S3 | SQL layer over the full 2019-2024 history (NaN = absent measurement) | ✅ done | [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md) — a NaN is an absent measurement: dropped by design, count reported, never imputed; solar coverage starts 2020-06-30 |
+
+Board notes: the **NSGA-III budget sweep** (gap versus `pop_size` × `n_gen` at
+three optimiser seeds) is a **promoted but unstarted** follow-on of task 09 —
+its gate fired (09 §11 verdict, log §4.4) but it has no spec and no board row
+until the owner creates it.
 
 Cross-cutting plan for what to deepen after the forecasting line, and which
 pieces already exist so they do not get rebuilt: [docs/roadmap.md](docs/roadmap.md).
@@ -135,29 +143,38 @@ It is explicitly not binding — it says so at the top.
 
 ## ACTIVE TASK
 
-> **The active task is 07 — Split B: full-year test split + seasonality:
-> [docs/tasks/07-split-b.md](docs/tasks/07-split-b.md).**
-> It is the complete instruction for the current work.
-> **Read it before doing anything on this repository.**
+> **ACTIVE TASK is none — explicitly.** Task 09 closed on 2026-08-09 (archive
+> summary at the top of
+> [docs/tasks/09-milp-gap.md](docs/tasks/09-milp-gap.md); results in
+> [docs/experiments/09-milp-gap-log.md](docs/experiments/09-milp-gap-log.md),
+> §5 is the synthesis). **The next task is 11, the LP-plan execution check —
+> its spec does not exist yet and will be written before any work starts.**
+> Until that spec exists and this section points at it, no task is active and
+> no task may be started.
 >
-> The constraint of task 07 that is easy to violate by accident: **split A and
-> split B numbers may never appear in the same table** (05 log §7/§11) — split
-> B produces a parallel result set, not an extension of the existing one. And
-> split B is only usable by models that need no NWP, because the NWP forecast
-> archive begins 2024-02: putting all of 2024 in test would leave NWP models
-> with no training data.
+> Two rules from task 09 outlive it: **planned and realised costs may never
+> share a table or be differenced** (the planned LP bound 4780.15 and the
+> realised NSGA-III mean 5442.4993 are the canonical pair — subtracting them
+> manufactures imaginary money), and `models/comparison/block_c/` joins
+> `models/comparison/` and `models/comparison/block_b/` as a **published,
+> read-only record**.
 >
-> Two notes carried over from the S3 close, both owner decisions still open:
-> roadmap §6 places C2 (the MILP optimality gap) between task 08 and split B,
-> and task 08's gated follow-on (the battery/tie-line sizing sweep, task 08
-> §11) fired and awaits a spec. Neither has a spec yet; do not start either
-> without one.
+> Four items have specs or verdicts but are **not** started, and none may be
+> begun without the owner saying so: task 07 (Split B, spec exists — split A and
+> split B numbers may never share a table, and split B is only usable by models
+> that need no NWP because the NWP archive begins 2024-02); task 08's gated
+> follow-on, the battery/tie-line sizing sweep (task 08 §11, fired, no spec);
+> and task 09's two gated follow-ons (09 §11, both verdicts recorded at close):
+> the NSGA-III budget sweep (gate fired — promoted, no spec yet) and the
+> LP-plan execution check (realised numbers, so it belongs to a task that owns
+> them; priced at 61 rollouts, no solve).
 >
-> Tasks 04, 05, 06, 08, S2 and S3 are done — archive summaries at the top of
+> Tasks 04, 05, 06, 08, 09, S2 and S3 are done — archive summaries at the top of
 > [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md),
 > [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md),
 > [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md),
 > [docs/tasks/08-forecast-value.md](docs/tasks/08-forecast-value.md),
+> [docs/tasks/09-milp-gap.md](docs/tasks/09-milp-gap.md),
 > [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) and
 > [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md).
 > S3's rule outlives the task: in the SQL layer a NaN is an absent

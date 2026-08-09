@@ -46,6 +46,9 @@ compare:
   perfect_biased: false        # task 08 §9.1 H3: add mechanism perfect_biased — perfect foresight plus
                                # each series' signed mean forecast error measured on the VALIDATION
                                # split (never the test days), one point per test day per opt seed
+  milp: false                  # task 09 §6.2: additionally solve the deterministic LP lower bound per
+                               # item on the SAME planning profile (planned-vs-planned, 09 §3.4), stored
+                               # under the non-method item key milp_planned; settings from optimize.milp
 
 paths:
   interim_dir: data/interim

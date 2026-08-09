@@ -28,6 +28,7 @@ flowchart LR
 | NSGA-III multi-objective dispatch + entropy-weighted TOPSIS | Complete |
 | DRL dispatch policy (SAC) + three-way comparison | Complete |
 | Forecast-value transfer function — what forecast accuracy is worth to dispatch | Complete |
+| MILP optimality gap — how far the heuristic's plan is from the proven optimum | Complete |
 | PostgreSQL data layer | Complete |
 | LLM data agent (natural language → SQL) | Complete |
 
@@ -522,6 +523,73 @@ the same inversion), while the three-seed median curve is monotone. The
 ≥3-seed protocol this project adopted for forecasting turned out to change the
 shape of a dispatch curve as well.
 
+### How far is the heuristic from the true optimum? (the MILP optimality gap)
+
+Task 08 asked what a better forecast is worth to this dispatch; the natural
+next question is what a better *optimiser* would be worth. The complete record
+is [docs/experiments/09-milp-gap-log.md](docs/experiments/09-milp-gap-log.md)
+(its §5 is the synthesis); machine-readable aggregates sit in
+`models/comparison/block_c/`.
+
+**Method.** For this configuration the planning problem NSGA-III searches is
+exactly solvable: every objective and constraint term is convex and
+representable in a linear program (LP — an optimisation problem whose
+objective and constraints are all linear, which solvers can optimise to a
+*provable* global optimum). The single genuine non-linearity, the turbine's
+quadratic fuel curve, is under-estimated by tangent lines, so the LP optimum
+is a certified **lower bound** on the true optimum — the safe direction,
+since it can only overstate the heuristic's gap, never flatter it. Solved
+with HiGHS (inside SciPy, already a dependency; a median 22.1 ms per day
+against NSGA-III's 3.49 s), with the equivalence to the real problem
+unit-tested term by term — objective, every constraint row, the variable
+bounds (added after mutation testing showed them uncovered), and a dominance
+test against sampled feasible plans. Every solve carries a self-certificate,
+and the bound pair brackets the optimum to at worst 0.054 EUR/day. No integer
+variable was needed (the turbine is always on, so there is no on/off
+decision). Every gap is **planned-versus-planned**: both plans are scored by
+the same cost function on the same forecast; realised costs never enter.
+
+**The gap, on the 61 winter test days, at three optimiser seeds** (median with
+min–max range across seeds; the planned-cost optimiser-seed spread — the noise
+floor — is ~19–30 EUR/day wide):
+
+- The dispatched NSGA-III+TOPSIS plan costs **15.1% [15.0, 15.4] more** than
+  the deterministic optimum: 713.70 EUR/day [702.32, 738.77].
+- A second LP, constrained to the dispatched plan's own CO₂ and peak, splits
+  that excess exactly (the identity is asserted in code per day):
+  **452.74 EUR/day [449.26, 457.69] (9.0%) is the optimiser falling short**
+  of the cheapest plan achieving the same CO₂ and peak, and
+  **237.43 EUR/day [222.31, 246.71] (5.0%) is the price of the
+  three-objective compromise** itself — roughly two thirds recoverable by
+  searching better, one third the cost of the trade-off the project chose,
+  which no amount of compute recovers.
+- The front's cheapest point (the optimality gap proper) sits
+  646.94 EUR/day [636.29, 649.20] above the bound — 13.0%, positive on all
+  61 days, worst day 2024-11-19 on every seed.
+
+**The caveat that belongs in the same breath.** The cost optimum is not a
+plan anyone would dispatch as-is: it pins the tie line at its 3.0 MW limit on
+37 of 61 days (mean peak 2.7186 MW vs the dispatched plan's 1.8160) and
+carries more CO₂ (21.42 vs 18.93 t/day). The planning problem prices neither
+forecast error nor robustness — and NSGA-III's plans execute at 0.00 tie-line
+violations per day against the rule baseline's 4.59 and RL's 1.64 (08 log
+§4.1). **Part of the gap is therefore paid for in headroom that the objective
+function does not value.** How much of it would survive contact with the
+actuals is a recorded, deliberately unstarted follow-on (execute the LP plan
+through the same simulator and count its violations), as is the NSGA-III
+budget sweep the gap's size now justifies.
+
+The LP is a measuring instrument here, not a replacement dispatcher — and not
+because of the Pareto front (an ε-constraint scan over CO₂/peak ceilings
+would produce a front too, in seconds) but because of the model-class
+boundary: add unit commitment, SoC-dependent efficiency, or any non-convex
+term to the physics and the LP construction fails, while NSGA-III keeps
+running unchanged. One guard for any reader of these numbers: the planned
+lower bound (4780.15 EUR/day, on the forecast) and the realised NSGA-III cost
+(5442.4993 EUR/day, against the actuals) live on opposite sides of the
+forecast/execute boundary — their difference is not a saving and must never
+be computed.
+
 ### SQL data layer + data agent (natural-language querying)
 
 The pipeline's outputs (measurements, forecasts, dispatch experiments), previously scattered across parquet/JSON files, are loaded into a **PostgreSQL relational layer**: 5 tables, 1,210,642 rows (raw_measurements 578,326 + forecasts 631,496 + dispatch_results 723 + dispatch_solution 1 + dispatch_schedule 96), idempotent bulk loading (COPY into a staging table + `ON CONFLICT DO UPDATE`), business `COMMENT`s on every table and column, plus 8 analysis queries with business conclusions (`sql/analysis/`). The layer covers the full 2019-01-01 – 2024-12-31 history; an absent measurement is an absent row, never a NULL (the loader reports the per-series dropped counts), and Elia's solar series only starts on 2020-06-30, so cross-series queries must mind the coverage.
@@ -656,5 +724,6 @@ data/               # raw / interim / processed (git-ignored)
 8. **Complete** — The forecast-value transfer function: dispatch re-run across forecast-quality tiers from perfect foresight to seasonal persistence, every point at three optimiser seeds against a measured 28.46 EUR/day seed-noise floor. Finding: perfect foresight is worth ≈ 0 EUR/day on cost (the median moves +17.94, *upward*, inside the noise) and a small range-disjoint 0.033 MW of tie-line peak; degrading the forecast costs both; cost responds to error *structure* (real correlated error ≈ 2.5× the cost per MW of white noise at matched MAE) while peak responds to error *size*; only seasonal persistence separates from the operational forecast on cost (+36.74 EUR/day). The originally planned re-basing of the published three-way comparison was narrowed away by the result itself: the newer forecasters are indistinguishable on cost, and single-platform discipline keeps the published record as it is
 9. **Blocked** — Full history (17.8k windows) + NWP: very likely the best deployable forecaster, untested because the NWP forecast archive only reaches back to 2024-02 (the one documented multi-year alternative was probed and closed — see the forecasting section)
 10. **Complete** — PatchTST vs LSTM on the full standalone no-NWP dataset, three seeds per architecture on identical windows. PatchTST is a transformer forecaster that splits each input series into short patches and attends across the patches rather than across all 96 time steps. **The LSTM wins on wind with disjoint three-seed ranges (699.95 vs 724.28, a 3.5% cost for the transformer), load is indistinguishable, solar likely LSTM**; 536,652 parameters lose to 38,531. The bar was deliberately the LSTM, **not Elia**: with no NWP and no TSO input the model cannot approach Elia's 185.08, and judging a controlled architecture comparison against Elia would have guaranteed a failure verdict. Getting there first required repairing the measurement: three-seed baselines at full scale, and a four-fold wider validation window that cut wind's seed spread from 10.2% to 1.7%. The sample-size scaling curve then supplied the mechanism: **the two curves cross** — PatchTST is 7.1% better at 1,674 windows and saturates around four thousand, while the LSTM is still improving at seventeen thousand. It also corrected an earlier claim: "wind is information-limited" holds only while Elia's forecast is an input; without it, 10× the windows is worth −15.9%
-11. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table. Scoped out of the forecasting task into its own, precisely because a result set that may never share a table with the others is not a phase of them
-12. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help
+11. **Complete** — MILP optimality gap: the same planning problem formulated as an LP with tangent cuts (HiGHS/SciPy, no new dependency, no integer variable needed), certified per solve, equivalence to the NSGA-III problem unit-tested term by term. Planned-versus-planned on the same forecast, at three optimiser seeds against a ~19–30 EUR/day planned-cost noise floor: the dispatched plan costs 15.1% [15.0, 15.4] more than the proven optimum, decomposed exactly into 9.0% optimiser shortfall and 5.0% price of the three-objective compromise. Carried with the headline rather than behind it: the cost optimum pins the tie line at 3 MW on 37/61 days — part of the gap buys headroom the objective does not value. Two recorded, unstarted follow-ons: an NSGA-III budget sweep (targets the recoverable two thirds) and executing the LP plan against the actuals (prices the headroom caveat)
+12. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table. Scoped out of the forecasting task into its own, precisely because a result set that may never share a table with the others is not a phase of them
+13. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help

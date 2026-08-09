@@ -1,0 +1,4684 @@
+{
+  "n_test_days": 61,
+  "test_days": [
+    "2024-11-01",
+    "2024-11-02",
+    "2024-11-03",
+    "2024-11-04",
+    "2024-11-05",
+    "2024-11-06",
+    "2024-11-07",
+    "2024-11-08",
+    "2024-11-09",
+    "2024-11-10",
+    "2024-11-11",
+    "2024-11-12",
+    "2024-11-13",
+    "2024-11-14",
+    "2024-11-15",
+    "2024-11-16",
+    "2024-11-17",
+    "2024-11-18",
+    "2024-11-19",
+    "2024-11-20",
+    "2024-11-21",
+    "2024-11-22",
+    "2024-11-23",
+    "2024-11-24",
+    "2024-11-25",
+    "2024-11-26",
+    "2024-11-27",
+    "2024-11-28",
+    "2024-11-29",
+    "2024-11-30",
+    "2024-12-01",
+    "2024-12-02",
+    "2024-12-03",
+    "2024-12-04",
+    "2024-12-05",
+    "2024-12-06",
+    "2024-12-07",
+    "2024-12-08",
+    "2024-12-09",
+    "2024-12-10",
+    "2024-12-11",
+    "2024-12-12",
+    "2024-12-13",
+    "2024-12-14",
+    "2024-12-15",
+    "2024-12-16",
+    "2024-12-17",
+    "2024-12-18",
+    "2024-12-19",
+    "2024-12-20",
+    "2024-12-21",
+    "2024-12-22",
+    "2024-12-23",
+    "2024-12-24",
+    "2024-12-25",
+    "2024-12-26",
+    "2024-12-27",
+    "2024-12-28",
+    "2024-12-29",
+    "2024-12-30",
+    "2024-12-31"
+  ],
+  "methods": [
+    "rule",
+    "nsga3",
+    "rl"
+  ],
+  "tier": "lstm_dispatch",
+  "tier_forecast": {
+    "forecast_source": "auto",
+    "run_name": null,
+    "dataset": "elia"
+  },
+  "aggregate_opt_seed": 42,
+  "aggregate": {
+    "rule": {
+      "cost_eur": {
+        "mean": 5317.495245901639,
+        "std": 1786.8228011465126
+      },
+      "co2_tco2": {
+        "mean": 16.87793442622951,
+        "std": 3.606193014886767
+      },
+      "peak_mw": {
+        "mean": 2.9654524590163933,
+        "std": 0.5215578268574332
+      },
+      "terminal_soc_dev": {
+        "mean": 0.1125,
+        "std": 0.0
+      },
+      "tie_violation_steps": {
+        "mean": 4.590163934426229,
+        "std": 4.906927352091048
+      },
+      "tie_violation_mw": {
+        "mean": 1.1342180327868852,
+        "std": 1.5056273942548193
+      },
+      "projection_mw": {
+        "mean": 34.39519999999999,
+        "std": 1.4210854715202004e-14
+      },
+      "export_steps": {
+        "mean": 5.377049180327869,
+        "std": 7.788524417637699
+      },
+      "export_mwh": {
+        "mean": 0.5539360655737705,
+        "std": 1.0958530428329156
+      },
+      "peak_hour": {
+        "mean": 12.60655737704918,
+        "std": 11.181481600007132
+      },
+      "decision_latency_s": {
+        "mean": 0.0011513114754098358,
+        "std": 2.0603629302773766e-05
+      },
+      "per_step_ms": {
+        "mean": 0.01199344262295082,
+        "std": 0.0002133794069211885
+      }
+    },
+    "nsga3": {
+      "cost_eur": {
+        "mean": 5460.554590163935,
+        "std": 1716.9836934583514
+      },
+      "co2_tco2": {
+        "mean": 18.563509836065574,
+        "std": 5.9372882398877875
+      },
+      "peak_mw": {
+        "mean": 1.9002688524590163,
+        "std": 0.4101546723607314
+      },
+      "terminal_soc_dev": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "tie_violation_steps": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "tie_violation_mw": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "projection_mw": {
+        "mean": 0.0,
+        "std": 0.0
+      },
+      "export_steps": {
+        "mean": 0.9508196721311475,
+        "std": 2.1457256750106457
+      },
+      "export_mwh": {
+        "mean": 0.029655737704918035,
+        "std": 0.08719330423343478
+      },
+      "peak_hour": {
+        "mean": 12.081967213114755,
+        "std": 6.976059956989704
+      },
+      "decision_latency_s": {
+        "mean": 3.4755872131147534,
+        "std": 0.07159896093510973
+      },
+      "per_step_ms": {
+        "mean": 0.00013934426229508196,
+        "std": 4.885135877295521e-05
+      }
+    },
+    "rl": {
+      "cost_eur": {
+        "mean": 5219.662786885245,
+        "std": 1622.7170621867217
+      },
+      "co2_tco2": {
+        "mean": 20.36090655737705,
+        "std": 5.624480525633962
+      },
+      "peak_mw": {
+        "mean": 2.5727147540983606,
+        "std": 0.6849657375267724
+      },
+      "terminal_soc_dev": {
+        "mean": 0.049113114754098366,
+        "std": 0.023133344576215378
+      },
+      "tie_violation_steps": {
+        "mean": 1.639344262295082,
+        "std": 2.863179402573219
+      },
+      "tie_violation_mw": {
+        "mean": 0.33492295081967216,
+        "std": 0.7710143396411486
+      },
+      "projection_mw": {
+        "mean": 29.51740983606557,
+        "std": 13.807300006983771
+      },
+      "export_steps": {
+        "mean": 8.0,
+        "std": 9.624081816966859
+      },
+      "export_mwh": {
+        "mean": 0.49703606557377045,
+        "std": 0.647845889393606
+      },
+      "peak_hour": {
+        "mean": 19.0327868852459,
+        "std": 7.559528160127617
+      },
+      "decision_latency_s": {
+        "mean": 0.007884590163934425,
+        "std": 0.0010969623837573748
+      },
+      "per_step_ms": {
+        "mean": 0.08212950819672131,
+        "std": 0.011427108181752448
+      }
+    }
+  },
+  "paired_cost": {
+    "rl_vs_rule": {
+      "mean_cost_diff_eur": -97.83,
+      "std_cost_diff_eur": 212.2,
+      "a_cheaper_win_rate_pct": 72.1,
+      "n_days": 61
+    },
+    "rl_vs_nsga3": {
+      "mean_cost_diff_eur": -240.89,
+      "std_cost_diff_eur": 182.92,
+      "a_cheaper_win_rate_pct": 86.9,
+      "n_days": 61
+    },
+    "nsga3_vs_rule": {
+      "mean_cost_diff_eur": 143.06,
+      "std_cost_diff_eur": 130.19,
+      "a_cheaper_win_rate_pct": 6.6,
+      "n_days": 61
+    }
+  },
+  "paired_by_metric": {
+    "cost_eur": {
+      "rl_vs_rule": {
+        "mean_diff": -97.8325,
+        "std_diff": 212.1964,
+        "a_lower_win_rate_pct": 72.1,
+        "n_days": 61
+      },
+      "rl_vs_nsga3": {
+        "mean_diff": -240.8918,
+        "std_diff": 182.919,
+        "a_lower_win_rate_pct": 86.9,
+        "n_days": 61
+      },
+      "nsga3_vs_rule": {
+        "mean_diff": 143.0593,
+        "std_diff": 130.1945,
+        "a_lower_win_rate_pct": 6.6,
+        "n_days": 61
+      }
+    },
+    "peak_mw": {
+      "rl_vs_rule": {
+        "mean_diff": -0.3927,
+        "std_diff": 0.3557,
+        "a_lower_win_rate_pct": 96.7,
+        "n_days": 61
+      },
+      "rl_vs_nsga3": {
+        "mean_diff": 0.6724,
+        "std_diff": 0.4986,
+        "a_lower_win_rate_pct": 13.1,
+        "n_days": 61
+      },
+      "nsga3_vs_rule": {
+        "mean_diff": -1.0652,
+        "std_diff": 0.4057,
+        "a_lower_win_rate_pct": 98.4,
+        "n_days": 61
+      }
+    },
+    "tie_violation_steps": {
+      "rl_vs_rule": {
+        "mean_diff": -2.9508,
+        "std_diff": 3.2815,
+        "a_lower_win_rate_pct": 59.0,
+        "n_days": 61
+      },
+      "rl_vs_nsga3": {
+        "mean_diff": 1.6393,
+        "std_diff": 2.8632,
+        "a_lower_win_rate_pct": 0.0,
+        "n_days": 61
+      },
+      "nsga3_vs_rule": {
+        "mean_diff": -4.5902,
+        "std_diff": 4.9069,
+        "a_lower_win_rate_pct": 62.3,
+        "n_days": 61
+      }
+    }
+  },
+  "per_day": {
+    "rule": {
+      "2024-11-01": {
+        "cost_eur": 6101.57,
+        "co2_tco2": 18.6119,
+        "peak_mw": 3.3281,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 1.1708,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0124
+      },
+      "2024-11-02": {
+        "cost_eur": 5941.47,
+        "co2_tco2": 18.4447,
+        "peak_mw": 3.2229,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 1.1051,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-03": {
+        "cost_eur": 6000.54,
+        "co2_tco2": 18.3616,
+        "peak_mw": 3.2655,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.7327,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-04": {
+        "cost_eur": 7042.83,
+        "co2_tco2": 20.4725,
+        "peak_mw": 3.4192,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.3049,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-05": {
+        "cost_eur": 7638.04,
+        "co2_tco2": 21.7162,
+        "peak_mw": 3.5301,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 14,
+        "tie_violation_mw": 3.8045,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-06": {
+        "cost_eur": 8096.09,
+        "co2_tco2": 22.4968,
+        "peak_mw": 3.4898,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 14,
+        "tie_violation_mw": 4.3308,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-07": {
+        "cost_eur": 7621.86,
+        "co2_tco2": 21.6648,
+        "peak_mw": 3.4109,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 13,
+        "tie_violation_mw": 3.3552,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-08": {
+        "cost_eur": 7903.2,
+        "co2_tco2": 22.0514,
+        "peak_mw": 3.5116,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 3.2051,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0124
+      },
+      "2024-11-09": {
+        "cost_eur": 7033.76,
+        "co2_tco2": 20.4919,
+        "peak_mw": 3.4237,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.9667,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-10": {
+        "cost_eur": 6526.03,
+        "co2_tco2": 19.4336,
+        "peak_mw": 3.2035,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 1.2352,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.012
+      },
+      "2024-11-11": {
+        "cost_eur": 3362.02,
+        "co2_tco2": 13.4709,
+        "peak_mw": 3.0559,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.0824,
+        "projection_mw": 34.3952,
+        "export_steps": 12,
+        "export_mwh": 1.2633,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-12": {
+        "cost_eur": 4873.94,
+        "co2_tco2": 15.4077,
+        "peak_mw": 3.0191,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0191,
+        "projection_mw": 34.3952,
+        "export_steps": 6,
+        "export_mwh": 0.1147,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0118
+      },
+      "2024-11-13": {
+        "cost_eur": 7257.49,
+        "co2_tco2": 20.9397,
+        "peak_mw": 3.3929,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 1.5608,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-14": {
+        "cost_eur": 7420.91,
+        "co2_tco2": 21.1893,
+        "peak_mw": 3.5869,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 3.4419,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-15": {
+        "cost_eur": 7805.63,
+        "co2_tco2": 22.0053,
+        "peak_mw": 3.4849,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 14,
+        "tie_violation_mw": 3.4079,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-16": {
+        "cost_eur": 4899.78,
+        "co2_tco2": 16.3394,
+        "peak_mw": 3.0016,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0016,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-17": {
+        "cost_eur": 3654.94,
+        "co2_tco2": 13.5838,
+        "peak_mw": 2.3137,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 0.829,
+        "peak_hour": 23,
+        "decision_latency_s": 0.0012,
+        "per_step_ms": 0.0125
+      },
+      "2024-11-18": {
+        "cost_eur": 7342.47,
+        "co2_tco2": 20.4138,
+        "peak_mw": 3.0004,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0004,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-19": {
+        "cost_eur": 5536.43,
+        "co2_tco2": 16.5314,
+        "peak_mw": 2.7267,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-20": {
+        "cost_eur": 3489.33,
+        "co2_tco2": 13.2176,
+        "peak_mw": 2.3472,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 12,
+        "export_mwh": 1.2776,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0124
+      },
+      "2024-11-21": {
+        "cost_eur": 6971.65,
+        "co2_tco2": 19.7023,
+        "peak_mw": 2.5983,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 6,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0123
+      },
+      "2024-11-22": {
+        "cost_eur": 4289.08,
+        "co2_tco2": 14.5004,
+        "peak_mw": 3.0767,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0767,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 0.6012,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-23": {
+        "cost_eur": 2930.63,
+        "co2_tco2": 12.5882,
+        "peak_mw": 2.8561,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 15,
+        "export_mwh": 1.4268,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-24": {
+        "cost_eur": 1666.58,
+        "co2_tco2": 9.7721,
+        "peak_mw": 1.7025,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 41,
+        "export_mwh": 6.5934,
+        "peak_hour": 10,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0118
+      },
+      "2024-11-25": {
+        "cost_eur": 4155.24,
+        "co2_tco2": 13.8312,
+        "peak_mw": 2.3994,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 2,
+        "export_mwh": 0.0147,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00119,
+        "per_step_ms": 0.0124
+      },
+      "2024-11-26": {
+        "cost_eur": 5539.36,
+        "co2_tco2": 17.2091,
+        "peak_mw": 3.22,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.576,
+        "projection_mw": 34.3952,
+        "export_steps": 8,
+        "export_mwh": 0.5214,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0122
+      },
+      "2024-11-27": {
+        "cost_eur": 3487.87,
+        "co2_tco2": 13.8091,
+        "peak_mw": 3.106,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 0.255,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 1.5593,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-11-28": {
+        "cost_eur": 6612.82,
+        "co2_tco2": 19.2381,
+        "peak_mw": 3.57,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 1.9801,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-11-29": {
+        "cost_eur": 5246.47,
+        "co2_tco2": 17.4999,
+        "peak_mw": 3.4744,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 7,
+        "tie_violation_mw": 2.4599,
+        "projection_mw": 34.3952,
+        "export_steps": 4,
+        "export_mwh": 0.1921,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.0119
+      },
+      "2024-11-30": {
+        "cost_eur": 5341.03,
+        "co2_tco2": 16.8523,
+        "peak_mw": 3.1342,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.2694,
+        "projection_mw": 34.3952,
+        "export_steps": 6,
+        "export_mwh": 0.2659,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-12-01": {
+        "cost_eur": 3441.79,
+        "co2_tco2": 13.7707,
+        "peak_mw": 3.0047,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0047,
+        "projection_mw": 34.3952,
+        "export_steps": 12,
+        "export_mwh": 1.7036,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-02": {
+        "cost_eur": 4230.9,
+        "co2_tco2": 14.3498,
+        "peak_mw": 2.4601,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 3,
+        "export_mwh": 0.1052,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-12-03": {
+        "cost_eur": 6908.03,
+        "co2_tco2": 19.7204,
+        "peak_mw": 3.5069,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 1.7068,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-04": {
+        "cost_eur": 6884.77,
+        "co2_tco2": 20.2,
+        "peak_mw": 3.4108,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 1.9766,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-05": {
+        "cost_eur": 3252.96,
+        "co2_tco2": 12.6498,
+        "peak_mw": 2.3999,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 0.8439,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00117,
+        "per_step_ms": 0.0121
+      },
+      "2024-12-06": {
+        "cost_eur": 4222.86,
+        "co2_tco2": 14.005,
+        "peak_mw": 2.309,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 12,
+        "export_mwh": 1.4817,
+        "peak_hour": 16,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0117
+      },
+      "2024-12-07": {
+        "cost_eur": 2104.5,
+        "co2_tco2": 10.2804,
+        "peak_mw": 1.9618,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 24,
+        "export_mwh": 3.6739,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0118
+      },
+      "2024-12-08": {
+        "cost_eur": 2969.44,
+        "co2_tco2": 11.9789,
+        "peak_mw": 2.0402,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 1.7412,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00112,
+        "per_step_ms": 0.0117
+      },
+      "2024-12-09": {
+        "cost_eur": 3673.53,
+        "co2_tco2": 13.2102,
+        "peak_mw": 2.1961,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 7,
+        "export_mwh": 0.0414,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0117
+      },
+      "2024-12-10": {
+        "cost_eur": 4941.05,
+        "co2_tco2": 15.7475,
+        "peak_mw": 3.0652,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.1445,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-11": {
+        "cost_eur": 7712.66,
+        "co2_tco2": 21.5505,
+        "peak_mw": 3.6621,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 2.457,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-12": {
+        "cost_eur": 8389.37,
+        "co2_tco2": 23.1821,
+        "peak_mw": 3.6267,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 16,
+        "tie_violation_mw": 6.6903,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00112,
+        "per_step_ms": 0.0117
+      },
+      "2024-12-13": {
+        "cost_eur": 8368.94,
+        "co2_tco2": 23.0003,
+        "peak_mw": 3.5493,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 15,
+        "tie_violation_mw": 4.9156,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00112,
+        "per_step_ms": 0.0116
+      },
+      "2024-12-14": {
+        "cost_eur": 5500.51,
+        "co2_tco2": 17.5831,
+        "peak_mw": 3.2766,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 1.2173,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-15": {
+        "cost_eur": 3344.11,
+        "co2_tco2": 13.1863,
+        "peak_mw": 2.5618,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 1.0087,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-12-16": {
+        "cost_eur": 4339.83,
+        "co2_tco2": 14.4966,
+        "peak_mw": 2.8038,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 9,
+        "export_mwh": 0.1216,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-17": {
+        "cost_eur": 5979.78,
+        "co2_tco2": 18.3344,
+        "peak_mw": 2.7407,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00111,
+        "per_step_ms": 0.0116
+      },
+      "2024-12-18": {
+        "cost_eur": 2948.27,
+        "co2_tco2": 11.9115,
+        "peak_mw": 1.9901,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 13,
+        "export_mwh": 1.4642,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-19": {
+        "cost_eur": 3624.87,
+        "co2_tco2": 12.8938,
+        "peak_mw": 2.3721,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 0.7019,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-20": {
+        "cost_eur": 4345.02,
+        "co2_tco2": 15.1446,
+        "peak_mw": 2.4346,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 2,
+        "export_mwh": 0.0341,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-21": {
+        "cost_eur": 2693.62,
+        "co2_tco2": 12.1978,
+        "peak_mw": 2.4369,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 15,
+        "export_mwh": 1.2371,
+        "peak_hour": 1,
+        "decision_latency_s": 0.00114,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-22": {
+        "cost_eur": 2557.65,
+        "co2_tco2": 11.1276,
+        "peak_mw": 1.7388,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 24,
+        "export_mwh": 3.1804,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0117
+      },
+      "2024-12-23": {
+        "cost_eur": 4301.66,
+        "co2_tco2": 14.1868,
+        "peak_mw": 3.3002,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.9201,
+        "projection_mw": 34.3952,
+        "export_steps": 11,
+        "export_mwh": 1.1077,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-12-24": {
+        "cost_eur": 6114.04,
+        "co2_tco2": 18.6087,
+        "peak_mw": 3.2691,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 1.3981,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0118
+      },
+      "2024-12-25": {
+        "cost_eur": 5948.2,
+        "co2_tco2": 18.3066,
+        "peak_mw": 3.2506,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 9,
+        "tie_violation_mw": 0.9918,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00111,
+        "per_step_ms": 0.0116
+      },
+      "2024-12-26": {
+        "cost_eur": 6921.55,
+        "co2_tco2": 20.1351,
+        "peak_mw": 3.3628,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 1.734,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      },
+      "2024-12-27": {
+        "cost_eur": 7051.34,
+        "co2_tco2": 20.445,
+        "peak_mw": 3.5098,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.8267,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.012
+      },
+      "2024-12-28": {
+        "cost_eur": 6146.12,
+        "co2_tco2": 18.916,
+        "peak_mw": 3.4036,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 2.7539,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00113,
+        "per_step_ms": 0.0118
+      },
+      "2024-12-29": {
+        "cost_eur": 6141.82,
+        "co2_tco2": 18.7948,
+        "peak_mw": 3.1979,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 6,
+        "tie_violation_mw": 1.1077,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00116,
+        "per_step_ms": 0.0121
+      },
+      "2024-12-30": {
+        "cost_eur": 4565.35,
+        "co2_tco2": 15.4109,
+        "peak_mw": 2.6649,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00115,
+        "per_step_ms": 0.0119
+      },
+      "2024-12-31": {
+        "cost_eur": 2953.61,
+        "co2_tco2": 12.3818,
+        "peak_mw": 2.5133,
+        "terminal_soc_dev": 0.1125,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.3952,
+        "export_steps": 13,
+        "export_mwh": 0.6841,
+        "peak_hour": 0,
+        "decision_latency_s": 0.00118,
+        "per_step_ms": 0.0123
+      }
+    },
+    "nsga3": {
+      "2024-11-01": {
+        "cost_eur": 6228.46,
+        "co2_tco2": 21.2192,
+        "peak_mw": 1.8329,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 17,
+        "decision_latency_s": 3.88601,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-02": {
+        "cost_eur": 6151.53,
+        "co2_tco2": 20.9603,
+        "peak_mw": 1.9344,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 15,
+        "decision_latency_s": 3.48388,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-03": {
+        "cost_eur": 6279.15,
+        "co2_tco2": 19.0139,
+        "peak_mw": 2.2496,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 17,
+        "decision_latency_s": 3.58839,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-04": {
+        "cost_eur": 7162.51,
+        "co2_tco2": 23.0341,
+        "peak_mw": 2.408,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 17,
+        "decision_latency_s": 3.45734,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-05": {
+        "cost_eur": 7750.73,
+        "co2_tco2": 23.8983,
+        "peak_mw": 2.6868,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 14,
+        "decision_latency_s": 3.46625,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-06": {
+        "cost_eur": 8166.97,
+        "co2_tco2": 26.38,
+        "peak_mw": 2.4404,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 16,
+        "decision_latency_s": 3.47846,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-07": {
+        "cost_eur": 7625.21,
+        "co2_tco2": 28.4717,
+        "peak_mw": 1.8549,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 14,
+        "decision_latency_s": 3.46583,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-08": {
+        "cost_eur": 7909.92,
+        "co2_tco2": 26.9028,
+        "peak_mw": 2.3512,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 13,
+        "decision_latency_s": 3.49903,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-09": {
+        "cost_eur": 7036.16,
+        "co2_tco2": 25.9085,
+        "peak_mw": 1.9724,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 13,
+        "decision_latency_s": 3.47678,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-10": {
+        "cost_eur": 6462.53,
+        "co2_tco2": 24.6229,
+        "peak_mw": 1.6514,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 7,
+        "decision_latency_s": 3.46238,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-11": {
+        "cost_eur": 3663.21,
+        "co2_tco2": 12.0822,
+        "peak_mw": 1.9809,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 1,
+        "decision_latency_s": 3.46847,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-12": {
+        "cost_eur": 5041.61,
+        "co2_tco2": 16.1278,
+        "peak_mw": 1.9435,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 22,
+        "decision_latency_s": 3.51521,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-13": {
+        "cost_eur": 7228.72,
+        "co2_tco2": 26.3694,
+        "peak_mw": 2.0403,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 16,
+        "decision_latency_s": 3.74449,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-14": {
+        "cost_eur": 7431.57,
+        "co2_tco2": 26.1189,
+        "peak_mw": 2.1287,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 6,
+        "decision_latency_s": 3.45923,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-15": {
+        "cost_eur": 7845.63,
+        "co2_tco2": 26.7736,
+        "peak_mw": 2.2941,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 12,
+        "decision_latency_s": 3.45435,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-16": {
+        "cost_eur": 5088.68,
+        "co2_tco2": 18.51,
+        "peak_mw": 1.6551,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 1,
+        "export_mwh": 0.0052,
+        "peak_hour": 1,
+        "decision_latency_s": 3.45287,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-17": {
+        "cost_eur": 3980.74,
+        "co2_tco2": 12.055,
+        "peak_mw": 1.6111,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 17,
+        "decision_latency_s": 3.46033,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-18": {
+        "cost_eur": 7364.66,
+        "co2_tco2": 23.7202,
+        "peak_mw": 2.4168,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 6,
+        "decision_latency_s": 3.43717,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-19": {
+        "cost_eur": 5675.68,
+        "co2_tco2": 19.077,
+        "peak_mw": 2.0275,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 4,
+        "export_mwh": 0.2269,
+        "peak_hour": 16,
+        "decision_latency_s": 3.45723,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-20": {
+        "cost_eur": 3796.15,
+        "co2_tco2": 11.1654,
+        "peak_mw": 1.9063,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 16,
+        "decision_latency_s": 3.59271,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-21": {
+        "cost_eur": 7056.67,
+        "co2_tco2": 22.1029,
+        "peak_mw": 2.5687,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 12,
+        "decision_latency_s": 3.44172,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-22": {
+        "cost_eur": 4468.59,
+        "co2_tco2": 15.0226,
+        "peak_mw": 1.6867,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 17,
+        "decision_latency_s": 3.46106,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-23": {
+        "cost_eur": 3113.18,
+        "co2_tco2": 12.4359,
+        "peak_mw": 1.6844,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 3,
+        "export_mwh": 0.0766,
+        "peak_hour": 1,
+        "decision_latency_s": 3.45963,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-24": {
+        "cost_eur": 1688.92,
+        "co2_tco2": 5.5754,
+        "peak_mw": 0.7713,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 10,
+        "export_mwh": 0.1656,
+        "peak_hour": 21,
+        "decision_latency_s": 3.48619,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-25": {
+        "cost_eur": 4483.53,
+        "co2_tco2": 13.4726,
+        "peak_mw": 1.8631,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 14,
+        "decision_latency_s": 3.45474,
+        "per_step_ms": 0.0002
+      },
+      "2024-11-26": {
+        "cost_eur": 5568.7,
+        "co2_tco2": 19.4427,
+        "peak_mw": 2.0217,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 1,
+        "export_mwh": 0.0318,
+        "peak_hour": 15,
+        "decision_latency_s": 3.46224,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-27": {
+        "cost_eur": 3543.98,
+        "co2_tco2": 16.1238,
+        "peak_mw": 1.6137,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 9,
+        "export_mwh": 0.5729,
+        "peak_hour": 0,
+        "decision_latency_s": 3.44625,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-28": {
+        "cost_eur": 6680.25,
+        "co2_tco2": 22.163,
+        "peak_mw": 2.1452,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 22,
+        "decision_latency_s": 3.44543,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-29": {
+        "cost_eur": 5311.63,
+        "co2_tco2": 20.6168,
+        "peak_mw": 2.0041,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 2,
+        "export_mwh": 0.0383,
+        "peak_hour": 0,
+        "decision_latency_s": 3.44657,
+        "per_step_ms": 0.0001
+      },
+      "2024-11-30": {
+        "cost_eur": 5543.65,
+        "co2_tco2": 17.7082,
+        "peak_mw": 2.1226,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 14,
+        "decision_latency_s": 3.44318,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-01": {
+        "cost_eur": 3660.35,
+        "co2_tco2": 12.7777,
+        "peak_mw": 1.9091,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 3.58284,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-02": {
+        "cost_eur": 4425.82,
+        "co2_tco2": 15.6158,
+        "peak_mw": 1.6625,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 6,
+        "decision_latency_s": 3.50996,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-03": {
+        "cost_eur": 7032.36,
+        "co2_tco2": 22.3528,
+        "peak_mw": 2.1914,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 12,
+        "decision_latency_s": 3.47141,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-04": {
+        "cost_eur": 6979.77,
+        "co2_tco2": 23.4935,
+        "peak_mw": 2.2974,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 16,
+        "decision_latency_s": 3.44566,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-05": {
+        "cost_eur": 3625.97,
+        "co2_tco2": 10.9545,
+        "peak_mw": 1.6735,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 1,
+        "export_mwh": 0.0116,
+        "peak_hour": 13,
+        "decision_latency_s": 3.45706,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-06": {
+        "cost_eur": 4349.86,
+        "co2_tco2": 13.435,
+        "peak_mw": 2.3579,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 1,
+        "export_mwh": 0.002,
+        "peak_hour": 16,
+        "decision_latency_s": 3.43837,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-07": {
+        "cost_eur": 2165.15,
+        "co2_tco2": 7.7157,
+        "peak_mw": 1.0172,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 5,
+        "export_mwh": 0.1121,
+        "peak_hour": 22,
+        "decision_latency_s": 3.46415,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-08": {
+        "cost_eur": 3050.37,
+        "co2_tco2": 11.1019,
+        "peak_mw": 1.133,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 3,
+        "export_mwh": 0.0795,
+        "peak_hour": 12,
+        "decision_latency_s": 3.45449,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-09": {
+        "cost_eur": 4327.87,
+        "co2_tco2": 10.8474,
+        "peak_mw": 1.8256,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 13,
+        "decision_latency_s": 3.45413,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-10": {
+        "cost_eur": 5350.99,
+        "co2_tco2": 15.3735,
+        "peak_mw": 2.1092,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 21,
+        "decision_latency_s": 3.44892,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-11": {
+        "cost_eur": 7714.32,
+        "co2_tco2": 25.9406,
+        "peak_mw": 2.2996,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 11,
+        "decision_latency_s": 3.43761,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-12": {
+        "cost_eur": 8432.7,
+        "co2_tco2": 26.4383,
+        "peak_mw": 2.6031,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 17,
+        "decision_latency_s": 3.44074,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-13": {
+        "cost_eur": 8386.5,
+        "co2_tco2": 26.5402,
+        "peak_mw": 2.7325,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 11,
+        "decision_latency_s": 3.44286,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-14": {
+        "cost_eur": 5644.96,
+        "co2_tco2": 20.8844,
+        "peak_mw": 1.5933,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 0,
+        "decision_latency_s": 3.44013,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-15": {
+        "cost_eur": 3482.42,
+        "co2_tco2": 14.935,
+        "peak_mw": 0.9896,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 5,
+        "export_mwh": 0.0868,
+        "peak_hour": 0,
+        "decision_latency_s": 3.45064,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-16": {
+        "cost_eur": 4582.9,
+        "co2_tco2": 15.4882,
+        "peak_mw": 1.6287,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 3.44521,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-17": {
+        "cost_eur": 6128.85,
+        "co2_tco2": 20.5486,
+        "peak_mw": 2.3661,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 5,
+        "decision_latency_s": 3.4524,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-18": {
+        "cost_eur": 3215.16,
+        "co2_tco2": 10.3283,
+        "peak_mw": 1.3092,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 1,
+        "export_mwh": 0.0039,
+        "peak_hour": 15,
+        "decision_latency_s": 3.45531,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-19": {
+        "cost_eur": 3895.37,
+        "co2_tco2": 11.8203,
+        "peak_mw": 1.5789,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 3.44456,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-20": {
+        "cost_eur": 4538.1,
+        "co2_tco2": 16.2677,
+        "peak_mw": 1.9463,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 5,
+        "decision_latency_s": 3.44036,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-21": {
+        "cost_eur": 2917.6,
+        "co2_tco2": 11.9302,
+        "peak_mw": 1.6638,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 7,
+        "export_mwh": 0.2551,
+        "peak_hour": 4,
+        "decision_latency_s": 3.45858,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-22": {
+        "cost_eur": 2847.04,
+        "co2_tco2": 7.7354,
+        "peak_mw": 1.3857,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 2,
+        "export_mwh": 0.0568,
+        "peak_hour": 22,
+        "decision_latency_s": 3.46261,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-23": {
+        "cost_eur": 4564.1,
+        "co2_tco2": 12.7923,
+        "peak_mw": 2.0707,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 15,
+        "decision_latency_s": 3.45548,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-24": {
+        "cost_eur": 6220.76,
+        "co2_tco2": 22.1608,
+        "peak_mw": 1.7598,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 16,
+        "decision_latency_s": 3.45119,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-25": {
+        "cost_eur": 5889.84,
+        "co2_tco2": 23.388,
+        "peak_mw": 1.456,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 6,
+        "decision_latency_s": 3.43407,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-26": {
+        "cost_eur": 7020.74,
+        "co2_tco2": 23.836,
+        "peak_mw": 1.9522,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 16,
+        "decision_latency_s": 3.44896,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-27": {
+        "cost_eur": 6968.99,
+        "co2_tco2": 26.5538,
+        "peak_mw": 1.8964,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 3.44621,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-28": {
+        "cost_eur": 6191.27,
+        "co2_tco2": 22.5588,
+        "peak_mw": 1.9165,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 7,
+        "decision_latency_s": 3.44974,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-29": {
+        "cost_eur": 6261.09,
+        "co2_tco2": 21.6776,
+        "peak_mw": 1.8553,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 14,
+        "decision_latency_s": 3.45253,
+        "per_step_ms": 0.0002
+      },
+      "2024-12-30": {
+        "cost_eur": 4688.91,
+        "co2_tco2": 17.7942,
+        "peak_mw": 1.4361,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 1,
+        "decision_latency_s": 3.45233,
+        "per_step_ms": 0.0001
+      },
+      "2024-12-31": {
+        "cost_eur": 3184.78,
+        "co2_tco2": 12.0125,
+        "peak_mw": 1.432,
+        "terminal_soc_dev": 0.0,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 0.0,
+        "export_steps": 3,
+        "export_mwh": 0.0839,
+        "peak_hour": 0,
+        "decision_latency_s": 3.46889,
+        "per_step_ms": 0.0001
+      }
+    },
+    "rl": {
+      "2024-11-01": {
+        "cost_eur": 5729.37,
+        "co2_tco2": 23.5284,
+        "peak_mw": 3.0271,
+        "terminal_soc_dev": 0.0563,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.0445,
+        "projection_mw": 10.8571,
+        "export_steps": 5,
+        "export_mwh": 0.3037,
+        "peak_hour": 23,
+        "decision_latency_s": 0.01631,
+        "per_step_ms": 0.1699
+      },
+      "2024-11-02": {
+        "cost_eur": 5616.45,
+        "co2_tco2": 22.8157,
+        "peak_mw": 2.8509,
+        "terminal_soc_dev": 0.0265,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 16.6275,
+        "export_steps": 3,
+        "export_mwh": 0.0903,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00778,
+        "per_step_ms": 0.0811
+      },
+      "2024-11-03": {
+        "cost_eur": 5777.1,
+        "co2_tco2": 22.2585,
+        "peak_mw": 3.0089,
+        "terminal_soc_dev": 0.0406,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0089,
+        "projection_mw": 21.0839,
+        "export_steps": 1,
+        "export_mwh": 0.0794,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00791,
+        "per_step_ms": 0.0824
+      },
+      "2024-11-04": {
+        "cost_eur": 6809.75,
+        "co2_tco2": 25.1486,
+        "peak_mw": 3.1962,
+        "terminal_soc_dev": 0.048,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.4998,
+        "projection_mw": 31.4937,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00782,
+        "per_step_ms": 0.0814
+      },
+      "2024-11-05": {
+        "cost_eur": 7341.7,
+        "co2_tco2": 26.1992,
+        "peak_mw": 3.8131,
+        "terminal_soc_dev": 0.0649,
+        "tie_violation_steps": 10,
+        "tie_violation_mw": 3.316,
+        "projection_mw": 24.2522,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 6,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-11-06": {
+        "cost_eur": 7881.23,
+        "co2_tco2": 28.0068,
+        "peak_mw": 3.3022,
+        "terminal_soc_dev": 0.0691,
+        "tie_violation_steps": 8,
+        "tie_violation_mw": 1.107,
+        "projection_mw": 11.0332,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00794,
+        "per_step_ms": 0.0827
+      },
+      "2024-11-07": {
+        "cost_eur": 7424.76,
+        "co2_tco2": 27.6286,
+        "peak_mw": 3.1545,
+        "terminal_soc_dev": 0.0432,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.2866,
+        "projection_mw": 20.6346,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00776,
+        "per_step_ms": 0.0808
+      },
+      "2024-11-08": {
+        "cost_eur": 7678.3,
+        "co2_tco2": 27.7618,
+        "peak_mw": 3.3657,
+        "terminal_soc_dev": 0.0681,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 0.8872,
+        "projection_mw": 18.6716,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-11-09": {
+        "cost_eur": 6724.74,
+        "co2_tco2": 25.8863,
+        "peak_mw": 3.0778,
+        "terminal_soc_dev": 0.0543,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.1029,
+        "projection_mw": 5.3378,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00751,
+        "per_step_ms": 0.0782
+      },
+      "2024-11-10": {
+        "cost_eur": 6183.77,
+        "co2_tco2": 24.5045,
+        "peak_mw": 2.9699,
+        "terminal_soc_dev": 0.0434,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 7.1239,
+        "export_steps": 3,
+        "export_mwh": 0.0671,
+        "peak_hour": 23,
+        "decision_latency_s": 0.0076,
+        "per_step_ms": 0.0792
+      },
+      "2024-11-11": {
+        "cost_eur": 3583.21,
+        "co2_tco2": 15.3454,
+        "peak_mw": 1.5596,
+        "terminal_soc_dev": 0.0381,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 33.5713,
+        "export_steps": 21,
+        "export_mwh": 1.4225,
+        "peak_hour": 1,
+        "decision_latency_s": 0.00758,
+        "per_step_ms": 0.0789
+      },
+      "2024-11-12": {
+        "cost_eur": 4728.51,
+        "co2_tco2": 19.8381,
+        "peak_mw": 2.718,
+        "terminal_soc_dev": 0.0044,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 37.7842,
+        "export_steps": 9,
+        "export_mwh": 0.477,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00753,
+        "per_step_ms": 0.0785
+      },
+      "2024-11-13": {
+        "cost_eur": 7031.62,
+        "co2_tco2": 26.3186,
+        "peak_mw": 3.2462,
+        "terminal_soc_dev": 0.0591,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 0.5638,
+        "projection_mw": 17.4529,
+        "export_steps": 5,
+        "export_mwh": 0.4131,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00791,
+        "per_step_ms": 0.0824
+      },
+      "2024-11-14": {
+        "cost_eur": 7156.26,
+        "co2_tco2": 26.876,
+        "peak_mw": 3.3953,
+        "terminal_soc_dev": 0.0733,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.2712,
+        "projection_mw": 27.972,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00773,
+        "per_step_ms": 0.0805
+      },
+      "2024-11-15": {
+        "cost_eur": 7611.56,
+        "co2_tco2": 27.6586,
+        "peak_mw": 3.1925,
+        "terminal_soc_dev": 0.0182,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.5823,
+        "projection_mw": 9.241,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 5,
+        "decision_latency_s": 0.00778,
+        "per_step_ms": 0.081
+      },
+      "2024-11-16": {
+        "cost_eur": 4694.8,
+        "co2_tco2": 21.3471,
+        "peak_mw": 2.2674,
+        "terminal_soc_dev": 0.0036,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.456,
+        "export_steps": 8,
+        "export_mwh": 0.2168,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00778,
+        "per_step_ms": 0.0811
+      },
+      "2024-11-17": {
+        "cost_eur": 3708.06,
+        "co2_tco2": 16.44,
+        "peak_mw": 1.9341,
+        "terminal_soc_dev": 0.042,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 25.5913,
+        "export_steps": 20,
+        "export_mwh": 1.378,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00772,
+        "per_step_ms": 0.0804
+      },
+      "2024-11-18": {
+        "cost_eur": 7098.77,
+        "co2_tco2": 25.3082,
+        "peak_mw": 2.8481,
+        "terminal_soc_dev": 0.0131,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 23.3688,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00756,
+        "per_step_ms": 0.0787
+      },
+      "2024-11-19": {
+        "cost_eur": 5240.11,
+        "co2_tco2": 21.4269,
+        "peak_mw": 2.3191,
+        "terminal_soc_dev": 0.059,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 36.6868,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00842,
+        "per_step_ms": 0.0877
+      },
+      "2024-11-20": {
+        "cost_eur": 3645.86,
+        "co2_tco2": 13.2979,
+        "peak_mw": 2.1515,
+        "terminal_soc_dev": 0.073,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 30.0053,
+        "export_steps": 11,
+        "export_mwh": 0.6189,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00744,
+        "per_step_ms": 0.0775
+      },
+      "2024-11-21": {
+        "cost_eur": 6658.6,
+        "co2_tco2": 24.7816,
+        "peak_mw": 2.5952,
+        "terminal_soc_dev": 0.0554,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 12.968,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 5,
+        "decision_latency_s": 0.00769,
+        "per_step_ms": 0.0801
+      },
+      "2024-11-22": {
+        "cost_eur": 4449.69,
+        "co2_tco2": 14.9695,
+        "peak_mw": 2.8614,
+        "terminal_soc_dev": 0.0001,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.4078,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00781,
+        "per_step_ms": 0.0813
+      },
+      "2024-11-23": {
+        "cost_eur": 3305.65,
+        "co2_tco2": 12.0629,
+        "peak_mw": 1.492,
+        "terminal_soc_dev": 0.071,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 49.3113,
+        "export_steps": 5,
+        "export_mwh": 0.2035,
+        "peak_hour": 1,
+        "decision_latency_s": 0.0077,
+        "per_step_ms": 0.0802
+      },
+      "2024-11-24": {
+        "cost_eur": 1747.84,
+        "co2_tco2": 6.5776,
+        "peak_mw": 1.1702,
+        "terminal_soc_dev": 0.0809,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 36.6477,
+        "export_steps": 26,
+        "export_mwh": 1.9208,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00763,
+        "per_step_ms": 0.0795
+      },
+      "2024-11-25": {
+        "cost_eur": 4012.16,
+        "co2_tco2": 17.8819,
+        "peak_mw": 2.179,
+        "terminal_soc_dev": 0.057,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 42.8454,
+        "export_steps": 17,
+        "export_mwh": 1.2077,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00786,
+        "per_step_ms": 0.0819
+      },
+      "2024-11-26": {
+        "cost_eur": 5389.92,
+        "co2_tco2": 22.7157,
+        "peak_mw": 3.0563,
+        "terminal_soc_dev": 0.0387,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0563,
+        "projection_mw": 42.5485,
+        "export_steps": 11,
+        "export_mwh": 0.7502,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-11-27": {
+        "cost_eur": 3877.52,
+        "co2_tco2": 15.0296,
+        "peak_mw": 2.2164,
+        "terminal_soc_dev": 0.0618,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 53.9107,
+        "export_steps": 17,
+        "export_mwh": 1.096,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00784,
+        "per_step_ms": 0.0817
+      },
+      "2024-11-28": {
+        "cost_eur": 6353.05,
+        "co2_tco2": 23.1348,
+        "peak_mw": 3.417,
+        "terminal_soc_dev": 0.0747,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.2971,
+        "projection_mw": 27.9237,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00779,
+        "per_step_ms": 0.0811
+      },
+      "2024-11-29": {
+        "cost_eur": 5160.83,
+        "co2_tco2": 21.5967,
+        "peak_mw": 2.5942,
+        "terminal_soc_dev": 0.0376,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 31.2206,
+        "export_steps": 6,
+        "export_mwh": 0.2176,
+        "peak_hour": 5,
+        "decision_latency_s": 0.00774,
+        "per_step_ms": 0.0806
+      },
+      "2024-11-30": {
+        "cost_eur": 5148.59,
+        "co2_tco2": 20.7974,
+        "peak_mw": 2.9105,
+        "terminal_soc_dev": 0.0142,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 25.9543,
+        "export_steps": 2,
+        "export_mwh": 0.0019,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00769,
+        "per_step_ms": 0.0801
+      },
+      "2024-12-01": {
+        "cost_eur": 3535.74,
+        "co2_tco2": 16.7069,
+        "peak_mw": 1.7744,
+        "terminal_soc_dev": 0.0371,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.1536,
+        "export_steps": 28,
+        "export_mwh": 2.2332,
+        "peak_hour": 1,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-12-02": {
+        "cost_eur": 4148.59,
+        "co2_tco2": 19.4709,
+        "peak_mw": 2.2698,
+        "terminal_soc_dev": 0.0622,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 28.6664,
+        "export_steps": 33,
+        "export_mwh": 1.2634,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00791,
+        "per_step_ms": 0.0824
+      },
+      "2024-12-03": {
+        "cost_eur": 6603.11,
+        "co2_tco2": 24.2673,
+        "peak_mw": 3.3398,
+        "terminal_soc_dev": 0.0762,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.1021,
+        "projection_mw": 28.5111,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00786,
+        "per_step_ms": 0.0819
+      },
+      "2024-12-04": {
+        "cost_eur": 6646.86,
+        "co2_tco2": 25.6751,
+        "peak_mw": 2.9282,
+        "terminal_soc_dev": 0.0256,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 25.2687,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 5,
+        "decision_latency_s": 0.0078,
+        "per_step_ms": 0.0812
+      },
+      "2024-12-05": {
+        "cost_eur": 3653.72,
+        "co2_tco2": 11.8131,
+        "peak_mw": 1.5817,
+        "terminal_soc_dev": 0.0724,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 52.3106,
+        "export_steps": 12,
+        "export_mwh": 0.8082,
+        "peak_hour": 15,
+        "decision_latency_s": 0.00768,
+        "per_step_ms": 0.08
+      },
+      "2024-12-06": {
+        "cost_eur": 4087.66,
+        "co2_tco2": 16.3376,
+        "peak_mw": 1.5715,
+        "terminal_soc_dev": 0.0529,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 31.0093,
+        "export_steps": 9,
+        "export_mwh": 0.635,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00747,
+        "per_step_ms": 0.0779
+      },
+      "2024-12-07": {
+        "cost_eur": 2244.86,
+        "co2_tco2": 8.9123,
+        "peak_mw": 1.6191,
+        "terminal_soc_dev": 0.0429,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 48.5858,
+        "export_steps": 23,
+        "export_mwh": 1.8629,
+        "peak_hour": 23,
+        "decision_latency_s": 0.0079,
+        "per_step_ms": 0.0823
+      },
+      "2024-12-08": {
+        "cost_eur": 2960.92,
+        "co2_tco2": 14.2155,
+        "peak_mw": 1.7368,
+        "terminal_soc_dev": 0.0387,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 34.0619,
+        "export_steps": 35,
+        "export_mwh": 2.3696,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00781,
+        "per_step_ms": 0.0813
+      },
+      "2024-12-09": {
+        "cost_eur": 3825.92,
+        "co2_tco2": 14.7117,
+        "peak_mw": 1.9371,
+        "terminal_soc_dev": 0.0601,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 50.0597,
+        "export_steps": 17,
+        "export_mwh": 1.0773,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00786,
+        "per_step_ms": 0.0819
+      },
+      "2024-12-10": {
+        "cost_eur": 4909.89,
+        "co2_tco2": 19.1926,
+        "peak_mw": 2.808,
+        "terminal_soc_dev": 0.0133,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 44.4562,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00778,
+        "per_step_ms": 0.0811
+      },
+      "2024-12-11": {
+        "cost_eur": 7449.9,
+        "co2_tco2": 26.5192,
+        "peak_mw": 3.5208,
+        "terminal_soc_dev": 0.083,
+        "tie_violation_steps": 5,
+        "tie_violation_mw": 1.8617,
+        "projection_mw": 25.0877,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00784,
+        "per_step_ms": 0.0817
+      },
+      "2024-12-12": {
+        "cost_eur": 8216.8,
+        "co2_tco2": 28.4906,
+        "peak_mw": 3.4723,
+        "terminal_soc_dev": 0.0884,
+        "tie_violation_steps": 12,
+        "tie_violation_mw": 3.922,
+        "projection_mw": 13.6484,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 5,
+        "decision_latency_s": 0.00779,
+        "per_step_ms": 0.0811
+      },
+      "2024-12-13": {
+        "cost_eur": 8149.19,
+        "co2_tco2": 28.3273,
+        "peak_mw": 3.3758,
+        "terminal_soc_dev": 0.0819,
+        "tie_violation_steps": 11,
+        "tie_violation_mw": 2.2326,
+        "projection_mw": 22.0536,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 5,
+        "decision_latency_s": 0.00782,
+        "per_step_ms": 0.0815
+      },
+      "2024-12-14": {
+        "cost_eur": 5298.3,
+        "co2_tco2": 23.0473,
+        "peak_mw": 2.3421,
+        "terminal_soc_dev": 0.0051,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 44.3394,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00786,
+        "per_step_ms": 0.0819
+      },
+      "2024-12-15": {
+        "cost_eur": 3392.06,
+        "co2_tco2": 16.1391,
+        "peak_mw": 1.5881,
+        "terminal_soc_dev": 0.0391,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 40.8389,
+        "export_steps": 27,
+        "export_mwh": 1.7478,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00779,
+        "per_step_ms": 0.0811
+      },
+      "2024-12-16": {
+        "cost_eur": 4306.37,
+        "co2_tco2": 17.6619,
+        "peak_mw": 2.5932,
+        "terminal_soc_dev": 0.0215,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 38.0627,
+        "export_steps": 7,
+        "export_mwh": 0.3136,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00762,
+        "per_step_ms": 0.0794
+      },
+      "2024-12-17": {
+        "cost_eur": 5732.94,
+        "co2_tco2": 23.2505,
+        "peak_mw": 2.9284,
+        "terminal_soc_dev": 0.0599,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 21.3494,
+        "export_steps": 6,
+        "export_mwh": 0.1142,
+        "peak_hour": 5,
+        "decision_latency_s": 0.00763,
+        "per_step_ms": 0.0794
+      },
+      "2024-12-18": {
+        "cost_eur": 3237.33,
+        "co2_tco2": 10.8307,
+        "peak_mw": 1.54,
+        "terminal_soc_dev": 0.0749,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 51.5146,
+        "export_steps": 17,
+        "export_mwh": 0.8818,
+        "peak_hour": 16,
+        "decision_latency_s": 0.00772,
+        "per_step_ms": 0.0804
+      },
+      "2024-12-19": {
+        "cost_eur": 3730.23,
+        "co2_tco2": 14.2206,
+        "peak_mw": 2.1677,
+        "terminal_soc_dev": 0.0706,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 45.6062,
+        "export_steps": 19,
+        "export_mwh": 1.2644,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00775,
+        "per_step_ms": 0.0807
+      },
+      "2024-12-20": {
+        "cost_eur": 4313.71,
+        "co2_tco2": 18.935,
+        "peak_mw": 2.3391,
+        "terminal_soc_dev": 0.068,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 30.5771,
+        "export_steps": 23,
+        "export_mwh": 1.2573,
+        "peak_hour": 5,
+        "decision_latency_s": 0.00765,
+        "per_step_ms": 0.0797
+      },
+      "2024-12-21": {
+        "cost_eur": 3120.79,
+        "co2_tco2": 11.6917,
+        "peak_mw": 1.37,
+        "terminal_soc_dev": 0.0581,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 50.4677,
+        "export_steps": 7,
+        "export_mwh": 0.4298,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00759,
+        "per_step_ms": 0.0791
+      },
+      "2024-12-22": {
+        "cost_eur": 2588.21,
+        "co2_tco2": 10.5443,
+        "peak_mw": 1.384,
+        "terminal_soc_dev": 0.0517,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 44.4743,
+        "export_steps": 23,
+        "export_mwh": 1.5008,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00772,
+        "per_step_ms": 0.0804
+      },
+      "2024-12-23": {
+        "cost_eur": 4175.94,
+        "co2_tco2": 16.4142,
+        "peak_mw": 3.0317,
+        "terminal_soc_dev": 0.0195,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.0376,
+        "projection_mw": 39.8244,
+        "export_steps": 10,
+        "export_mwh": 0.7204,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00778,
+        "per_step_ms": 0.0811
+      },
+      "2024-12-24": {
+        "cost_eur": 5823.5,
+        "co2_tco2": 23.7045,
+        "peak_mw": 2.9139,
+        "terminal_soc_dev": 0.0329,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 26.5634,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00755,
+        "per_step_ms": 0.0787
+      },
+      "2024-12-25": {
+        "cost_eur": 5625.82,
+        "co2_tco2": 23.2453,
+        "peak_mw": 3.0251,
+        "terminal_soc_dev": 0.0628,
+        "tie_violation_steps": 1,
+        "tie_violation_mw": 0.0251,
+        "projection_mw": 5.5473,
+        "export_steps": 6,
+        "export_mwh": 0.1041,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00782,
+        "per_step_ms": 0.0814
+      },
+      "2024-12-26": {
+        "cost_eur": 6657.24,
+        "co2_tco2": 25.2727,
+        "peak_mw": 3.1878,
+        "terminal_soc_dev": 0.0683,
+        "tie_violation_steps": 3,
+        "tie_violation_mw": 0.3326,
+        "projection_mw": 6.8997,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00761,
+        "per_step_ms": 0.0792
+      },
+      "2024-12-27": {
+        "cost_eur": 6777.23,
+        "co2_tco2": 25.6383,
+        "peak_mw": 3.3014,
+        "terminal_soc_dev": 0.0683,
+        "tie_violation_steps": 4,
+        "tie_violation_mw": 0.7891,
+        "projection_mw": 6.1047,
+        "export_steps": 2,
+        "export_mwh": 0.0173,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00776,
+        "per_step_ms": 0.0808
+      },
+      "2024-12-28": {
+        "cost_eur": 5888.66,
+        "co2_tco2": 23.9005,
+        "peak_mw": 3.095,
+        "terminal_soc_dev": 0.0602,
+        "tie_violation_steps": 2,
+        "tie_violation_mw": 0.1039,
+        "projection_mw": 5.0191,
+        "export_steps": 6,
+        "export_mwh": 0.8618,
+        "peak_hour": 23,
+        "decision_latency_s": 0.0077,
+        "per_step_ms": 0.0803
+      },
+      "2024-12-29": {
+        "cost_eur": 5878.99,
+        "co2_tco2": 23.819,
+        "peak_mw": 2.5384,
+        "terminal_soc_dev": 0.0171,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 11.1622,
+        "export_steps": 0,
+        "export_mwh": -0.0,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00777,
+        "per_step_ms": 0.081
+      },
+      "2024-12-30": {
+        "cost_eur": 4395.11,
+        "co2_tco2": 19.4446,
+        "peak_mw": 2.4071,
+        "terminal_soc_dev": 0.0185,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 41.2844,
+        "export_steps": 1,
+        "export_mwh": 0.1141,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00774,
+        "per_step_ms": 0.0806
+      },
+      "2024-12-31": {
+        "cost_eur": 3254.06,
+        "co2_tco2": 12.4721,
+        "peak_mw": 1.357,
+        "terminal_soc_dev": 0.0751,
+        "tie_violation_steps": 0,
+        "tie_violation_mw": 0.0,
+        "projection_mw": 40.0704,
+        "export_steps": 7,
+        "export_mwh": 0.2777,
+        "peak_hour": 23,
+        "decision_latency_s": 0.00762,
+        "per_step_ms": 0.0794
+      }
+    }
+  },
+  "robustness": null,
+  "nsga_budget": {
+    "pop_size": 200,
+    "n_gen": 400
+  },
+  "rl_checkpoint": "/Users/00x/Projects/microgrid-dispatch/models/rl_sac/best.zip",
+  "opt_seed_spread": {
+    "opt_seeds": [
+      42,
+      43,
+      44
+    ],
+    "n_days": 61,
+    "per_method": {
+      "rule": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5317.495245901639,
+            "o43": 5317.495245901639,
+            "o44": 5317.495245901639
+          },
+          "median": 5317.495245901639,
+          "min": 5317.495245901639,
+          "max": 5317.495245901639
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 2.9654524590163933,
+            "o43": 2.9654524590163933,
+            "o44": 2.9654524590163933
+          },
+          "median": 2.9654524590163933,
+          "min": 2.9654524590163933,
+          "max": 2.9654524590163933
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 4.590163934426229,
+            "o43": 4.590163934426229,
+            "o44": 4.590163934426229
+          },
+          "median": 4.590163934426229,
+          "min": 4.590163934426229,
+          "max": 4.590163934426229
+        }
+      },
+      "nsga3": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5460.554590163935,
+            "o43": 5442.499344262296,
+            "o44": 5432.097704918031
+          },
+          "median": 5442.499344262296,
+          "min": 5432.097704918031,
+          "max": 5460.554590163935
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 1.9002688524590163,
+            "o43": 1.8690180327868853,
+            "o44": 1.8501967213114756
+          },
+          "median": 1.8690180327868853,
+          "min": 1.8501967213114756,
+          "max": 1.9002688524590163
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 0.0,
+            "o43": 0.0,
+            "o44": 0.0
+          },
+          "median": 0.0,
+          "min": 0.0,
+          "max": 0.0
+        }
+      },
+      "rl": {
+        "cost_eur": {
+          "per_seed_mean": {
+            "o42": 5219.662786885245,
+            "o43": 5219.662786885245,
+            "o44": 5219.662786885245
+          },
+          "median": 5219.662786885245,
+          "min": 5219.662786885245,
+          "max": 5219.662786885245
+        },
+        "peak_mw": {
+          "per_seed_mean": {
+            "o42": 2.5727147540983606,
+            "o43": 2.5727147540983606,
+            "o44": 2.5727147540983606
+          },
+          "median": 2.5727147540983606,
+          "min": 2.5727147540983606,
+          "max": 2.5727147540983606
+        },
+        "tie_violation_steps": {
+          "per_seed_mean": {
+            "o42": 1.639344262295082,
+            "o43": 1.639344262295082,
+            "o44": 1.639344262295082
+          },
+          "median": 1.639344262295082,
+          "min": 1.639344262295082,
+          "max": 1.639344262295082
+        }
+      }
+    },
+    "nsga3_seed_pair_day_diffs": {
+      "o42_vs_o43": {
+        "n_days_differing": 61,
+        "n_days": 61,
+        "max_abs_diff_eur": 241.55,
+        "max_abs_diff_day": "2024-12-09"
+      },
+      "o42_vs_o44": {
+        "n_days_differing": 61,
+        "n_days": 61,
+        "max_abs_diff_eur": 464.06,
+        "max_abs_diff_day": "2024-12-09"
+      },
+      "o43_vs_o44": {
+        "n_days_differing": 61,
+        "n_days": 61,
+        "max_abs_diff_eur": 298.11,
+        "max_abs_diff_day": "2024-11-18"
+      }
+    }
+  },
+  "milp_gap": {
+    "n_days": 61,
+    "opt_seeds": [
+      42,
+      43,
+      44
+    ],
+    "n_missing_milp": 0,
+    "per_seed": {
+      "o42": {
+        "per_day": {
+          "2024-11-01": {
+            "lower_bound": 5159.8189601685635,
+            "lower_bound_epsilon": 5527.788845961323,
+            "gap_front": 707.2331720020666,
+            "gap_delivered": 438.40988754531554,
+            "price_of_compromise": 367.96988579275967,
+            "pwl_gap": 0.0018628028119564988
+          },
+          "2024-11-02": {
+            "lower_bound": 4784.298764047783,
+            "lower_bound_epsilon": 5116.686740530744,
+            "gap_front": 659.256330921392,
+            "gap_delivered": 457.69472021966885,
+            "price_of_compromise": 332.38797648296077,
+            "pwl_gap": 0.005388331360336451
+          },
+          "2024-11-03": {
+            "lower_bound": 4497.683967621565,
+            "lower_bound_epsilon": 4794.176618677538,
+            "gap_front": 649.2011620257954,
+            "gap_delivered": 459.9854929396779,
+            "price_of_compromise": 296.4926510559726,
+            "pwl_gap": 0.007236270402245282
+          },
+          "2024-11-04": {
+            "lower_bound": 5516.2644496398825,
+            "lower_bound_epsilon": 5729.317286722689,
+            "gap_front": 700.3669495753775,
+            "gap_delivered": 600.7659068829807,
+            "price_of_compromise": 213.05283708280604,
+            "pwl_gap": 0.0020051679139214684
+          },
+          "2024-11-05": {
+            "lower_bound": 5467.320768069823,
+            "lower_bound_epsilon": 5687.738925464491,
+            "gap_front": 679.7902823937675,
+            "gap_delivered": 511.04095568842604,
+            "price_of_compromise": 220.41815739466801,
+            "pwl_gap": 0.010724946070695296
+          },
+          "2024-11-06": {
+            "lower_bound": 6747.015855409677,
+            "lower_bound_epsilon": 7000.280749053293,
+            "gap_front": 661.0339042113255,
+            "gap_delivered": 544.0227551892995,
+            "price_of_compromise": 253.26489364361623,
+            "pwl_gap": 0.0022683093548039324
+          },
+          "2024-11-07": {
+            "lower_bound": 6138.478778569167,
+            "lower_bound_epsilon": 6451.903246073479,
+            "gap_front": 697.6505152255058,
+            "gap_delivered": 402.55228482745133,
+            "price_of_compromise": 313.4244675043119,
+            "pwl_gap": 0.0024311990664500627
+          },
+          "2024-11-08": {
+            "lower_bound": 6456.27528423499,
+            "lower_bound_epsilon": 6692.82750336111,
+            "gap_front": 671.2748445161496,
+            "gap_delivered": 489.67639487634005,
+            "price_of_compromise": 236.55221912611978,
+            "pwl_gap": 0.002144781238712312
+          },
+          "2024-11-09": {
+            "lower_bound": 5910.330134882111,
+            "lower_bound_epsilon": 6193.213564921118,
+            "gap_front": 635.7216954372307,
+            "gap_delivered": 426.16379733285703,
+            "price_of_compromise": 282.88343003900627,
+            "pwl_gap": 0.0018090196044795448
+          },
+          "2024-11-10": {
+            "lower_bound": 5703.687500068174,
+            "lower_bound_epsilon": 5988.090445748736,
+            "gap_front": 618.2424825322851,
+            "gap_delivered": 355.9508285954071,
+            "price_of_compromise": 284.40294568056197,
+            "pwl_gap": 0.0023272932094187126
+          },
+          "2024-11-11": {
+            "lower_bound": 3053.969072589228,
+            "lower_bound_epsilon": 3255.990604386238,
+            "gap_front": 421.8530027542447,
+            "gap_delivered": 349.52511781433805,
+            "price_of_compromise": 202.02153179701008,
+            "pwl_gap": 0.01884662522297731
+          },
+          "2024-11-12": {
+            "lower_bound": 4442.843226361356,
+            "lower_bound_epsilon": 4701.632864253978,
+            "gap_front": 706.7643346876066,
+            "gap_delivered": 534.7097942166656,
+            "price_of_compromise": 258.7896378926225,
+            "pwl_gap": 0.005117390317536774
+          },
+          "2024-11-13": {
+            "lower_bound": 6548.073282327378,
+            "lower_bound_epsilon": 6768.390524115611,
+            "gap_front": 688.8337035956092,
+            "gap_delivered": 476.03278666987444,
+            "price_of_compromise": 220.31724178823242,
+            "pwl_gap": 0.001599855165295594
+          },
+          "2024-11-14": {
+            "lower_bound": 6428.207539897608,
+            "lower_bound_epsilon": 6641.315177844538,
+            "gap_front": 668.175972864321,
+            "gap_delivered": 516.3238164672875,
+            "price_of_compromise": 213.10763794693048,
+            "pwl_gap": 0.0020770099354194826
+          },
+          "2024-11-15": {
+            "lower_bound": 6629.56853648146,
+            "lower_bound_epsilon": 6903.227433629339,
+            "gap_front": 677.5859475574316,
+            "gap_delivered": 492.53903360205095,
+            "price_of_compromise": 273.65889714787954,
+            "pwl_gap": 0.0020962243597750785
+          },
+          "2024-11-16": {
+            "lower_bound": 4615.269330377065,
+            "lower_bound_epsilon": 4894.525771747791,
+            "gap_front": 597.9740015059924,
+            "gap_delivered": 474.7809274161118,
+            "price_of_compromise": 279.25644137072595,
+            "pwl_gap": 0.004725444048744976
+          },
+          "2024-11-17": {
+            "lower_bound": 3346.5320592443263,
+            "lower_bound_epsilon": 3657.537403792231,
+            "gap_front": 460.1905745089207,
+            "gap_delivered": 347.5527667855981,
+            "price_of_compromise": 311.00534454790477,
+            "pwl_gap": 0.014597726729334681
+          },
+          "2024-11-18": {
+            "lower_bound": 6005.607899879024,
+            "lower_bound_epsilon": 6113.774263036066,
+            "gap_front": 692.5771355683346,
+            "gap_delivered": 628.0407647193251,
+            "price_of_compromise": 108.16636315704181,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-11-19": {
+            "lower_bound": 4881.199452103296,
+            "lower_bound_epsilon": 5005.311574523784,
+            "gap_front": 765.2604416170707,
+            "gap_delivered": 691.0534529316292,
+            "price_of_compromise": 124.11212242048805,
+            "pwl_gap": 0.003169054857607989
+          },
+          "2024-11-20": {
+            "lower_bound": 3029.491654856605,
+            "lower_bound_epsilon": 3346.3175541543123,
+            "gap_front": 479.06880647602566,
+            "gap_delivered": 285.45215667305956,
+            "price_of_compromise": 316.82589929770756,
+            "pwl_gap": 0.018256202809425304
+          },
+          "2024-11-21": {
+            "lower_bound": 6015.543993934398,
+            "lower_bound_epsilon": 6179.16121448513,
+            "gap_front": 714.444374744493,
+            "gap_delivered": 640.7648541152757,
+            "price_of_compromise": 163.61722055073187,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-11-22": {
+            "lower_bound": 3818.616845406147,
+            "lower_bound_epsilon": 4002.9660982000573,
+            "gap_front": 604.0778241863163,
+            "gap_delivered": 501.7037053529216,
+            "price_of_compromise": 184.34925279391018,
+            "pwl_gap": 0.008307579204483773
+          },
+          "2024-11-23": {
+            "lower_bound": 3178.2479585900724,
+            "lower_bound_epsilon": 3321.6127499400777,
+            "gap_front": 451.53562400116834,
+            "gap_delivered": 351.7580401447626,
+            "price_of_compromise": 143.36479135000536,
+            "pwl_gap": 0.016604091945282562
+          },
+          "2024-11-24": {
+            "lower_bound": 1674.83628182642,
+            "lower_bound_epsilon": 1881.5331452790201,
+            "gap_front": 297.6134745110103,
+            "gap_delivered": 169.01293028664304,
+            "price_of_compromise": 206.69686345260016,
+            "pwl_gap": 0.015432653698553622
+          },
+          "2024-11-25": {
+            "lower_bound": 3862.932909093857,
+            "lower_bound_epsilon": 4168.743356074416,
+            "gap_front": 694.3818843079921,
+            "gap_delivered": 495.14349624468923,
+            "price_of_compromise": 305.81044698055894,
+            "pwl_gap": 0.008005982896975183
+          },
+          "2024-11-26": {
+            "lower_bound": 5039.006295024899,
+            "lower_bound_epsilon": 5220.316282576308,
+            "gap_front": 722.1030770444631,
+            "gap_delivered": 574.5916386963108,
+            "price_of_compromise": 181.309987551409,
+            "pwl_gap": 0.007680776343477191
+          },
+          "2024-11-27": {
+            "lower_bound": 3721.2402412809834,
+            "lower_bound_epsilon": 3825.305536665187,
+            "gap_front": 464.02695989176937,
+            "gap_delivered": 394.605967375609,
+            "price_of_compromise": 104.06529538420364,
+            "pwl_gap": 0.01713008780780001
+          },
+          "2024-11-28": {
+            "lower_bound": 6062.5561283158595,
+            "lower_bound_epsilon": 6240.323251715909,
+            "gap_front": 695.352501856386,
+            "gap_delivered": 590.8506632125755,
+            "price_of_compromise": 177.76712340004906,
+            "pwl_gap": 0.001816536913793243
+          },
+          "2024-11-29": {
+            "lower_bound": 5260.193044360724,
+            "lower_bound_epsilon": 5567.83618461215,
+            "gap_front": 742.8026912812693,
+            "gap_delivered": 456.95425944586714,
+            "price_of_compromise": 307.6431402514254,
+            "pwl_gap": 0.006683176035039651
+          },
+          "2024-11-30": {
+            "lower_bound": 4846.278058758299,
+            "lower_bound_epsilon": 5083.703093118332,
+            "gap_front": 660.1185819329812,
+            "gap_delivered": 570.0342273084661,
+            "price_of_compromise": 237.42503436003244,
+            "pwl_gap": 0.007098910316017282
+          },
+          "2024-12-01": {
+            "lower_bound": 3596.821919044739,
+            "lower_bound_epsilon": 3830.976365648516,
+            "gap_front": 454.8722206875427,
+            "gap_delivered": 407.1714544349484,
+            "price_of_compromise": 234.15444660377716,
+            "pwl_gap": 0.012321534721195349
+          },
+          "2024-12-02": {
+            "lower_bound": 4266.355936406733,
+            "lower_bound_epsilon": 4437.613042670731,
+            "gap_front": 655.4314386321603,
+            "gap_delivered": 606.9040871569832,
+            "price_of_compromise": 171.25710626399814,
+            "pwl_gap": 0.00797326814790722
+          },
+          "2024-12-03": {
+            "lower_bound": 6114.660803165902,
+            "lower_bound_epsilon": 6311.458141465897,
+            "gap_front": 679.646017409561,
+            "gap_delivered": 634.213745633836,
+            "price_of_compromise": 196.79733829999532,
+            "pwl_gap": 0.001670993835432455
+          },
+          "2024-12-04": {
+            "lower_bound": 6276.393767096703,
+            "lower_bound_epsilon": 6474.964449602022,
+            "gap_front": 664.0342754621634,
+            "gap_delivered": 614.9093423746208,
+            "price_of_compromise": 198.57068250531847,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-05": {
+            "lower_bound": 3431.746844560887,
+            "lower_bound_epsilon": 3812.162405142113,
+            "gap_front": 461.8553443535925,
+            "gap_delivered": 405.716419055565,
+            "price_of_compromise": 380.41556058122615,
+            "pwl_gap": 0.01882163798882175
+          },
+          "2024-12-06": {
+            "lower_bound": 3750.9657733733534,
+            "lower_bound_epsilon": 3973.563328638069,
+            "gap_front": 564.4485652334365,
+            "gap_delivered": 454.1282569335517,
+            "price_of_compromise": 222.59755526471554,
+            "pwl_gap": 0.011543648480255797
+          },
+          "2024-12-07": {
+            "lower_bound": 2288.511330478117,
+            "lower_bound_epsilon": 2516.716110758884,
+            "gap_front": 368.6941741443916,
+            "gap_delivered": 179.19401426912873,
+            "price_of_compromise": 228.20478028076695,
+            "pwl_gap": 0.01691513149671664
+          },
+          "2024-12-08": {
+            "lower_bound": 3048.8409286977567,
+            "lower_bound_epsilon": 3263.1669732232112,
+            "gap_front": 442.9180285228813,
+            "gap_delivered": 281.8856662467865,
+            "price_of_compromise": 214.32604452545456,
+            "pwl_gap": 0.017463868580307462
+          },
+          "2024-12-09": {
+            "lower_bound": 3637.0339019221606,
+            "lower_bound_epsilon": 4389.689965773327,
+            "gap_front": 571.2182884796489,
+            "gap_delivered": 318.3404679289424,
+            "price_of_compromise": 752.656063851166,
+            "pwl_gap": 0.014496680806132645
+          },
+          "2024-12-10": {
+            "lower_bound": 4414.862219096767,
+            "lower_bound_epsilon": 4818.6222533246855,
+            "gap_front": 675.9299050031095,
+            "gap_delivered": 585.5289240330658,
+            "price_of_compromise": 403.76003422791837,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-11": {
+            "lower_bound": 6844.572225507192,
+            "lower_bound_epsilon": 7015.917280567998,
+            "gap_front": 655.9223769385353,
+            "gap_delivered": 550.1662023089293,
+            "price_of_compromise": 171.34505506080586,
+            "pwl_gap": 0.0019662433232952026
+          },
+          "2024-12-12": {
+            "lower_bound": 7497.218143168522,
+            "lower_bound_epsilon": 7737.180125654277,
+            "gap_front": 655.1510763564302,
+            "gap_delivered": 518.7174981722656,
+            "price_of_compromise": 239.96198248575456,
+            "pwl_gap": 0.00417010210276203
+          },
+          "2024-12-13": {
+            "lower_bound": 7076.851545650324,
+            "lower_bound_epsilon": 7357.944027804867,
+            "gap_front": 641.2274754740938,
+            "gap_delivered": 457.67803536389965,
+            "price_of_compromise": 281.0924821545432,
+            "pwl_gap": 0.0023340711077253218
+          },
+          "2024-12-14": {
+            "lower_bound": 5320.342835556667,
+            "lower_bound_epsilon": 5674.098206367242,
+            "gap_front": 660.7157413220284,
+            "gap_delivered": 480.8865884330344,
+            "price_of_compromise": 353.7553708105752,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-12-15": {
+            "lower_bound": 3664.8939765849937,
+            "lower_bound_epsilon": 3863.23124978955,
+            "gap_front": 474.96277830873623,
+            "gap_delivered": 366.8576664592583,
+            "price_of_compromise": 198.33727320455637,
+            "pwl_gap": 0.01623483258754277
+          },
+          "2024-12-16": {
+            "lower_bound": 4131.404617992563,
+            "lower_bound_epsilon": 4336.772278110385,
+            "gap_front": 579.7135653321384,
+            "gap_delivered": 593.5055989388175,
+            "price_of_compromise": 205.3676601178222,
+            "pwl_gap": 0.006151878468699579
+          },
+          "2024-12-17": {
+            "lower_bound": 5501.465428086589,
+            "lower_bound_epsilon": 5648.674272982654,
+            "gap_front": 739.8131576808319,
+            "gap_delivered": 673.1707942331677,
+            "price_of_compromise": 147.20884489606487,
+            "pwl_gap": 0.01045016940770438
+          },
+          "2024-12-18": {
+            "lower_bound": 3225.934449440237,
+            "lower_bound_epsilon": 3557.08306387842,
+            "gap_front": 495.14413156966475,
+            "gap_delivered": 400.87299762501334,
+            "price_of_compromise": 331.1486144381829,
+            "pwl_gap": 0.01714858677723896
+          },
+          "2024-12-19": {
+            "lower_bound": 3617.213116817666,
+            "lower_bound_epsilon": 4029.5479759131063,
+            "gap_front": 603.3652803023774,
+            "gap_delivered": 343.2729655748112,
+            "price_of_compromise": 412.33485909544015,
+            "pwl_gap": 0.011863906524013146
+          },
+          "2024-12-20": {
+            "lower_bound": 4236.2954368381,
+            "lower_bound_epsilon": 4411.789558276595,
+            "gap_front": 585.3810291906357,
+            "gap_delivered": 480.9639722797392,
+            "price_of_compromise": 175.4941214384953,
+            "pwl_gap": 0.011818519522421411
+          },
+          "2024-12-21": {
+            "lower_bound": 3233.7848633273406,
+            "lower_bound_epsilon": 3387.6083296524184,
+            "gap_front": 477.22726758341014,
+            "gap_delivered": 380.920631318947,
+            "price_of_compromise": 153.8234663250778,
+            "pwl_gap": 0.0181367256222984
+          },
+          "2024-12-22": {
+            "lower_bound": 2462.544062694733,
+            "lower_bound_epsilon": 2951.9636286411765,
+            "gap_front": 398.2668855398074,
+            "gap_delivered": 203.1535658609414,
+            "price_of_compromise": 489.4195659464435,
+            "pwl_gap": 0.012711833576304343
+          },
+          "2024-12-23": {
+            "lower_bound": 3313.445850102358,
+            "lower_bound_epsilon": 3745.9853599548032,
+            "gap_front": 561.4708849885051,
+            "gap_delivered": 294.08429647047797,
+            "price_of_compromise": 432.53950985244546,
+            "pwl_gap": 0.013342759037186624
+          },
+          "2024-12-24": {
+            "lower_bound": 5456.306462678475,
+            "lower_bound_epsilon": 5770.620327562379,
+            "gap_front": 741.5544115867442,
+            "gap_delivered": 487.6029639431854,
+            "price_of_compromise": 314.313864883904,
+            "pwl_gap": 0.0018732087883108761
+          },
+          "2024-12-25": {
+            "lower_bound": 5650.576782532719,
+            "lower_bound_epsilon": 5923.904013312015,
+            "gap_front": 619.519867337177,
+            "gap_delivered": 360.94059104853386,
+            "price_of_compromise": 273.32723077929586,
+            "pwl_gap": 0.00208796448623616
+          },
+          "2024-12-26": {
+            "lower_bound": 6243.524433677039,
+            "lower_bound_epsilon": 6543.12984690787,
+            "gap_front": 638.8194482768031,
+            "gap_delivered": 515.5279021458773,
+            "price_of_compromise": 299.6054132308309,
+            "pwl_gap": 0.002356496457650792
+          },
+          "2024-12-27": {
+            "lower_bound": 6265.408362015066,
+            "lower_bound_epsilon": 6515.474819111738,
+            "gap_front": 634.7125493739359,
+            "gap_delivered": 384.64609227726396,
+            "price_of_compromise": 250.0664570966719,
+            "pwl_gap": 0.002009269598602259
+          },
+          "2024-12-28": {
+            "lower_bound": 5768.181177730923,
+            "lower_bound_epsilon": 6076.264786238031,
+            "gap_front": 721.8469114247255,
+            "gap_delivered": 438.8439382966153,
+            "price_of_compromise": 308.0836085071078,
+            "pwl_gap": 0.0015759135021653492
+          },
+          "2024-12-29": {
+            "lower_bound": 5244.818842229807,
+            "lower_bound_epsilon": 5607.930012593413,
+            "gap_front": 719.5067101760142,
+            "gap_delivered": 440.1721122499148,
+            "price_of_compromise": 363.1111703636061,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-30": {
+            "lower_bound": 4198.103086072745,
+            "lower_bound_epsilon": 4373.651971411275,
+            "gap_front": 574.7878021136212,
+            "gap_delivered": 441.9564455591026,
+            "price_of_compromise": 175.54888533852954,
+            "pwl_gap": 0.011174331999427523
+          },
+          "2024-12-31": {
+            "lower_bound": 2968.462624183813,
+            "lower_bound_epsilon": 3142.185758299944,
+            "gap_front": 417.936575872478,
+            "gap_delivered": 281.0230570157737,
+            "price_of_compromise": 173.72313411613095,
+            "pwl_gap": 0.017210960815646104
+          }
+        },
+        "stats": {
+          "gap_front": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 649.2011620257954,
+              "min": 297.6134745110103,
+              "max": 765.2604416170707
+            },
+            "pct": {
+              "median": 13.621145421897543,
+              "min": 8.738588951868834,
+              "max": 17.97550981725116
+            },
+            "worst_day": "2024-11-19",
+            "worst_eur": 765.2604416170707
+          },
+          "gap_delivered": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 457.69472021966885,
+              "min": 169.01293028664304,
+              "max": 691.0534529316292
+            },
+            "pct": {
+              "median": 8.984958036671694,
+              "min": 5.903577297988901,
+              "max": 13.806402311675821
+            },
+            "worst_day": "2024-11-19",
+            "worst_eur": 691.0534529316292
+          },
+          "price_of_compromise": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 237.42503436003244,
+              "min": 104.06529538420364,
+              "max": 752.656063851166
+            },
+            "pct": {
+              "median": 4.9708919630730755,
+              "min": 1.8010893311769602,
+              "max": 20.694227333250584
+            },
+            "worst_day": "2024-12-09",
+            "worst_eur": 752.656063851166
+          }
+        }
+      },
+      "o43": {
+        "per_day": {
+          "2024-11-01": {
+            "lower_bound": 5159.8189601685635,
+            "lower_bound_epsilon": 5510.980719483268,
+            "gap_front": 691.9760541453534,
+            "gap_delivered": 497.1333785971892,
+            "price_of_compromise": 351.1617593147048,
+            "pwl_gap": 0.0018628028119564988
+          },
+          "2024-11-02": {
+            "lower_bound": 4784.298764047783,
+            "lower_bound_epsilon": 5078.974931299535,
+            "gap_front": 622.3641803590244,
+            "gap_delivered": 337.3645965398873,
+            "price_of_compromise": 294.6761672517514,
+            "pwl_gap": 0.005388331360336451
+          },
+          "2024-11-03": {
+            "lower_bound": 4497.683967621565,
+            "lower_bound_epsilon": 4753.4485717809885,
+            "gap_front": 602.5414152717876,
+            "gap_delivered": 437.1841646139792,
+            "price_of_compromise": 255.76460415942347,
+            "pwl_gap": 0.007236270402245282
+          },
+          "2024-11-04": {
+            "lower_bound": 5516.2644496398825,
+            "lower_bound_epsilon": 5776.671897084547,
+            "gap_front": 702.7230373726652,
+            "gap_delivered": 475.6637820262222,
+            "price_of_compromise": 260.4074474446643,
+            "pwl_gap": 0.0020051679139214684
+          },
+          "2024-11-05": {
+            "lower_bound": 5467.320768069823,
+            "lower_bound_epsilon": 5752.154096138602,
+            "gap_front": 674.740560440785,
+            "gap_delivered": 433.33581686078196,
+            "price_of_compromise": 284.8333280687784,
+            "pwl_gap": 0.010724946070695296
+          },
+          "2024-11-06": {
+            "lower_bound": 6747.015855409677,
+            "lower_bound_epsilon": 6976.409389255182,
+            "gap_front": 699.4041562840584,
+            "gap_delivered": 470.0106224385536,
+            "price_of_compromise": 229.39353384550486,
+            "pwl_gap": 0.0022683093548039324
+          },
+          "2024-11-07": {
+            "lower_bound": 6138.478778569167,
+            "lower_bound_epsilon": 6480.235408450132,
+            "gap_front": 710.2971540336957,
+            "gap_delivered": 371.9461640765576,
+            "price_of_compromise": 341.7566298809652,
+            "pwl_gap": 0.0024311990664500627
+          },
+          "2024-11-08": {
+            "lower_bound": 6456.27528423499,
+            "lower_bound_epsilon": 6739.753669980238,
+            "gap_front": 635.766478008999,
+            "gap_delivered": 377.97879546700915,
+            "price_of_compromise": 283.4783857452476,
+            "pwl_gap": 0.002144781238712312
+          },
+          "2024-11-09": {
+            "lower_bound": 5910.330134882111,
+            "lower_bound_epsilon": 6147.140618828504,
+            "gap_front": 667.2817511561498,
+            "gap_delivered": 483.6870889605707,
+            "price_of_compromise": 236.8104839463922,
+            "pwl_gap": 0.0018090196044795448
+          },
+          "2024-11-10": {
+            "lower_bound": 5703.687500068174,
+            "lower_bound_epsilon": 5932.143593196403,
+            "gap_front": 633.4223125353701,
+            "gap_delivered": 484.53461369239176,
+            "price_of_compromise": 228.45609312822944,
+            "pwl_gap": 0.0023272932094187126
+          },
+          "2024-11-11": {
+            "lower_bound": 3053.969072589228,
+            "lower_bound_epsilon": 3203.399554549813,
+            "gap_front": 440.7194458792187,
+            "gap_delivered": 312.57534447057196,
+            "price_of_compromise": 149.43048196058498,
+            "pwl_gap": 0.01884662522297731
+          },
+          "2024-11-12": {
+            "lower_bound": 4442.843226361356,
+            "lower_bound_epsilon": 4787.385761083763,
+            "gap_front": 725.8538309392752,
+            "gap_delivered": 555.8201324668853,
+            "price_of_compromise": 344.54253472240725,
+            "pwl_gap": 0.005117390317536774
+          },
+          "2024-11-13": {
+            "lower_bound": 6548.073282327378,
+            "lower_bound_epsilon": 6786.400436972658,
+            "gap_front": 712.1860994170192,
+            "gap_delivered": 500.6052068969939,
+            "price_of_compromise": 238.32715464527973,
+            "pwl_gap": 0.001599855165295594
+          },
+          "2024-11-14": {
+            "lower_bound": 6428.207539897608,
+            "lower_bound_epsilon": 6660.547805350463,
+            "gap_front": 669.8147483793864,
+            "gap_delivered": 478.6672327601427,
+            "price_of_compromise": 232.34026545285542,
+            "pwl_gap": 0.0020770099354194826
+          },
+          "2024-11-15": {
+            "lower_bound": 6629.56853648146,
+            "lower_bound_epsilon": 6935.013625990735,
+            "gap_front": 650.656803463231,
+            "gap_delivered": 367.34086036544704,
+            "price_of_compromise": 305.445089509275,
+            "pwl_gap": 0.0020962243597750785
+          },
+          "2024-11-16": {
+            "lower_bound": 4615.269330377065,
+            "lower_bound_epsilon": 4887.5150550301705,
+            "gap_front": 620.9176185523202,
+            "gap_delivered": 615.8895381586553,
+            "price_of_compromise": 272.24572465310575,
+            "pwl_gap": 0.004725444048744976
+          },
+          "2024-11-17": {
+            "lower_bound": 3346.5320592443263,
+            "lower_bound_epsilon": 3593.239725998769,
+            "gap_front": 497.4334109445567,
+            "gap_delivered": 361.84923211145497,
+            "price_of_compromise": 246.70766675444247,
+            "pwl_gap": 0.014597726729334681
+          },
+          "2024-11-18": {
+            "lower_bound": 6005.607899879024,
+            "lower_bound_epsilon": 6094.102364387501,
+            "gap_front": 614.4998060274847,
+            "gap_delivered": 554.4124684704511,
+            "price_of_compromise": 88.494464508477,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-11-19": {
+            "lower_bound": 4881.199452103296,
+            "lower_bound_epsilon": 5076.317386031815,
+            "gap_front": 763.4464017818191,
+            "gap_delivered": 653.4804759723138,
+            "price_of_compromise": 195.11793392851905,
+            "pwl_gap": 0.003169054857607989
+          },
+          "2024-11-20": {
+            "lower_bound": 3029.491654856605,
+            "lower_bound_epsilon": 3272.18784333895,
+            "gap_front": 475.33618425552186,
+            "gap_delivered": 278.12172651423725,
+            "price_of_compromise": 242.6961884823454,
+            "pwl_gap": 0.018256202809425304
+          },
+          "2024-11-21": {
+            "lower_bound": 6015.543993934398,
+            "lower_bound_epsilon": 6064.045692997393,
+            "gap_front": 685.2849395262219,
+            "gap_delivered": 653.4319471688159,
+            "price_of_compromise": 48.50169906299561,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-11-22": {
+            "lower_bound": 3818.616845406147,
+            "lower_bound_epsilon": 4281.350071498366,
+            "gap_front": 658.0754905847416,
+            "gap_delivered": 378.6470164907414,
+            "price_of_compromise": 462.7332260922185,
+            "pwl_gap": 0.008307579204483773
+          },
+          "2024-11-23": {
+            "lower_bound": 3178.2479585900724,
+            "lower_bound_epsilon": 3370.552222226013,
+            "gap_front": 407.6255486699597,
+            "gap_delivered": 280.9138731325852,
+            "price_of_compromise": 192.30426363594052,
+            "pwl_gap": 0.016604091945282562
+          },
+          "2024-11-24": {
+            "lower_bound": 1674.83628182642,
+            "lower_bound_epsilon": 1867.11728345987,
+            "gap_front": 300.0931400994641,
+            "gap_delivered": 123.06525342789587,
+            "price_of_compromise": 192.28100163344993,
+            "pwl_gap": 0.015432653698553622
+          },
+          "2024-11-25": {
+            "lower_bound": 3862.932909093857,
+            "lower_bound_epsilon": 4115.650746668761,
+            "gap_front": 651.866625587159,
+            "gap_delivered": 443.942221294129,
+            "price_of_compromise": 252.71783757490402,
+            "pwl_gap": 0.008005982896975183
+          },
+          "2024-11-26": {
+            "lower_bound": 5039.006295024899,
+            "lower_bound_epsilon": 5193.724737604682,
+            "gap_front": 688.4679025968235,
+            "gap_delivered": 605.3230434846992,
+            "price_of_compromise": 154.71844257978228,
+            "pwl_gap": 0.007680776343477191
+          },
+          "2024-11-27": {
+            "lower_bound": 3721.2402412809834,
+            "lower_bound_epsilon": 3937.70795722749,
+            "gap_front": 456.54367524891404,
+            "gap_delivered": 415.9357732484036,
+            "price_of_compromise": 216.46771594650681,
+            "pwl_gap": 0.01713008780780001
+          },
+          "2024-11-28": {
+            "lower_bound": 6062.5561283158595,
+            "lower_bound_epsilon": 6279.016153748767,
+            "gap_front": 670.3305602202372,
+            "gap_delivered": 661.3231587212476,
+            "price_of_compromise": 216.46002543290706,
+            "pwl_gap": 0.001816536913793243
+          },
+          "2024-11-29": {
+            "lower_bound": 5260.193044360724,
+            "lower_bound_epsilon": 5494.612109225251,
+            "gap_front": 711.1318651615338,
+            "gap_delivered": 494.5237006670959,
+            "price_of_compromise": 234.41906486452626,
+            "pwl_gap": 0.006683176035039651
+          },
+          "2024-11-30": {
+            "lower_bound": 4846.278058758299,
+            "lower_bound_epsilon": 5039.886281691061,
+            "gap_front": 666.373447715675,
+            "gap_delivered": 567.6679578058438,
+            "price_of_compromise": 193.60822293276215,
+            "pwl_gap": 0.007098910316017282
+          },
+          "2024-12-01": {
+            "lower_bound": 3596.821919044739,
+            "lower_bound_epsilon": 3765.50660063467,
+            "gap_front": 447.49732601388496,
+            "gap_delivered": 308.0924491471592,
+            "price_of_compromise": 168.6846815899312,
+            "pwl_gap": 0.012321534721195349
+          },
+          "2024-12-02": {
+            "lower_bound": 4266.355936406733,
+            "lower_bound_epsilon": 4568.989295642563,
+            "gap_front": 646.9401341794228,
+            "gap_delivered": 571.6104256349117,
+            "price_of_compromise": 302.63335923582963,
+            "pwl_gap": 0.00797326814790722
+          },
+          "2024-12-03": {
+            "lower_bound": 6114.660803165902,
+            "lower_bound_epsilon": 6229.314150582851,
+            "gap_front": 653.0656204457109,
+            "gap_delivered": 562.0888139106055,
+            "price_of_compromise": 114.65334741694915,
+            "pwl_gap": 0.001670993835432455
+          },
+          "2024-12-04": {
+            "lower_bound": 6276.393767096703,
+            "lower_bound_epsilon": 6529.67654309297,
+            "gap_front": 694.4154524374653,
+            "gap_delivered": 479.14598552205825,
+            "price_of_compromise": 253.28277599626654,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-05": {
+            "lower_bound": 3431.746844560887,
+            "lower_bound_epsilon": 3662.4217945125365,
+            "gap_front": 523.6380388795164,
+            "gap_delivered": 380.7594847561013,
+            "price_of_compromise": 230.67494995164952,
+            "pwl_gap": 0.01882163798882175
+          },
+          "2024-12-06": {
+            "lower_bound": 3750.9657733733534,
+            "lower_bound_epsilon": 3977.869029698864,
+            "gap_front": 622.4211380329484,
+            "gap_delivered": 438.12980813560944,
+            "price_of_compromise": 226.90325632551048,
+            "pwl_gap": 0.011543648480255797
+          },
+          "2024-12-07": {
+            "lower_bound": 2288.511330478117,
+            "lower_bound_epsilon": 2557.904200550763,
+            "gap_front": 292.275622167238,
+            "gap_delivered": 214.8103395387484,
+            "price_of_compromise": 269.392870072646,
+            "pwl_gap": 0.01691513149671664
+          },
+          "2024-12-08": {
+            "lower_bound": 3048.8409286977567,
+            "lower_bound_epsilon": 3290.3848037286634,
+            "gap_front": 460.54123878699465,
+            "gap_delivered": 310.7079541019739,
+            "price_of_compromise": 241.54387503090675,
+            "pwl_gap": 0.017463868580307462
+          },
+          "2024-12-09": {
+            "lower_bound": 3637.0339019221606,
+            "lower_bound_epsilon": 3953.6333506036667,
+            "gap_front": 593.0864235778286,
+            "gap_delivered": 512.8469803732692,
+            "price_of_compromise": 316.59944868150615,
+            "pwl_gap": 0.014496680806132645
+          },
+          "2024-12-10": {
+            "lower_bound": 4414.862219096767,
+            "lower_bound_epsilon": 4579.563498719099,
+            "gap_front": 665.725762117776,
+            "gap_delivered": 619.8596524198292,
+            "price_of_compromise": 164.70127962233164,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-11": {
+            "lower_bound": 6844.572225507192,
+            "lower_bound_epsilon": 7051.714143606608,
+            "gap_front": 638.9112574783048,
+            "gap_delivered": 449.2592728987902,
+            "price_of_compromise": 207.1419180994153,
+            "pwl_gap": 0.0019662433232952026
+          },
+          "2024-12-12": {
+            "lower_bound": 7497.218143168522,
+            "lower_bound_epsilon": 7782.276819275927,
+            "gap_front": 624.926228407774,
+            "gap_delivered": 401.7189614969011,
+            "price_of_compromise": 285.0586761074046,
+            "pwl_gap": 0.00417010210276203
+          },
+          "2024-12-13": {
+            "lower_bound": 7076.851545650324,
+            "lower_bound_epsilon": 7403.434735280995,
+            "gap_front": 677.4079039365761,
+            "gap_delivered": 412.54709805941457,
+            "price_of_compromise": 326.58318963067086,
+            "pwl_gap": 0.0023340711077253218
+          },
+          "2024-12-14": {
+            "lower_bound": 5320.342835556667,
+            "lower_bound_epsilon": 5660.1602686656015,
+            "gap_front": 664.9331751295795,
+            "gap_delivered": 446.2233037574697,
+            "price_of_compromise": 339.8174331089349,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-12-15": {
+            "lower_bound": 3664.8939765849937,
+            "lower_bound_epsilon": 3830.1693370916287,
+            "gap_front": 495.3097007294582,
+            "gap_delivered": 368.92110760693186,
+            "price_of_compromise": 165.27536050663502,
+            "pwl_gap": 0.01623483258754277
+          },
+          "2024-12-16": {
+            "lower_bound": 4131.404617992563,
+            "lower_bound_epsilon": 4387.72833240677,
+            "gap_front": 642.4696759466351,
+            "gap_delivered": 575.9818223859884,
+            "price_of_compromise": 256.32371441420764,
+            "pwl_gap": 0.006151878468699579
+          },
+          "2024-12-17": {
+            "lower_bound": 5501.465428086589,
+            "lower_bound_epsilon": 5630.784183917215,
+            "gap_front": 708.04033859435,
+            "gap_delivered": 595.6601291413326,
+            "price_of_compromise": 129.3187558306263,
+            "pwl_gap": 0.01045016940770438
+          },
+          "2024-12-18": {
+            "lower_bound": 3225.934449440237,
+            "lower_bound_epsilon": 3514.0756045529347,
+            "gap_front": 541.5961883136597,
+            "gap_delivered": 337.39928487227326,
+            "price_of_compromise": 288.14115511269756,
+            "pwl_gap": 0.01714858677723896
+          },
+          "2024-12-19": {
+            "lower_bound": 3617.213116817666,
+            "lower_bound_epsilon": 4032.0066896857443,
+            "gap_front": 625.4836712182646,
+            "gap_delivered": 342.0404462920578,
+            "price_of_compromise": 414.7935728680782,
+            "pwl_gap": 0.011863906524013146
+          },
+          "2024-12-20": {
+            "lower_bound": 4236.2954368381,
+            "lower_bound_epsilon": 4411.863871510266,
+            "gap_front": 599.3780524266585,
+            "gap_delivered": 512.7965367356228,
+            "price_of_compromise": 175.5684346721664,
+            "pwl_gap": 0.011818519522421411
+          },
+          "2024-12-21": {
+            "lower_bound": 3233.7848633273406,
+            "lower_bound_epsilon": 3424.08071486034,
+            "gap_front": 483.20759208963227,
+            "gap_delivered": 341.13798489451983,
+            "price_of_compromise": 190.29585153299922,
+            "pwl_gap": 0.0181367256222984
+          },
+          "2024-12-22": {
+            "lower_bound": 2462.544062694733,
+            "lower_bound_epsilon": 2767.6292593663206,
+            "gap_front": 352.9091966885344,
+            "gap_delivered": 197.80440357054476,
+            "price_of_compromise": 305.0851966715877,
+            "pwl_gap": 0.012711833576304343
+          },
+          "2024-12-23": {
+            "lower_bound": 3313.445850102358,
+            "lower_bound_epsilon": 3718.477281798694,
+            "gap_front": 625.8434254183771,
+            "gap_delivered": 324.03609052357706,
+            "price_of_compromise": 405.0314316963363,
+            "pwl_gap": 0.013342759037186624
+          },
+          "2024-12-24": {
+            "lower_bound": 5456.306462678475,
+            "lower_bound_epsilon": 5722.038665696011,
+            "gap_front": 664.3344453731825,
+            "gap_delivered": 544.5902442687129,
+            "price_of_compromise": 265.73220301753554,
+            "pwl_gap": 0.0018732087883108761
+          },
+          "2024-12-25": {
+            "lower_bound": 5650.576782532719,
+            "lower_bound_epsilon": 5996.534209947057,
+            "gap_front": 677.9966853088199,
+            "gap_delivered": 493.25723850598206,
+            "price_of_compromise": 345.9574274143379,
+            "pwl_gap": 0.00208796448623616
+          },
+          "2024-12-26": {
+            "lower_bound": 6243.524433677039,
+            "lower_bound_epsilon": 6545.01811037506,
+            "gap_front": 678.457233293233,
+            "gap_delivered": 521.4609279243341,
+            "price_of_compromise": 301.49367669802086,
+            "pwl_gap": 0.002356496457650792
+          },
+          "2024-12-27": {
+            "lower_bound": 6265.408362015066,
+            "lower_bound_epsilon": 6509.827249771664,
+            "gap_front": 662.6126495773069,
+            "gap_delivered": 517.8029057214881,
+            "price_of_compromise": 244.41888775659845,
+            "pwl_gap": 0.002009269598602259
+          },
+          "2024-12-28": {
+            "lower_bound": 5768.181177730923,
+            "lower_bound_epsilon": 6124.5518828071845,
+            "gap_front": 661.1215762413467,
+            "gap_delivered": 381.7458475777303,
+            "price_of_compromise": 356.3707050762614,
+            "pwl_gap": 0.0015759135021653492
+          },
+          "2024-12-29": {
+            "lower_bound": 5244.818842229807,
+            "lower_bound_epsilon": 5578.12728194614,
+            "gap_front": 659.506637543046,
+            "gap_delivered": 496.55043961703905,
+            "price_of_compromise": 333.30843971633294,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-30": {
+            "lower_bound": 4198.103086072745,
+            "lower_bound_epsilon": 4435.762845474155,
+            "gap_front": 588.5837247700883,
+            "gap_delivered": 586.8282068317158,
+            "price_of_compromise": 237.65975940141016,
+            "pwl_gap": 0.011174331999427523
+          },
+          "2024-12-31": {
+            "lower_bound": 2968.462624183813,
+            "lower_bound_epsilon": 3224.3148522593765,
+            "gap_front": 436.59009838663223,
+            "gap_delivered": 316.94475514117767,
+            "price_of_compromise": 255.8522280755633,
+            "pwl_gap": 0.017210960815646104
+          }
+        },
+        "stats": {
+          "gap_front": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 646.9401341794228,
+              "min": 292.275622167238,
+              "max": 763.4464017818191
+            },
+            "pct": {
+              "median": 13.008472318573801,
+              "min": 8.335441446067671,
+              "max": 18.887993156702525
+            },
+            "worst_day": "2024-11-19",
+            "worst_eur": 763.4464017818191
+          },
+          "gap_delivered": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 449.2592728987902,
+              "min": 123.06525342789587,
+              "max": 661.3231587212476
+            },
+            "pct": {
+              "median": 9.000156714189323,
+              "min": 5.1619721429322984,
+              "max": 13.535343545147995
+            },
+            "worst_day": "2024-11-28",
+            "worst_eur": 661.3231587212476
+          },
+          "price_of_compromise": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 246.70766675444247,
+              "min": 48.50169906299561,
+              "max": 462.7332260922185
+            },
+            "pct": {
+              "median": 5.5674482589092875,
+              "min": 0.8062728676226276,
+              "max": 12.389024882573535
+            },
+            "worst_day": "2024-11-22",
+            "worst_eur": 462.7332260922185
+          }
+        }
+      },
+      "o44": {
+        "per_day": {
+          "2024-11-01": {
+            "lower_bound": 5159.8189601685635,
+            "lower_bound_epsilon": 5507.7966859798125,
+            "gap_front": 696.5534994785276,
+            "gap_delivered": 488.2678413388094,
+            "price_of_compromise": 347.977725811249,
+            "pwl_gap": 0.0018628028119564988
+          },
+          "2024-11-02": {
+            "lower_bound": 4784.298764047783,
+            "lower_bound_epsilon": 5098.625788945385,
+            "gap_front": 601.7193385101864,
+            "gap_delivered": 405.3070840844957,
+            "price_of_compromise": 314.3270248976014,
+            "pwl_gap": 0.005388331360336451
+          },
+          "2024-11-03": {
+            "lower_bound": 4497.683967621565,
+            "lower_bound_epsilon": 4752.8308625337195,
+            "gap_front": 617.3211618400774,
+            "gap_delivered": 446.97995343691946,
+            "price_of_compromise": 255.1468949121545,
+            "pwl_gap": 0.007236270402245282
+          },
+          "2024-11-04": {
+            "lower_bound": 5516.2644496398825,
+            "lower_bound_epsilon": 5725.878357760784,
+            "gap_front": 647.4278162460923,
+            "gap_delivered": 452.73568029262515,
+            "price_of_compromise": 209.61390812090121,
+            "pwl_gap": 0.0020051679139214684
+          },
+          "2024-11-05": {
+            "lower_bound": 5467.320768069823,
+            "lower_bound_epsilon": 5691.953481470267,
+            "gap_front": 680.0182656828956,
+            "gap_delivered": 501.15184850350306,
+            "price_of_compromise": 224.63271340044412,
+            "pwl_gap": 0.010724946070695296
+          },
+          "2024-11-06": {
+            "lower_bound": 6747.015855409677,
+            "lower_bound_epsilon": 7064.160594618137,
+            "gap_front": 689.0102593512374,
+            "gap_delivered": 398.1798302784582,
+            "price_of_compromise": 317.1447392084601,
+            "pwl_gap": 0.0022683093548039324
+          },
+          "2024-11-07": {
+            "lower_bound": 6138.478778569167,
+            "lower_bound_epsilon": 6388.88879114209,
+            "gap_front": 657.9943843394622,
+            "gap_delivered": 603.0636242064957,
+            "price_of_compromise": 250.41001257292282,
+            "pwl_gap": 0.0024311990664500627
+          },
+          "2024-11-08": {
+            "lower_bound": 6456.27528423499,
+            "lower_bound_epsilon": 6775.357587093361,
+            "gap_front": 668.433846100229,
+            "gap_delivered": 380.28358925650446,
+            "price_of_compromise": 319.0823028583709,
+            "pwl_gap": 0.002144781238712312
+          },
+          "2024-11-09": {
+            "lower_bound": 5910.330134882111,
+            "lower_bound_epsilon": 6219.22619295886,
+            "gap_front": 663.1524197423932,
+            "gap_delivered": 487.97021098851656,
+            "price_of_compromise": 308.8960580767489,
+            "pwl_gap": 0.0018090196044795448
+          },
+          "2024-11-10": {
+            "lower_bound": 5703.687500068174,
+            "lower_bound_epsilon": 5992.676054860717,
+            "gap_front": 647.5100239526273,
+            "gap_delivered": 369.75957568796457,
+            "price_of_compromise": 288.98855479254325,
+            "pwl_gap": 0.0023272932094187126
+          },
+          "2024-11-11": {
+            "lower_bound": 3053.969072589228,
+            "lower_bound_epsilon": 3202.664333821723,
+            "gap_front": 416.2048005920633,
+            "gap_delivered": 337.30619656109457,
+            "price_of_compromise": 148.69526123249534,
+            "pwl_gap": 0.01884662522297731
+          },
+          "2024-11-12": {
+            "lower_bound": 4442.843226361356,
+            "lower_bound_epsilon": 4628.003280374474,
+            "gap_front": 701.8036574545586,
+            "gap_delivered": 582.5401232975637,
+            "price_of_compromise": 185.1600540131185,
+            "pwl_gap": 0.005117390317536774
+          },
+          "2024-11-13": {
+            "lower_bound": 6548.073282327378,
+            "lower_bound_epsilon": 6716.873949490052,
+            "gap_front": 644.3443202700591,
+            "gap_delivered": 567.4825766516378,
+            "price_of_compromise": 168.80066716267356,
+            "pwl_gap": 0.001599855165295594
+          },
+          "2024-11-14": {
+            "lower_bound": 6428.207539897608,
+            "lower_bound_epsilon": 6645.595387221933,
+            "gap_front": 673.6303401596133,
+            "gap_delivered": 466.9623652829605,
+            "price_of_compromise": 217.38784732432578,
+            "pwl_gap": 0.0020770099354194826
+          },
+          "2024-11-15": {
+            "lower_bound": 6629.56853648146,
+            "lower_bound_epsilon": 6867.051890491624,
+            "gap_front": 617.8519783746842,
+            "gap_delivered": 396.7987528120884,
+            "price_of_compromise": 237.48335401016448,
+            "pwl_gap": 0.0020962243597750785
+          },
+          "2024-11-16": {
+            "lower_bound": 4615.269330377065,
+            "lower_bound_epsilon": 4865.935861465698,
+            "gap_front": 590.5407252248369,
+            "gap_delivered": 463.03232998395833,
+            "price_of_compromise": 250.66653108863284,
+            "pwl_gap": 0.004725444048744976
+          },
+          "2024-11-17": {
+            "lower_bound": 3346.5320592443263,
+            "lower_bound_epsilon": 3569.5071999266825,
+            "gap_front": 473.8650866973944,
+            "gap_delivered": 322.5578385380081,
+            "price_of_compromise": 222.97514068235614,
+            "pwl_gap": 0.014597726729334681
+          },
+          "2024-11-18": {
+            "lower_bound": 6005.607899879024,
+            "lower_bound_epsilon": 6213.1147092529545,
+            "gap_front": 616.8822906592759,
+            "gap_delivered": 733.5146049512196,
+            "price_of_compromise": 207.50680937393008,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-11-19": {
+            "lower_bound": 4881.199452103296,
+            "lower_bound_epsilon": 4986.487252756778,
+            "gap_front": 738.1380281215352,
+            "gap_delivered": 750.0914964463564,
+            "price_of_compromise": 105.28780065348201,
+            "pwl_gap": 0.003169054857607989
+          },
+          "2024-11-20": {
+            "lower_bound": 3029.491654856605,
+            "lower_bound_epsilon": 3167.169420435148,
+            "gap_front": 386.15434715323363,
+            "gap_delivered": 268.04259467397605,
+            "price_of_compromise": 137.67776557854313,
+            "pwl_gap": 0.018256202809425304
+          },
+          "2024-11-21": {
+            "lower_bound": 6015.543993934398,
+            "lower_bound_epsilon": 6168.502977700922,
+            "gap_front": 672.721668421982,
+            "gap_delivered": 661.9655092409685,
+            "price_of_compromise": 152.9589837665244,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-11-22": {
+            "lower_bound": 3818.616845406147,
+            "lower_bound_epsilon": 4026.034036101921,
+            "gap_front": 616.3461928297875,
+            "gap_delivered": 460.6864432385405,
+            "price_of_compromise": 207.41719069577402,
+            "pwl_gap": 0.008307579204483773
+          },
+          "2024-11-23": {
+            "lower_bound": 3178.2479585900724,
+            "lower_bound_epsilon": 3370.956350372066,
+            "gap_front": 452.530543560315,
+            "gap_delivered": 284.35420680665675,
+            "price_of_compromise": 192.70839178199367,
+            "pwl_gap": 0.016604091945282562
+          },
+          "2024-11-24": {
+            "lower_bound": 1674.83628182642,
+            "lower_bound_epsilon": 1825.477089077512,
+            "gap_front": 245.64774729936926,
+            "gap_delivered": 141.108171601423,
+            "price_of_compromise": 150.64080725109193,
+            "pwl_gap": 0.015432653698553622
+          },
+          "2024-11-25": {
+            "lower_bound": 3862.932909093857,
+            "lower_bound_epsilon": 4251.520484736328,
+            "gap_front": 663.5625326137165,
+            "gap_delivered": 384.0804508447218,
+            "price_of_compromise": 388.5875756424716,
+            "pwl_gap": 0.008005982896975183
+          },
+          "2024-11-26": {
+            "lower_bound": 5039.006295024899,
+            "lower_bound_epsilon": 5237.229277653687,
+            "gap_front": 671.6567530956036,
+            "gap_delivered": 596.1972904860013,
+            "price_of_compromise": 198.22298262878758,
+            "pwl_gap": 0.007680776343477191
+          },
+          "2024-11-27": {
+            "lower_bound": 3721.2402412809834,
+            "lower_bound_epsilon": 3881.450466951714,
+            "gap_front": 480.2491306333077,
+            "gap_delivered": 401.3519263748435,
+            "price_of_compromise": 160.21022567073078,
+            "pwl_gap": 0.01713008780780001
+          },
+          "2024-11-28": {
+            "lower_bound": 6062.5561283158595,
+            "lower_bound_epsilon": 6174.941233726943,
+            "gap_front": 649.3450725087505,
+            "gap_delivered": 568.9517259255545,
+            "price_of_compromise": 112.38510541108371,
+            "pwl_gap": 0.001816536913793243
+          },
+          "2024-11-29": {
+            "lower_bound": 5260.193044360724,
+            "lower_bound_epsilon": 5536.4305002110195,
+            "gap_front": 639.2088854819422,
+            "gap_delivered": 552.4852752061306,
+            "price_of_compromise": 276.2374558502952,
+            "pwl_gap": 0.006683176035039651
+          },
+          "2024-11-30": {
+            "lower_bound": 4846.278058758299,
+            "lower_bound_epsilon": 5068.5862146992795,
+            "gap_front": 682.2935339859569,
+            "gap_delivered": 585.1653875524908,
+            "price_of_compromise": 222.3081559409802,
+            "pwl_gap": 0.007098910316017282
+          },
+          "2024-12-01": {
+            "lower_bound": 3596.821919044739,
+            "lower_bound_epsilon": 3775.9206759248905,
+            "gap_front": 480.51776704511394,
+            "gap_delivered": 329.3389117235288,
+            "price_of_compromise": 179.09875688015154,
+            "pwl_gap": 0.012321534721195349
+          },
+          "2024-12-02": {
+            "lower_bound": 4266.355936406733,
+            "lower_bound_epsilon": 4436.667529021344,
+            "gap_front": 669.1862057884673,
+            "gap_delivered": 600.358938503472,
+            "price_of_compromise": 170.31159261461107,
+            "pwl_gap": 0.00797326814790722
+          },
+          "2024-12-03": {
+            "lower_bound": 6114.660803165902,
+            "lower_bound_epsilon": 6300.659578179922,
+            "gap_front": 694.4118915934796,
+            "gap_delivered": 568.9005924147114,
+            "price_of_compromise": 185.9987750140208,
+            "pwl_gap": 0.001670993835432455
+          },
+          "2024-12-04": {
+            "lower_bound": 6276.393767096703,
+            "lower_bound_epsilon": 6533.846515183471,
+            "gap_front": 670.3500709184982,
+            "gap_delivered": 602.4410128994487,
+            "price_of_compromise": 257.4527480867673,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-05": {
+            "lower_bound": 3431.746844560887,
+            "lower_bound_epsilon": 3585.1548977138286,
+            "gap_front": 439.5335052894793,
+            "gap_delivered": 326.7345851167861,
+            "price_of_compromise": 153.40805315294165,
+            "pwl_gap": 0.01882163798882175
+          },
+          "2024-12-06": {
+            "lower_bound": 3750.9657733733534,
+            "lower_bound_epsilon": 3996.462441391168,
+            "gap_front": 593.5099940364466,
+            "gap_delivered": 424.78979496032116,
+            "price_of_compromise": 245.4966680178145,
+            "pwl_gap": 0.011543648480255797
+          },
+          "2024-12-07": {
+            "lower_bound": 2288.511330478117,
+            "lower_bound_epsilon": 2503.920178693863,
+            "gap_front": 319.33285360378204,
+            "gap_delivered": 165.55720382783738,
+            "price_of_compromise": 215.40884821574582,
+            "pwl_gap": 0.01691513149671664
+          },
+          "2024-12-08": {
+            "lower_bound": 3048.8409286977567,
+            "lower_bound_epsilon": 3159.4823806176114,
+            "gap_front": 352.0594636695464,
+            "gap_delivered": 263.3540168100285,
+            "price_of_compromise": 110.64145191985472,
+            "pwl_gap": 0.017463868580307462
+          },
+          "2024-12-09": {
+            "lower_bound": 3637.0339019221606,
+            "lower_bound_epsilon": 3802.310500609898,
+            "gap_front": 545.0649831046626,
+            "gap_delivered": 441.6567125827846,
+            "price_of_compromise": 165.27659868773753,
+            "pwl_gap": 0.014496680806132645
+          },
+          "2024-12-10": {
+            "lower_bound": 4414.862219096767,
+            "lower_bound_epsilon": 4536.607550508065,
+            "gap_front": 663.3550572895965,
+            "gap_delivered": 595.9244055388435,
+            "price_of_compromise": 121.74533141129814,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-11": {
+            "lower_bound": 6844.572225507192,
+            "lower_bound_epsilon": 7028.21648661546,
+            "gap_front": 636.2886921450245,
+            "gap_delivered": 574.2597569523414,
+            "price_of_compromise": 183.64426110826753,
+            "pwl_gap": 0.0019662433232952026
+          },
+          "2024-12-12": {
+            "lower_bound": 7497.218143168522,
+            "lower_bound_epsilon": 7720.713663501676,
+            "gap_front": 610.1340722673804,
+            "gap_delivered": 390.2104000199015,
+            "price_of_compromise": 223.49552033315376,
+            "pwl_gap": 0.00417010210276203
+          },
+          "2024-12-13": {
+            "lower_bound": 7076.851545650324,
+            "lower_bound_epsilon": 7394.95580427659,
+            "gap_front": 632.6317821701123,
+            "gap_delivered": 334.2905980931964,
+            "price_of_compromise": 318.1042586262665,
+            "pwl_gap": 0.0023340711077253218
+          },
+          "2024-12-14": {
+            "lower_bound": 5320.342835556667,
+            "lower_bound_epsilon": 5811.602607517553,
+            "gap_front": 685.5453012422586,
+            "gap_delivered": 587.1325864273513,
+            "price_of_compromise": 491.2597719608866,
+            "pwl_gap": 0.001354166666715173
+          },
+          "2024-12-15": {
+            "lower_bound": 3664.8939765849937,
+            "lower_bound_epsilon": 3834.1226577598186,
+            "gap_front": 458.7914224911892,
+            "gap_delivered": 294.2349620378923,
+            "price_of_compromise": 169.22868117482494,
+            "pwl_gap": 0.01623483258754277
+          },
+          "2024-12-16": {
+            "lower_bound": 4131.404617992563,
+            "lower_bound_epsilon": 4591.058991039009,
+            "gap_front": 599.3218004202363,
+            "gap_delivered": 511.917185345731,
+            "price_of_compromise": 459.6543730464464,
+            "pwl_gap": 0.006151878468699579
+          },
+          "2024-12-17": {
+            "lower_bound": 5501.465428086589,
+            "lower_bound_epsilon": 5619.234413097283,
+            "gap_front": 709.5487590833636,
+            "gap_delivered": 668.9414530638987,
+            "price_of_compromise": 117.76898501069445,
+            "pwl_gap": 0.01045016940770438
+          },
+          "2024-12-18": {
+            "lower_bound": 3225.934449440237,
+            "lower_bound_epsilon": 3466.935373862062,
+            "gap_front": 489.05392772719006,
+            "gap_delivered": 316.0566972114766,
+            "price_of_compromise": 241.00092442182495,
+            "pwl_gap": 0.01714858677723896
+          },
+          "2024-12-19": {
+            "lower_bound": 3617.213116817666,
+            "lower_bound_epsilon": 4019.5394653132926,
+            "gap_front": 571.8690398489175,
+            "gap_delivered": 354.58855516835047,
+            "price_of_compromise": 402.32634849562646,
+            "pwl_gap": 0.011863906524013146
+          },
+          "2024-12-20": {
+            "lower_bound": 4236.2954368381,
+            "lower_bound_epsilon": 4474.651879646743,
+            "gap_front": 527.2057007707417,
+            "gap_delivered": 560.0060496125525,
+            "price_of_compromise": 238.3564428086429,
+            "pwl_gap": 0.011818519522421411
+          },
+          "2024-12-21": {
+            "lower_bound": 3233.7848633273406,
+            "lower_bound_epsilon": 3377.3468318888213,
+            "gap_front": 418.197751065421,
+            "gap_delivered": 318.130856670457,
+            "price_of_compromise": 143.56196856148063,
+            "pwl_gap": 0.0181367256222984
+          },
+          "2024-12-22": {
+            "lower_bound": 2462.544062694733,
+            "lower_bound_epsilon": 2680.2315947644943,
+            "gap_front": 410.58657463378404,
+            "gap_delivered": 219.71376843880762,
+            "price_of_compromise": 217.68753206976135,
+            "pwl_gap": 0.012711833576304343
+          },
+          "2024-12-23": {
+            "lower_bound": 3313.445850102358,
+            "lower_bound_epsilon": 3547.204078871307,
+            "gap_front": 546.2479618638436,
+            "gap_delivered": 351.26117781683206,
+            "price_of_compromise": 233.75822876894927,
+            "pwl_gap": 0.013342759037186624
+          },
+          "2024-12-24": {
+            "lower_bound": 5456.306462678475,
+            "lower_bound_epsilon": 5744.344689414711,
+            "gap_front": 645.5812721319662,
+            "gap_delivered": 650.1144765941672,
+            "price_of_compromise": 288.03822673623563,
+            "pwl_gap": 0.0018732087883108761
+          },
+          "2024-12-25": {
+            "lower_bound": 5650.576782532719,
+            "lower_bound_epsilon": 5900.325000128087,
+            "gap_front": 669.3891447659489,
+            "gap_delivered": 452.5738795841171,
+            "price_of_compromise": 249.74821759536735,
+            "pwl_gap": 0.00208796448623616
+          },
+          "2024-12-26": {
+            "lower_bound": 6243.524433677039,
+            "lower_bound_epsilon": 6511.875313837914,
+            "gap_front": 661.7431670119804,
+            "gap_delivered": 602.4006800249645,
+            "price_of_compromise": 268.350880160875,
+            "pwl_gap": 0.002356496457650792
+          },
+          "2024-12-27": {
+            "lower_bound": 6265.408362015066,
+            "lower_bound_epsilon": 6518.436711667411,
+            "gap_front": 644.1511629915121,
+            "gap_delivered": 539.5339183455244,
+            "price_of_compromise": 253.02834965234524,
+            "pwl_gap": 0.002009269598602259
+          },
+          "2024-12-28": {
+            "lower_bound": 5768.181177730923,
+            "lower_bound_epsilon": 6079.331141866738,
+            "gap_front": 654.5492657563909,
+            "gap_delivered": 559.7273946991199,
+            "price_of_compromise": 311.149964135815,
+            "pwl_gap": 0.0015759135021653492
+          },
+          "2024-12-29": {
+            "lower_bound": 5244.818842229807,
+            "lower_bound_epsilon": 5554.764537846934,
+            "gap_front": 659.000531482433,
+            "gap_delivered": 378.7167292761569,
+            "price_of_compromise": 309.94569561712706,
+            "pwl_gap": 0.0013541666658056783
+          },
+          "2024-12-30": {
+            "lower_bound": 4198.103086072745,
+            "lower_bound_epsilon": 4371.767181221016,
+            "gap_front": 572.9041128976423,
+            "gap_delivered": 456.4697719061678,
+            "price_of_compromise": 173.66409514827046,
+            "pwl_gap": 0.011174331999427523
+          },
+          "2024-12-31": {
+            "lower_bound": 2968.462624183813,
+            "lower_bound_epsilon": 3157.872132897809,
+            "gap_front": 422.7882782631741,
+            "gap_delivered": 296.90326384480977,
+            "price_of_compromise": 189.40950871399582,
+            "pwl_gap": 0.017210960815646104
+          }
+        },
+        "stats": {
+          "gap_front": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 636.2886921450245,
+              "min": 245.64774729936926,
+              "max": 738.1380281215352
+            },
+            "pct": {
+              "median": 12.795368654608724,
+              "min": 8.13813951543261,
+              "max": 17.177687219252558
+            },
+            "worst_day": "2024-11-19",
+            "worst_eur": 738.1380281215352
+          },
+          "gap_delivered": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 452.73568029262515,
+              "min": 141.108171601423,
+              "max": 750.0914964463564
+            },
+            "pct": {
+              "median": 9.116313490995331,
+              "min": 4.5205219198182665,
+              "max": 15.042482983019129
+            },
+            "worst_day": "2024-11-19",
+            "worst_eur": 750.0914964463564
+          },
+          "price_of_compromise": {
+            "n_days": 61,
+            "eur_per_day": {
+              "median": 222.3081559409802,
+              "min": 105.28780065348201,
+              "max": 491.2597719608866
+            },
+            "pct": {
+              "median": 4.587193579188468,
+              "min": 1.853757772009339,
+              "max": 11.125861917388065
+            },
+            "worst_day": "2024-12-14",
+            "worst_eur": 491.2597719608866
+          }
+        }
+      }
+    },
+    "across_seeds": {
+      "gap_front": {
+        "eur_per_day": {
+          "median": 646.9401341794228,
+          "min": 636.2886921450245,
+          "max": 649.2011620257954
+        },
+        "pct": {
+          "median": 13.008472318573801,
+          "min": 12.795368654608724,
+          "max": 13.621145421897543
+        }
+      },
+      "gap_delivered": {
+        "eur_per_day": {
+          "median": 452.73568029262515,
+          "min": 449.2592728987902,
+          "max": 457.69472021966885
+        },
+        "pct": {
+          "median": 9.000156714189323,
+          "min": 8.984958036671694,
+          "max": 9.116313490995331
+        }
+      },
+      "price_of_compromise": {
+        "eur_per_day": {
+          "median": 237.42503436003244,
+          "min": 222.3081559409802,
+          "max": 246.70766675444247
+        },
+        "pct": {
+          "median": 4.9708919630730755,
+          "min": 4.587193579188468,
+          "max": 5.5674482589092875
+        }
+      }
+    },
+    "certificate": {
+      "n_items": 183,
+      "max_pwl_gap_eur": 0.01884662522297731
+    }
+  }
+}

@@ -115,8 +115,9 @@ scoping should use the per-item rate — not the wall-clock span of a log file,
 which includes gaps between resumed chunks. The rate is machine-specific:
 ~10.7 s per NSGA-III solve on the Windows-era machine (241 work items), and a
 measured **3.49 s** on the macOS machine the project moved to in task 05
-(08 log / task file §10). Quote the rate for the machine that will run the
-work.
+(08 log / task file §10); the task-09 LP lower bound solves in a median
+**22.1 ms** per day on the same machine (09 log §3.1) — LP solves are never
+the budget line. Quote the rate for the machine that will run the work.
 
 **Checkpoint identity.** `forecast/checkpoints.py` resolves a run directory from
 `run_name`/`model_cfg.name` and raises `CheckpointMismatchError` on a mismatch,
@@ -216,12 +217,27 @@ forecasts start paying — fired on that basis and awaits its own spec.)*
   which forecast error gets corrected instead of propagating. Pairs naturally
   with B: the same forecast tiers, open-loop versus rolling, gives a
   two-dimensional answer to "better forecasts or more frequent replanning".
-- **C2 MILP baseline.** Single-objective cost as a mixed-integer linear program
-  (PuLP or HiGHS), giving NSGA-III's optimality gap. Turns "I used a heuristic"
-  into "I used a heuristic and measured how far it is from optimal". Reuse the
-  constraint definitions in `optimize/system.py`. Note honestly that MILP and
-  NSGA-III are not substitutes — the three-objective problem has non-linear
-  terms.
+- **C2 MILP baseline — done, [task 09](tasks/09-milp-gap.md), results in
+  [09-milp-gap-log.md](experiments/09-milp-gap-log.md) (§5 is the synthesis).**
+  Single-objective cost as an exact solve (SciPy's HiGHS, no new dependency),
+  giving NSGA-III's optimality gap; the constraint definitions in
+  `optimize/system.py` were reused term for term, with the equivalence
+  unit-tested. One correction to this block as originally written: "the
+  three-objective problem has non-linear terms" was literally true but
+  misleading — task 09 §3.1 checked every term against the code, and **all of
+  them are convex and exactly LP-representable**; the only genuine
+  non-linearity is the convex quadratic fuel rate (tangent cuts, provable
+  lower bound), and no integer variable was needed (the turbine is always on).
+  MILP and NSGA-III are still not substitutes, but the reason is the
+  **model-class boundary** (task 09 §3.1b: add unit commitment, SoC-dependent
+  efficiency or any non-convex term and the LP construction fails while the
+  heuristic runs unchanged), **not** the Pareto front — an ε-constraint scan
+  produces a front from the LP too. Measured, planned-versus-planned at three
+  optimiser seeds: the dispatched plan costs 15.1 % [15.0, 15.4] more than
+  the proven optimum, split into 9.0 % optimiser shortfall and 5.0 %
+  price-of-compromise, with the caveat that the cost optimum pins the tie
+  line at 3 MW on 37/61 days — part of the gap buys headroom the objective
+  does not value.
 - **C3 chance-constrained dispatch.** Use q10/q90 rather than the median, and
   report cost against violation rate. This is the only place the quantile
   forecasts earn their keep. Gated on A3, which is gated on split B.
@@ -262,7 +278,7 @@ and triggering recalibration closes that loop.
 | 1 | A1 documentation sync | days | undocumented results do not exist; a README carrying retracted claims is worse than no README |
 | 2 | A2 scaling curve | hours of compute | closes Phase 3 with a mechanism rather than a bare loss |
 | 3 | **B transfer function — done, [task 08](tasks/08-forecast-value.md)** | ~1 week, mostly analysis | measured: forecast value lands on tie-line peak, not cost; results in [08-forecast-value-log.md](experiments/08-forecast-value-log.md) |
-| 4 | C2 MILP gap | ~3 days | largest credibility gain per unit of work |
+| 4 | **C2 MILP gap — done, [task 09](tasks/09-milp-gap.md)** | ~3 days | measured: the dispatched plan is 15.1 % above the proven optimum — two thirds optimiser shortfall, one third the price of the three-objective compromise, part of it buying tie-line headroom the objective does not value; results in [09-milp-gap-log.md](experiments/09-milp-gap-log.md) |
 | 5 | split B — [task 07](tasks/07-split-b.md) | ~1 week | removes the "61 winter days only" caveat from everything above; scoped out of task 05 because its numbers may never share a table with split A's, so it is a parallel result set rather than a phase |
 | 6 | C1 rolling MPC | ~1.5 weeks | largest single improvement to the optimisation line |
 | 7 | A3 + C3 | ~1.5 weeks | only meaningful after split B fixes the calibration-set season problem |

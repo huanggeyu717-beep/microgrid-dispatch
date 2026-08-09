@@ -80,7 +80,9 @@ from microgrid import hydra_compat
 hydra_compat.apply()
 
 from microgrid.assemble import build_objectives  # noqa: E402
-from microgrid.optimize import nsga3, system  # noqa: E402
+from microgrid.optimize import milp, nsga3, system  # noqa: E402
+from microgrid.optimize import objectives as objective_fns  # noqa: E402
+from microgrid.optimize.objectives import ObjectiveContext  # noqa: E402
 from microgrid.pipeline.dispatch_cache import (  # noqa: E402
     DEFAULT_TIER, FACTOR_LETTER, MECH_PERFECT_BIASED, MECH_RESIDUAL, MECH_RESIDUAL_ONE,
     MECH_WHITENOISE, SERIES, cache_name, factor_key)
@@ -160,8 +162,21 @@ def physical(summary: dict) -> dict:
     return {k: v for k, v in summary.items() if k not in TIMING_METRICS}
 
 
+def milp_physical(record: dict) -> dict:
+    """The seed-invariant part of a milp_planned record.
+
+    Excludes the wall-clock ``solve_s`` and, since Phase 4, ``epsilon``: the
+    ε-constrained solve takes its CO2/peak ceilings from that seed's OWN
+    TOPSIS plan (task 09 §8), so ``epsilon`` is seed-dependent by
+    construction, not by leakage. The base LP record — the lower bound every
+    gap is measured against — remains bit-identical across optimiser seeds,
+    which is what the invariance check protects.
+    """
+    return {k: v for k, v in record.items() if k not in ("solve_s", "epsilon")}
+
+
 def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list[str]) -> int:
-    """Assert rule and rl are identical across every optimiser seed.
+    """Assert seed-free quantities are identical across every optimiser seed.
 
     Only NSGA-III consumes ``optimize.seed``; rule and rl are nevertheless
     recomputed per opt seed so each cache entry stays self-contained. That buys
@@ -169,6 +184,12 @@ def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list
     summaries (timing metrics excluded, same rule as the rule-invariance test)
     must be identical across every opt seed. A violation means the optimiser
     seed leaked into a method that does not use it.
+
+    ``milp_planned`` (task 09 §6.3) is covered by the same invariant: the LP is
+    deterministic and reads nothing seeded, so its record — minus the
+    wall-clock ``solve_s`` — must be identical across seeds wherever the item
+    carries it. If it ever differs, the LP has picked up state it should not
+    have.
 
     ``load(day, mech, f, noise_seed, opt_seed)`` returns a cached item dict;
     ``triples`` are the (day, mech, f, noise_seed) combinations to check.
@@ -189,6 +210,18 @@ def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list
                         f"(day={day}, mech={mech}, f={f}, noise_seed={s}) differs between "
                         f"opt_seed={opt_seeds[0]} and opt_seed={o}")
                 checked += 1
+    for day, mech, f, s in triples:
+        first = load(day, mech, f, s, opt_seeds[0])
+        if "milp_planned" not in first:
+            continue
+        ref = milp_physical(first["milp_planned"])
+        for o in opt_seeds[1:]:
+            if milp_physical(load(day, mech, f, s, o)["milp_planned"]) != ref:
+                raise RuntimeError(
+                    f"optimiser seed leaked into 'milp_planned': record for "
+                    f"(day={day}, mech={mech}, f={f}, noise_seed={s}) differs between "
+                    f"opt_seed={opt_seeds[0]} and opt_seed={o}")
+            checked += 1
     return checked
 
 
@@ -434,9 +467,21 @@ def _planned_record(F, index: int, objective_names: list[str]) -> dict:
     plan realised on the actuals. Comparing the two across γ tests whether a
     better forecast moves the TOPSIS selection along the Pareto front (lower
     planned peak bought with higher planned cost) rather than to a cheaper plan.
+
+    Task 09 §6.1 adds the front's per-objective minima: ``front_min`` carries
+    ``gap_front``'s numerator (the front's cheapest cost), and
+    ``front_argmin_cost`` the full objective vector at that cheapest feasible
+    point — without it "the front's cheapest point" cannot be interpreted
+    (what CO2 and peak did cheapness buy?).
     """
-    return {"front_size": int(len(F)),
-            "objectives": {name: float(F[index, i]) for i, name in enumerate(objective_names)}}
+    F = np.asarray(F, dtype=float)
+    rec = {"front_size": int(len(F)),
+           "objectives": {name: float(F[index, i]) for i, name in enumerate(objective_names)},
+           "front_min": {name: float(F[:, i].min()) for i, name in enumerate(objective_names)}}
+    if "cost" in objective_names:
+        j = int(np.argmin(F[:, objective_names.index("cost")]))
+        rec["front_argmin_cost"] = {name: float(F[j, i]) for i, name in enumerate(objective_names)}
+    return rec
 
 
 def _solve_nsga(planning: DayProfile, params, objectives, opt_cfg):
@@ -574,14 +619,92 @@ def _planning_profile(profile: DayProfile, mech: str, f: float, noise_seed: int,
     raise ValueError(f"unknown perturbation mechanism {mech!r}; known: {sorted(FACTOR_LETTER)}")
 
 
+def _lp_objectives(P_mt, P_bat, planning: DayProfile, params) -> dict:
+    """cost/co2/peak of an LP schedule, through the same objective functions.
+
+    Computed by :mod:`microgrid.optimize.objectives` on the planning profile
+    the LP was solved on — never re-derived — so "what does the cost optimum
+    look like" (task 09 Round 4) is answered by the same code that scores
+    every other plan. ``cost`` here therefore equals the record's
+    ``upper_bound`` by construction.
+    """
+    P_grid = system.grid_power(P_mt, P_bat, planning.fc_load, planning.fc_wind, planning.fc_solar)
+    ctx = ObjectiveContext(P_mt=P_mt, P_bat=P_bat, P_grid=P_grid,
+                           load=planning.fc_load, wind=planning.fc_wind,
+                           solar=planning.fc_solar,
+                           price_buy=planning.price_buy, price_sell=planning.price_sell,
+                           p=params)
+    return {"cost": float(objective_fns.cost(ctx)), "co2": float(objective_fns.co2(ctx)),
+            "peak_grid": float(objective_fns.peak_grid(ctx))}
+
+
+def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict | None) -> dict:
+    """The milp_planned cache record for one item (task 09 §6.2 + §8).
+
+    Base solve always; with an ``nsga3_planned`` record also the ε-constrained
+    second solve, its ceilings set to the TOPSIS point's OWN planned CO2 and
+    peak. The TOPSIS plan satisfies both ceilings by construction, so an
+    infeasible ε solve is a bug and raises with the day named — never a
+    result. The §3.5 decomposition identity
+    ``topsis_cost − lower_bound == gap_delivered + price_of_compromise``
+    is asserted here to ``feas_tol`` rather than merely reported.
+    """
+    n_tangents, feas_tol = int(milp_cfg["n_tangents"]), float(milp_cfg["feas_tol"])
+
+    def solve(**eps_kw):
+        try:
+            return milp.solve_min_cost(
+                planning.fc_load, planning.fc_wind, planning.fc_solar,
+                planning.price_buy, planning.price_sell, params,
+                n_tangents=n_tangents, feas_tol=feas_tol, **eps_kw)
+        except (milp.MilpInfeasibleError, milp.MilpCertificateError) as e:
+            hint = (" — the TOPSIS plan satisfies these ceilings by construction, "
+                    "so this is a bug, not a result" if eps_kw else "")
+            raise type(e)(f"day {planning.day}{' (ε-constrained)' if eps_kw else ''}: "
+                          f"{e}{hint}") from e
+
+    res = solve()
+    rec = {"lower_bound": res.lower_bound, "upper_bound": res.upper_bound,
+           "solve_s": res.solve_s, "certificate": res.certificate,
+           "n_tangents": n_tangents,
+           "objectives": _lp_objectives(res.P_mt, res.P_bat, planning, params)}
+    if nsga3_planned is not None:
+        tops = nsga3_planned["objectives"]
+        co2_max, peak_max = float(tops["co2"]), float(tops["peak_grid"])
+        eps = solve(co2_max=co2_max, peak_max=peak_max)
+        topsis_cost = float(tops["cost"])
+        gap_delivered = topsis_cost - eps.lower_bound
+        price_of_compromise = eps.lower_bound - res.lower_bound
+        residual = abs((topsis_cost - res.lower_bound)
+                       - (gap_delivered + price_of_compromise))
+        if residual >= feas_tol:
+            raise RuntimeError(
+                f"day {planning.day}: decomposition identity broken by {residual:g} "
+                f"(>= feas_tol {feas_tol:g}); refusing to record a decomposition "
+                "that does not add up")
+        rec["epsilon"] = {"co2_max": co2_max, "peak_max": peak_max,
+                          "lower_bound": eps.lower_bound, "upper_bound": eps.upper_bound,
+                          "certificate": eps.certificate,
+                          "objectives": _lp_objectives(eps.P_mt, eps.P_bat, planning, params)}
+    return rec
+
+
 def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, params, objectives,
                   opt_cfg, rl_model, env_cfg, baseline, subset_seed, methods: list[str],
-                  bias: dict | None = None) -> dict:
+                  bias: dict | None = None, milp_cfg: dict | None = None) -> dict:
     """Run the requested methods on one (day, mech, factor, noise draw); return their summaries.
 
     ``noise_seed`` selects the forecast-noise realization for whitenoise f>0
     (averaged over several draws in the robustness curve); the residual
     mechanisms are deterministic and always use noise_seed 0.
+
+    ``milp_cfg`` (task 09 §6.2, from ``optimize.milp`` when ``compare.milp`` is
+    true) additionally solves the deterministic LP lower bound on the SAME
+    planning profile NSGA-III sees and stores it under the non-method key
+    ``milp_planned`` — planned-versus-planned by construction (09 §3.4). The
+    LP is deterministic, so the record is duplicated identically across
+    optimiser seeds (each cache entry stays self-contained), which
+    :func:`check_opt_seed_invariance` turns into a free correctness check.
     """
     planning = _planning_profile(profile, mech, f, noise_seed, subset_seed, bias)
     # Task 08 §9.2: the cost decomposition's plan-independent term
@@ -602,6 +725,8 @@ def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, par
     if "rl" in methods:
         out["rl"] = simulate(_with_forecast(profile, planning), params,
                              policy_decider(rl_model, params, env_cfg), "rl").summary()
+    if milp_cfg is not None:
+        out["milp_planned"] = _milp_item(planning, params, milp_cfg, out.get("nsga3_planned"))
     return out
 
 
@@ -660,6 +785,221 @@ def _paired(day_summaries: list[dict], metric: str, methods: list[str]) -> dict:
     return out
 
 
+def milp_settings(optimize_cfg) -> dict:
+    """The validated ``optimize.milp`` settings (task 09 acceptance criterion 3).
+
+    The group ships in ``configs/optimize/default.yaml``, so a missing node or
+    key means a broken or misspelled config, not an old one — raise naming the
+    key rather than silently substituting a literal, which would defeat the
+    criterion's point (the values come from the config).
+    """
+    node = optimize_cfg.get("milp")
+    if node is None:
+        raise KeyError("optimize.milp is missing (compare.milp=true needs it); "
+                       "configs/optimize/default.yaml defines the group")
+    missing = [k for k in ("n_tangents", "feas_tol") if node.get(k) is None]
+    if missing:
+        raise KeyError(f"optimize.milp is missing {missing}; "
+                       "configs/optimize/default.yaml defines both keys")
+    return {"n_tangents": int(node.n_tangents), "feas_tol": float(node.feas_tol)}
+
+
+def check_milp_epsilon_ceilings(items_by_seed: dict[int, list[dict]], days: list[str]) -> int:
+    """The Phase-4 replacement invariant (task 09 acceptance criterion 10).
+
+    ``epsilon`` is seed-dependent by construction, so it cannot be checked for
+    bit-identity like the base LP record. The invariant that actually has
+    content: each item's ε ceilings equal its OWN TOPSIS plan's planned CO2
+    and peak, exactly — the check that the ceilings were really read from the
+    plan they claim to bound. Raises naming the item on any mismatch; returns
+    the number of items checked.
+    """
+    checked = 0
+    for o, items in items_by_seed.items():
+        for d, it in zip(days, items):
+            eps = (it.get("milp_planned") or {}).get("epsilon")
+            planned = it.get("nsga3_planned")
+            if eps is None or planned is None:
+                continue
+            want = (planned["objectives"]["co2"], planned["objectives"]["peak_grid"])
+            got = (eps["co2_max"], eps["peak_max"])
+            if got != want:
+                raise RuntimeError(
+                    f"ε ceilings drifted from the TOPSIS plan for day {d}, opt_seed {o}: "
+                    f"(co2_max, peak_max)={got} but nsga3_planned.objectives={want}")
+            checked += 1
+    return checked
+
+
+# The three planning-problem gaps of task 09 §3.5. They are not interchangeable:
+# gap_front is the optimality gap proper (front's cheapest vs the LP optimum),
+# gap_delivered and price_of_compromise decompose the dispatched TOPSIS plan's
+# excess and need the phase-4 ε-constrained second solve (milp_planned.epsilon).
+MILP_GAP_NAMES = ("gap_front", "gap_delivered", "price_of_compromise")
+
+
+def _milp_day_gaps(item: dict) -> dict | None:
+    """One item's per-day gap row (task 09 §3.5), or None without milp_planned.
+
+    Every quantity is planned-versus-planned (09 §3.4): lower_bound and the
+    nsga3_planned records were computed on the same planning profile; no
+    realised cost enters here. Gaps whose ingredients the item does not carry
+    yet (front_min before a §6.1 re-solve, epsilon before phase 4) are None —
+    which the aggregation writes as null, never NaN.
+    """
+    mp = item.get("milp_planned")
+    if mp is None:
+        return None
+    lb = float(mp["lower_bound"])
+    planned = item.get("nsga3_planned") or {}
+    front_min_cost = (planned.get("front_min") or {}).get("cost")
+    topsis_cost = (planned.get("objectives") or {}).get("cost")
+    eps = mp.get("epsilon") or {}
+    lb_eps = eps.get("lower_bound")
+    return {
+        "lower_bound": lb,
+        "lower_bound_epsilon": None if lb_eps is None else float(lb_eps),
+        "gap_front": None if front_min_cost is None else float(front_min_cost) - lb,
+        "gap_delivered": (None if topsis_cost is None or lb_eps is None
+                          else float(topsis_cost) - float(lb_eps)),
+        "price_of_compromise": None if lb_eps is None else float(lb_eps) - lb,
+        "pwl_gap": float(mp["certificate"]["pwl_gap"]),
+    }
+
+
+def _median_range(vals: list[float]) -> dict:
+    return {"median": float(np.median(vals)), "min": float(min(vals)), "max": float(max(vals))}
+
+
+def milp_gap_block(items_by_seed: dict[int, list[dict]], days: list[str]) -> dict:
+    """The milp_gap block of comparison.json (task 09 §6.4).
+
+    Per optimiser seed: the per-day gaps, then the across-days median with
+    min–max AND the worst single day (a mean over days would hide a day where
+    the heuristic failed badly, 09 §3.5). Then the across-seed median with
+    min–max of the per-seed medians. Percentages are of the gap's own
+    denominator: lower_bound for gap_front and price_of_compromise,
+    the ε-constrained lower bound for gap_delivered. An empty subset writes
+    null, never NaN (the task-08 phase-1f guard).
+
+    Coverage is loud, never assumed (Round 3 Step 1): an item cached before
+    ``compare.milp`` was on never gains ``milp_planned`` on resume, so the
+    block counts such items as ``n_missing_milp`` — silent partial coverage
+    would read as complete coverage — and raises when EVERY item lacks the
+    key, because aggregating nothing quietly would just drop the block.
+    """
+    denom_key = {"gap_front": "lower_bound", "gap_delivered": "lower_bound_epsilon",
+                 "price_of_compromise": "lower_bound"}
+    per_seed = {}
+    pwl_all: list[float] = []
+    n_items = 0
+    n_missing = 0
+    for o, items in items_by_seed.items():
+        rows = {}
+        for d, it in zip(days, items):
+            row = _milp_day_gaps(it)
+            if row is None:
+                n_missing += 1
+            else:
+                rows[d] = row
+                pwl_all.append(row["pwl_gap"])
+        if not rows:
+            continue
+        n_items += len(rows)
+        stats = {}
+        for g in MILP_GAP_NAMES:
+            have = {d: r for d, r in rows.items() if r[g] is not None}
+            if not have:
+                stats[g] = None
+                continue
+            eur = {d: r[g] for d, r in have.items()}
+            pct = {d: r[g] / r[denom_key[g]] * 100.0 for d, r in have.items()
+                   if r[denom_key[g]]}
+            worst = max(eur, key=eur.get)
+            stats[g] = {"n_days": len(eur),
+                        "eur_per_day": _median_range(list(eur.values())),
+                        "pct": _median_range(list(pct.values())) if pct else None,
+                        "worst_day": worst, "worst_eur": eur[worst]}
+        per_seed[f"o{o}"] = {"per_day": rows, "stats": stats}
+    if not per_seed:
+        raise RuntimeError(
+            f"compare.milp is on but none of the {n_missing} cached nominal items carries "
+            "milp_planned — the cache predates the flag (resume skips existing files); "
+            "re-solve into a fresh compare.cache_dir instead of resuming onto this one")
+    across = {}
+    for g in MILP_GAP_NAMES:
+        meds = [s["stats"][g]["eur_per_day"]["median"] for s in per_seed.values()
+                if s["stats"][g] is not None]
+        pct_meds = [s["stats"][g]["pct"]["median"] for s in per_seed.values()
+                    if s["stats"][g] is not None and s["stats"][g]["pct"] is not None]
+        across[g] = None if not meds else {
+            "eur_per_day": _median_range(meds),
+            "pct": _median_range(pct_meds) if pct_meds else None,
+        }
+    return {
+        "n_days": len(days),
+        "opt_seeds": sorted(int(k[1:]) for k in per_seed),
+        # nominal items cached without milp_planned (0 on a fresh run); any
+        # positive count means the aggregates cover fewer items than n_days
+        # suggests, stated rather than silent
+        "n_missing_milp": n_missing,
+        "per_seed": per_seed,
+        "across_seeds": across,
+        # every stored solve passed its certificate (a failure raises at compute
+        # time); the largest linearisation error is what acceptance 5 reports
+        "certificate": {"n_items": n_items, "max_pwl_gap_eur": float(max(pwl_all))},
+    }
+
+
+def milp_gap_markdown(block: dict) -> str:
+    """Pasteable milp_gap tables in the style of opt_seed_spread.md.
+
+    Tabulation only — whether a gap clears the §7.1 planned-cost noise floor
+    is a phase-3 reading, not this function's."""
+    lines = [
+        "MILP optimality gaps, planned-versus-planned (task 09 §3.4/§3.5): every",
+        "number is evaluated on the forecast the optimiser saw; no realised cost",
+        "appears here. gap_front = front's cheapest planned cost − LP lower bound;",
+        "gap_delivered = TOPSIS planned cost − ε-constrained bound;",
+        "price_of_compromise = ε-constrained bound − unconstrained bound.",
+        f"Optimiser seeds {block['opt_seeds']}; the LP itself is seed-invariant",
+        "(asserted by check_opt_seed_invariance), so seed spread below is",
+        "NSGA-III's alone.", "",
+        "| gap | seed | n days | median EUR/day [min, max] | median % [min, max] | worst day (EUR) |",
+        "|---|---|---:|---|---|---|",
+    ]
+    for g in MILP_GAP_NAMES:
+        for ok, seed_block in block["per_seed"].items():
+            st = seed_block["stats"][g]
+            if st is None:
+                lines.append(f"| {g} | {ok} | — | — (awaiting the phase-4 ε solve) | — | — |")
+                continue
+            e, p = st["eur_per_day"], st["pct"]
+            pct = "—" if p is None else f"{p['median']:.3f} [{p['min']:.3f}, {p['max']:.3f}]"
+            lines.append(
+                f"| {g} | {ok} | {st['n_days']} | {e['median']:.2f} [{e['min']:.2f}, {e['max']:.2f}] "
+                f"| {pct} | {st['worst_day']} ({st['worst_eur']:.2f}) |")
+    lines += ["", "| gap | across-seed median of per-seed medians, EUR/day [min, max] | % |",
+              "|---|---|---|"]
+    for g in MILP_GAP_NAMES:
+        a = block["across_seeds"][g]
+        if a is None:
+            lines.append(f"| {g} | — (awaiting the phase-4 ε solve) | — |")
+            continue
+        e, p = a["eur_per_day"], a["pct"]
+        pct = "—" if p is None else f"{p['median']:.3f} [{p['min']:.3f}, {p['max']:.3f}]"
+        lines.append(f"| {g} | {e['median']:.2f} [{e['min']:.2f}, {e['max']:.2f}] | {pct} |")
+    cert = block["certificate"]
+    lines += ["", f"Certificate passed on all {cert['n_items']} stored solves; largest "
+              f"linearisation error (upper_bound − lower_bound): "
+              f"{cert['max_pwl_gap_eur']:.4f} EUR/day."]
+    if block["n_missing_milp"]:
+        lines += ["", f"WARNING: {block['n_missing_milp']} nominal item(s) lack milp_planned "
+                  "(cached before compare.milp was on) — the aggregates above cover fewer "
+                  "items than the day count suggests."]
+    return "\n".join(lines) + "\n"
+
+
 @hydra.main(config_path="../configs", config_name="pipeline", version_base=None)
 def main(cfg: DictConfig) -> None:
     df = pd.read_parquet(resolve(cfg.paths.processed_dir) / f"{cfg.data.name}_dataset.parquet")
@@ -701,6 +1041,10 @@ def main(cfg: DictConfig) -> None:
         raise ValueError(f"compare.attribution_targets contains unknown series {bad_t}; "
                          f"choose from {list(SERIES)}")
     perfect_biased = bool(cmp.get("perfect_biased", False))
+    # Task 09 §6.2: compare.milp=true additionally solves the deterministic LP
+    # lower bound per item on the same planning profile. Settings come from
+    # optimize.milp and only from there (acceptance 3) — a missing node raises.
+    milp_cfg = milp_settings(cfg.optimize) if bool(cmp.get("milp", False)) else None
     # Forecast tier (task 08 §7): one run = one tier. The tier names the cache
     # entries; the profiles must come from the matching forecast source, which
     # the caller sets via rl.train.forecast_source (+ forecast.run_name for
@@ -813,7 +1157,8 @@ def main(cfg: DictConfig) -> None:
         if item_path(day, mech, f, s, o).exists():
             continue  # written as a nominal alias by an earlier item this run
         item = _compute_item(by_day[day], mech, f, s, params, objectives, opt_cfgs[o],
-                             rl_model, env_cfg, baseline, subset_seed, methods, bias)
+                             rl_model, env_cfg, baseline, subset_seed, methods, bias,
+                             milp_cfg=milp_cfg)
         write_item(cache_dir, day, f, s, o, item, tier=tier, mech=mech)
         if mech != MECH_WHITENOISE or f == 0.0:
             letter = FACTOR_LETTER[mech]
@@ -929,6 +1274,24 @@ def main(cfg: DictConfig) -> None:
             "per_method": opt_seed_spread(items_by_seed, methods, metrics=RESIDUAL_METRICS),
         }
 
+    # --- MILP gap block (task 09 §6.4): nominal items only, planned-vs-planned.
+    # Reads whatever gaps the cached records can support; the phase-4 ε solve
+    # fills in gap_delivered / price_of_compromise later.
+    milp_block = None
+    if milp_cfg is not None:
+        milp_items_by_seed = {o: [load(p.day, MECH_WHITENOISE, 0.0, 0, o) for p in profiles]
+                              for o in opt_seeds}
+        milp_block = milp_gap_block(milp_items_by_seed, [p.day for p in profiles])
+        n_eps = check_milp_epsilon_ceilings(milp_items_by_seed, [p.day for p in profiles])
+        log.info("milp ε-ceiling invariant PASSED on %d items (ceilings equal each item's "
+                 "own TOPSIS plan)", n_eps)
+        log.info("milp_gap: %d items aggregated, %d nominal items missing milp_planned",
+                 milp_block["certificate"]["n_items"], milp_block["n_missing_milp"])
+        if milp_block["n_missing_milp"]:
+            log.warning("milp_gap: %d nominal item(s) were cached before compare.milp was "
+                        "on and lack milp_planned; aggregates cover fewer items than the "
+                        "day count suggests", milp_block["n_missing_milp"])
+
     out_dir.mkdir(parents=True, exist_ok=True)
     prev_path = out_dir / "comparison.json"
     prev = json.loads(prev_path.read_text()) if prev_path.exists() else {}
@@ -969,6 +1332,8 @@ def main(cfg: DictConfig) -> None:
         comparison["residual_curve"] = residual
     if biased_block is not None:
         comparison["perfect_biased"] = biased_block
+    if milp_block is not None:
+        comparison["milp_gap"] = milp_block
     prev_path.write_text(json.dumps(comparison, indent=2))
     log.info("comparison -> %s", prev_path)
     if spread is not None:
@@ -979,6 +1344,10 @@ def main(cfg: DictConfig) -> None:
         rc_path = out_dir / "residual_curve.md"
         rc_path.write_text(residual_markdown(residual))
         log.info("residual-scaling curve report -> %s", rc_path)
+    if milp_block is not None:
+        mg_path = out_dir / "milp_gap.md"
+        mg_path.write_text(milp_gap_markdown(milp_block))
+        log.info("milp gap report -> %s", mg_path)
 
     fig_dir.mkdir(parents=True, exist_ok=True)
     report.plot_comparison_bars(agg, methods, fig_dir / "dispatch_comparison_bars.png", len(profiles))

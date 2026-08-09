@@ -30,3 +30,13 @@ ref_partitions:
 pop_size: 200
 n_gen: 400
 seed: 42
+
+# Deterministic LP lower bound (task 09, microgrid/optimize/milp.py), read by
+# scripts/compare_dispatch.py when compare.milp=true. The module keeps the same
+# values as keyword defaults so tests can call it without a config.
+milp:
+  n_tangents: 49    # tangent lines under the quadratic fuel rate; worst-case
+                    # lower-envelope shortfall is a·Δ²/4·dt·H per day (09 §3.2)
+  feas_tol: 1.0e-6  # certificate tolerance: the two split-degeneracy checks and
+                    # the constraint_vector check pass iff value < feas_tol;
+                    # a failed certificate raises instead of reporting a bound
