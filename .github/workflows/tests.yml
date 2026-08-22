@@ -1,0 +1,71 @@
+# Automated test run — S4 phase 1 (docs/tasks/S4-service-layer.md §7).
+#
+# Runs the repository's OWN default pytest selection on every change. It does
+# not define a second contract: the marker selection lives in pyproject.toml
+# (addopts = "-q -m 'not slow'"), and this file deliberately passes no -m of
+# its own (S4 D5).
+#
+# The reference environment is macOS + Python 3.14 (CLAUDE.md §2). This runner
+# is Linux at the same Python version; the OS differs, and that difference is
+# recorded in the task file's §12 rather than papered over (S4 D6).
+name: tests
+
+on:
+  push:
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  pytest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+          cache: pip
+          cache-dependency-path: requirements.txt
+
+      # D6: the version that actually ran, printed rather than assumed.
+      - name: Record the interpreter actually used
+        run: python -VV
+
+      # requirements.txt pins torch==2.13.0 and documents this index. The
+      # default index serves CUDA builds — roughly an order of magnitude larger
+      # and pure waste on a CPU-only test run. Installing it first leaves the
+      # pin satisfied, so the -r step below does not refetch torch.
+      - name: Install torch from the CPU wheel index
+        run: pip install torch==2.13.0 --index-url https://download.pytorch.org/whl/cpu
+
+      - name: Install the pinned requirements
+        run: pip install -r requirements.txt
+
+      # The local .venv holds an editable install of src/
+      # (__editable__.microgrid-0.1.0.pth). --no-deps because pyproject declares
+      # dependencies = []; requirements.txt above is the only dependency source.
+      - name: Install the project (editable, matching the local .venv)
+        run: pip install -e . --no-deps
+
+      # No database is provisioned: the db-marked tests self-skip (S3),
+      # psycopg2 is deliberately not installed, and slow stays excluded by
+      # pyproject's own addopts. -rs adds skip REASONS to the report; it
+      # selects nothing. A non-zero pytest exit fails this step and the job.
+      - name: pytest
+        run: pytest -rs | tee pytest-output.txt
+
+      - name: Put the counts in the run summary
+        if: always()
+        run: |
+          {
+            echo '### pytest'
+            echo '```'
+            tail -n 3 pytest-output.txt
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
