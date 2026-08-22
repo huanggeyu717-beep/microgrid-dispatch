@@ -513,17 +513,27 @@ quoted) and buys the violating days from 33 down to 0–2. The margin arm at
 δ = 0.35 buys them from 33 to **0** for **5.51 EUR/day**. The difference —
 173.79–203.51 EUR/day per seed, exactly the win-test margin — is what the
 ε arm pays for its *other* two ceilings: a CO2 bound the margin arm does not
-carry, and a peak reservation (planned peak ≈ 2.0 MW) roughly 0.65 MW deeper
-than executability required (2.65 MW). Executability, it turns out, is the
-cheap third of what the compromise was buying. The δ × CO2 cross (§4.5) is
-the instrument that would split those 174–204 EUR/day into "CO2" and
-"excess reservation" terms; it is priced and gated, not run.
+carry, and a peak reservation deeper than executability required. That second
+comparison is planned against planned: the ε arm's own planning ceiling
+(`milp_planned.epsilon.peak_max`, recorded per day and seed in this run's
+cache) averages 1.8512 / 1.8160 / 1.7906 MW at seeds {42, 43, 44} — median
+1.82, range [0.76, 2.52] — against the margin arm's 2.65 MW, so the ε arm
+reserves **0.80–0.86 MW deeper** than executability needed. (The ≈ 2.0 MW
+figure for the ε arm is its *realised* peak, 11 log §3.3; it sits on the other
+side of the forecast/execute boundary and is not what a reservation depth is
+measured against.) Executability, it turns out, was the **cheapest of the three
+things the compromise was buying** — 5.51 EUR/day of 179.30–209.02, under 3 %.
+The δ × CO2 cross (§4.5) is the instrument that would split those 174–204
+EUR/day into "CO2" and "excess reservation" terms; it is priced and gated,
+not run.
 
 Also worth one sentence each:
 
-- The margin's price curve is shallow because the tightened ceiling
-  genuinely binds on under half the days (28–38 of 61 across the grid,
-  §3.1 item 2): on the others the plan never wanted the headroom.
+- The margin's price curve is shallow because the tightened ceiling does not
+  bind everywhere: across the grid it genuinely binds on 28–38 of the 61 days
+  (28 / 30 / 34 / 35 / 38 at δ = 0.05 / 0.10 / 0.20 / 0.35 / 0.50, from the
+  per-δ ceiling-slack counts of §3.1 item 2 — so 35 of 61, a little over half,
+  at the winning δ): on the rest the plan never wanted the headroom.
 - The full 0.50 MW margin costs only 10.75 EUR/day — so even overshooting
   the knee by one grid step keeps the arm 168.56+ EUR/day ahead of the ε
   arm. The result is not knife-edged in δ.
@@ -551,8 +561,9 @@ numbers filled in, no fourth branch invented:
 > while the physics and the verdict stay at 3.0 MW, produces the first LP
 > plan in this project that is both dispatchable and free-standing: **0 of
 > 61 violating days** at **4862.74 EUR/day** realised, **173.79–203.51
-> EUR/day cheaper than the ε-constrained arm** at all three optimiser seeds
-> (11 log §3.3, quoted) — with no heuristic on the critical path, no
+> EUR/day cheaper than the ε-constrained arm** (whose own realised numbers are
+> quoted from 11 log §3.3; the difference is measured here, from block_e) at
+> all three optimiser seeds — with no heuristic on the critical path, no
 > optimiser seed, and one 22.1 ms solve per day (09 log §3.1, quoted). The
 > headroom costs **5.51 EUR/day** against the unconstrained cost optimum,
 > where the three-objective compromise charged 179–209 EUR/day (11 log

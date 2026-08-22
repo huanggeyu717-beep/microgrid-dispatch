@@ -708,12 +708,16 @@ everywhere in this project):
 
 Three findings behind the headline:
 
-- **Executability was the cheap third of what the compromise was buying.**
+- **Executability was the cheapest of the three things the compromise was
+  buying** — 5.51 EUR/day of 179–209, under 3 % of it.
   The ε arm pays 179–209 EUR/day over the unconstrained optimum and gets 0–2
   violating days; the margin arm pays 5.51 EUR/day and gets 0. The 174–204
   EUR/day difference is what the ε arm's *other* ceilings cost — a CO₂ bound
-  the margin arm does not carry, and a peak reservation roughly 0.65 MW
-  deeper than executability required. A gated follow-on (the δ × CO₂ cross)
+  the margin arm does not carry, and a peak reservation 0.80–0.86 MW deeper
+  than executability required (planned against planned: the ε arm's own
+  planning ceiling averages 1.79–1.85 MW across seeds, against the margin
+  arm's 2.65 MW; the ε arm's ≈ 2.0 MW figure is its *realised* peak and
+  belongs on the other side of that boundary). A gated follow-on (the δ × CO₂ cross)
   is promoted to split that price into its two parts; it is priced and
   recorded, not run.
 - **The knee sat where the overshoot said it would.** The pre-run audit
@@ -723,9 +727,10 @@ Three findings behind the headline:
   violation curves, feasibility everywhere) held. The result is not
   knife-edged: even overshooting the knee to δ = 0.50 keeps the arm 168+
   EUR/day ahead of the ε arm.
-- **The price curve is shallow because the margin binds on under half the
-  days** (28–38 of 61 across the grid): on the others the plan never wanted
-  the headroom, so reserving it costs nothing.
+- **The price curve is shallow because the margin does not bind everywhere**
+  — across the grid it binds on 28–38 of the 61 days (35 of 61 at the winning
+  δ = 0.35): on the rest the plan never wanted the headroom, so reserving it
+  costs nothing.
 
 This is the baseline the receding-horizon controller (roadmap C1) must beat:
 dynamic intraday correction that cannot beat a 5.51 EUR/day static insurance
@@ -869,4 +874,4 @@ data/               # raw / interim / processed (git-ignored)
 12. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table. Scoped out of the forecasting task into its own, precisely because a result set that may never share a table with the others is not a phase of them
 13. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help
 14. **Complete** — LP-plan execution check: both LP schedules (the cost optimum and the ε-constrained plan) replayed open-loop against the measured actuals through the same simulator as every other method, realised-versus-realised throughout, three optimiser seeds. The cost optimum realises 4857.2320 EUR/day — 575–603 EUR/day below the dispatched plan, cheaper on 61/61 days at every seed — but breaks the 3 MW tie limit on 33 of 61 days at 4.1475 steps/day, 90% of the forecast-free rule baseline's rate; the violations concentrate on the 37 tie-pinned days (31/37 vs 2/24, pre-registered and held). The ε plan keeps 383–396 EUR/day at 0–2 violating days, so the compromise's 179–209 EUR/day is what buys the tie limit back, and the planning-side "two thirds optimiser shortfall" split survives execution (65–69% vs 63%). Gated follow-on promoted: the tie-limit margin sweep — which, like the budget sweep, must now beat the realised ~390 EUR/day, not the planned 453 (done, and it did — item 15)
-15. **Complete** — Static tie-line margin: the LP re-planned with the planner's tie ceiling tightened to 3.0 − δ MW across six δ values, executed open-loop against the actuals, physics and verdict unchanged at 3.0 MW for every arm. δ = 0.35 MW yields the project's first dispatchable free-standing LP plan: 0 of 61 violating days at 4862.74 EUR/day realised — 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds (6.1× the noise floor) and 569–598 EUR/day below the dispatched plan, seedless, one 22.1 ms solve per day. The headroom costs 5.51 EUR/day over the unconstrained optimum, so executability was the cheap third of the ε compromise's 179–209 EUR/day; all four pre-registered predictions held, both curves monotone, and the δ = 0 arm reproduced the cost optimum bit-for-bit. Promoted follow-on recorded, not started: the δ × CO₂ cross, which would split the ε arm's remaining 174–204 EUR/day into its CO₂ and excess-reservation parts. This margin arm is now the baseline the receding-horizon controller (C1) must beat
+15. **Complete** — Static tie-line margin: the LP re-planned with the planner's tie ceiling tightened to 3.0 − δ MW across six δ values, executed open-loop against the actuals, physics and verdict unchanged at 3.0 MW for every arm. δ = 0.35 MW yields the project's first dispatchable free-standing LP plan: 0 of 61 violating days at 4862.74 EUR/day realised — 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds (6.1× the noise floor) and 569–598 EUR/day below the dispatched plan, seedless, one 22.1 ms solve per day. The headroom costs 5.51 EUR/day over the unconstrained optimum, so executability was the cheapest part of the ε compromise's 179–209 EUR/day, under 3 % of it; all four pre-registered predictions held, both curves monotone, and the δ = 0 arm reproduced the cost optimum bit-for-bit. Promoted follow-on recorded, not started: the δ × CO₂ cross, which would split the ε arm's remaining 174–204 EUR/day into its CO₂ and excess-reservation parts. This margin arm is now the baseline the receding-horizon controller (C1) must beat
