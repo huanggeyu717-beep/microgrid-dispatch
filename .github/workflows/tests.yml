@@ -61,7 +61,17 @@ jobs:
       # pyproject's own addopts. -rs adds skip REASONS to the report; it
       # selects nothing. A non-zero pytest exit fails this step and the job.
       - name: pytest
-        run: pytest -rs | tee pytest-output.txt
+        # A `run:` block with no explicit `shell:` executes as `bash -e {0}`.
+        # That is NOT the `bash --noprofile --norc -eo pipefail {0}` that
+        # `shell: bash` selects: without pipefail a pipeline reports the exit
+        # status of its LAST command, so `pytest | tee` reports tee's 0 and a
+        # red suite passes silently. Run #3 — the red probe, one deliberately
+        # failing test — demonstrated exactly that: the suite failed and the
+        # job went green. pipefail is set explicitly here so the pytest exit
+        # status is the one that reaches the runner.
+        run: |
+          set -o pipefail
+          pytest -rs | tee pytest-output.txt
 
       - name: Put the counts in the run summary
         if: always()

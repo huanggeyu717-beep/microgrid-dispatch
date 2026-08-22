@@ -286,13 +286,17 @@ cache. Neither is a per-item rate, because neither is a batch.
       (GitHub Actions, `ubuntu-latest`, Python 3.14, pip cache, torch from the
       CPU wheel index, `pytest -rs` with the repository's own default marker
       selection and no `-m` of its own).
-- [ ] Phase 1 — red-suite failure demonstrated. **Owner-side, and open:** the
-      workflow only fires on a push, and `CLAUDE.md` §2 forbids the assistant
-      every git write, so the demonstration cannot be produced here. Procedure
-      recorded so it is not re-derived: push a throwaway branch carrying the
-      workflow plus a deliberately failing probe test, confirm the run goes red
-      on GitHub, then drop the branch and the probe. Acceptance criterion 3 is
-      unmet until that run exists.
+- [ ] Phase 1 — red-suite failure demonstrated. **Open, and the first attempt
+      found a defect in the workflow rather than confirming it.** Run #3 on a
+      throwaway branch carried one deliberately failing probe test and the job
+      went **green**. Cause: a `run:` block with no explicit `shell:` executes
+      as `bash -e {0}`, which does not set `pipefail`; the step ran
+      `pytest -rs | tee pytest-output.txt`, so the runner saw tee's exit status
+      and never saw pytest's. A red suite would have passed silently on every
+      push. Fixed by setting `pipefail` explicitly in that step; the
+      demonstration re-runs against the fix before this line is ticked.
+      This is why criterion 3 says *demonstrated, not asserted* — the workflow
+      looked correct and was not.
 - [x] Phase 1 — runner Python version recorded, and whether it matches 3.14.
       First run (`tests` #1, 2026-08-22, green in 1 m 20 s): the runner reports
       **Python 3.14.7**; the reference environment is **3.14.6** (finding 1).
