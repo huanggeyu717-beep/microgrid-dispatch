@@ -293,15 +293,25 @@ cache. Neither is a per-item rate, because neither is a batch.
       workflow plus a deliberately failing probe test, confirm the run goes red
       on GitHub, then drop the branch and the probe. Acceptance criterion 3 is
       unmet until that run exists.
-- [ ] Phase 1 — runner Python version recorded, and whether it matches 3.14.
-      **Open until the first run.** The workflow requests `3.14` and prints
-      `python -VV` as its first step; the reference environment is 3.14.6
-      (finding 1). The runner's OS differs from the reference — Linux against
-      macOS — which S4 D6 requires to be stated rather than papered over, and
-      this line is that statement. Wheel availability for cp314 (torch 2.13.0,
-      pandas 3.0.3, numpy 2.5.1) is unverified until the first run; if a wheel
-      is missing, that is a finding for the owner, since D3 forbids changing
-      any existing pin.
+- [x] Phase 1 — runner Python version recorded, and whether it matches 3.14.
+      First run (`tests` #1, 2026-08-22, green in 1 m 20 s): the runner reports
+      **Python 3.14.7**; the reference environment is **3.14.6** (finding 1).
+      Same minor version, one patch level apart, and on Linux rather than
+      macOS. Stated rather than papered over, per D6.
+      The cp314 wheel question is settled by that run: torch 2.13.0 from the
+      CPU index (23 s) and then the remaining pins (32 s) all installed, with
+      no pin changed.
+      **The run reproduced finding 2's prediction exactly — 265 passed,
+      8 skipped, 4 deselected** — i.e. the local 267/6/4 less the two
+      artifact-guarded tests a clone cannot run. S4 owns no numbers (D1); this
+      is a coverage statement, not a result.
+      One annotation, not a failure: `actions/checkout@v4` and
+      `actions/setup-python@v5` target Node.js 20, which GitHub has deprecated
+      and now forces onto Node.js 24. Both were bumped to their current major
+      versions (`checkout@v6`, `setup-python@v6`, both Node 24 builds) so the
+      warning cannot become a failure when Node 20 support is withdrawn. That
+      bump is the only change to the workflow since run #1, and it needs a
+      second push to take effect.
 - [ ] Phase 2 — artifact decision written down, then the interface
 - [ ] Phase 3 — container image, one command from a clean clone
 - [ ] Close — archive summary, task board row, ACTIVE TASK back to none
