@@ -286,17 +286,21 @@ cache. Neither is a per-item rate, because neither is a batch.
       (GitHub Actions, `ubuntu-latest`, Python 3.14, pip cache, torch from the
       CPU wheel index, `pytest -rs` with the repository's own default marker
       selection and no `-m` of its own).
-- [ ] Phase 1 — red-suite failure demonstrated. **Open, and the first attempt
-      found a defect in the workflow rather than confirming it.** Run #3 on a
-      throwaway branch carried one deliberately failing probe test and the job
-      went **green**. Cause: a `run:` block with no explicit `shell:` executes
-      as `bash -e {0}`, which does not set `pipefail`; the step ran
-      `pytest -rs | tee pytest-output.txt`, so the runner saw tee's exit status
-      and never saw pytest's. A red suite would have passed silently on every
-      push. Fixed by setting `pipefail` explicitly in that step; the
-      demonstration re-runs against the fix before this line is ticked.
-      This is why criterion 3 says *demonstrated, not asserted* — the workflow
-      looked correct and was not.
+- [x] Phase 1 — red-suite failure demonstrated. It took two runs, and the
+      first found a defect in the workflow instead of confirming it.
+      **Run #3** (branch `ci/red-probe`, commit `fa1a793`, carrying one
+      deliberately failing probe test) went **green** while the suite itself
+      reported `1 failed, 265 passed, 8 skipped, 4 deselected`. Cause: a `run:`
+      block with no explicit `shell:` executes as `bash -e {0}`, which does not
+      set `pipefail`, so `pytest -rs | tee pytest-output.txt` handed the runner
+      tee's exit status and pytest's never left the pipeline. A red suite would
+      have passed silently on every push — the automation would have been
+      decorative. `set -o pipefail` was added to that step, and **run #4**
+      (same branch, same probe, commit `5df9f3b`) failed as it must. The fix
+      reached `main` as commit `7d52c78`; the probe branch and its test were
+      deleted and no probe commit is on `main`.
+      This is exactly why criterion 3 says *demonstrated, not asserted*: the
+      workflow read correctly and was not.
 - [x] Phase 1 — runner Python version recorded, and whether it matches 3.14.
       First run (`tests` #1, 2026-08-22, green in 1 m 20 s): the runner reports
       **Python 3.14.7**; the reference environment is **3.14.6** (finding 1).
