@@ -308,8 +308,10 @@ conclusion.** That is the point at which it is worth showing to someone.
   observed four times now including §11.4.
 - **Re-running RL against the current forecaster.** Document the mismatch in
   both READMEs instead — "SAC results are based on the original single-year
-  forecasts, have not been re-run, and constraint violation rate was not
-  evaluated". Honest labelling is cheaper than a re-run and this project already
+  forecasts and have not been re-run". (An earlier version of this bullet also
+  said RL's constraint violation rate was not evaluated; it has been, twice —
+  1.6393 steps/day (08 log §4.1) on 22 of 61 days (11 log §3.3), re-measured in
+  `block_d`.) Honest labelling is cheaper than a re-run and this project already
   trades on that.
 - **Making the models bigger because a GPU is available.** The binding
   constraint is information (wind) and possibly sample size, never compute.

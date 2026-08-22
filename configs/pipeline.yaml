@@ -57,6 +57,14 @@ compare:
                                # violation from solver-tolerance noise; null = optimize.milp.feas_tol.
                                # Raw (>0) and material (>floor) counts are always reported together;
                                # headlines use material. Only read when milp_execute is true
+  tie_margins_mw: []           # task 12 §5.1: static planning margins δ (MW). Per δ, additionally
+                               # solve the LP with the PLANNER'S tie ceiling tightened to
+                               # tie_limit − δ (peak_max) and execute it open-loop — item keys
+                               # milp_margin_exec@{δ:.2f}, outside METHODS. The physics and the
+                               # violation verdict stay at tie_limit for every δ. Requires
+                               # compare.milp_execute=true (raises naming both keys); each δ must
+                               # satisfy 0.0 <= δ < tie_limit, duplicates raise. δ=0.0 is the §3.3
+                               # reproduction arm. [] = every existing path unchanged
 
 paths:
   interim_dir: data/interim

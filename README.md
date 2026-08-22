@@ -30,6 +30,7 @@ flowchart LR
 | Forecast-value transfer function — what forecast accuracy is worth to dispatch | Complete |
 | MILP optimality gap — how far the heuristic's plan is from the proven optimum | Complete |
 | LP-plan execution check — does the proven optimum survive contact with the actuals | Complete |
+| Static tie-line margin — one number that makes the LP plan dispatchable, and its price | Complete |
 | PostgreSQL data layer | Complete |
 | LLM data agent (natural language → SQL) | Complete |
 
@@ -653,7 +654,82 @@ Four findings behind the headline, each with its scope:
   reach zero) is promoted by these results — but the ε arm already
   demonstrates ~390 EUR/day realised at 0–2 violating days, so both that
   sweep and the recorded NSGA-III budget sweep now have the realised ~390
-  EUR/day as their target, not task 09's planned 453.
+  EUR/day as their target, not task 09's planned 453. (The margin sweep has
+  since been run and beat that bar — see the next section.)
+
+### Can one static number make the optimal plan dispatchable? (the tie-line margin)
+
+Task 11 left the project without a dispatchable LP plan: the cost optimum
+violates the tie limit on 33 of 61 days, and the ε-constrained arm that fixes
+this copies its ceilings off the NSGA-III/TOPSIS plan for that day and seed —
+so a 3.49 s/day heuristic sits on its critical path, and it cannot exist
+without one. This task asks whether **one static number** does the same job: a
+margin δ subtracted from the *planner's* tie limit (the LP plans against
+3.0 − δ MW) while the physics and the violation verdict stay at 3.0 MW for
+every arm. The complete record is
+[docs/experiments/12-tie-margin-log.md](docs/experiments/12-tie-margin-log.md)
+(its §5 is the synthesis); machine-readable aggregates sit in
+`models/comparison/block_e/`.
+
+**Method and scope.** Six margin values δ ∈ {0 (a reproduction arm), 0.05,
+0.10, 0.20, 0.35, 0.50} MW, each an LP plan on the nominal forecast replayed
+open-loop against the measured actuals through the same simulator as every
+other method — 61 Nov–Dec 2024 days, three optimiser seeds,
+realised-versus-realised throughout. The margin arms are deterministic and
+seedless; their seed-invariance is proved by an in-run check rather than
+sampled, so each is reported once, never as a seed range. Before any
+comparison, the batch reproduced all five task-11 arms against the published
+block_d record float-exactly (9,150 metric cells), and the δ = 0 arm
+reproduced the unconstrained optimum bit-for-bit on all 61 days.
+
+> Tightening only the *planner's* tie limit by a static **δ = 0.35 MW**, while
+> the physics and the verdict stay at 3.0 MW, produces the first LP plan in
+> this project that is both dispatchable and free-standing: **0 of 61
+> violating days** at **4862.74 EUR/day** realised — **173.79–203.51 EUR/day
+> cheaper than the ε-constrained arm** at all three optimiser seeds and
+> 569–598 EUR/day below the dispatched NSGA-III plan, with no heuristic on
+> the critical path, no optimiser seed, and one 22.1 ms solve per day. The
+> headroom itself costs **5.51 EUR/day** against the unconstrained cost
+> optimum — where the three-objective compromise charged 179–209 EUR/day to
+> buy the same 33 violating days away.
+
+The full curve, because the curve is the deliverable and the losing margins
+stay in the table (realised cost with its violation columns beside it, as
+everywhere in this project):
+
+| δ (MW) | realised cost (EUR/day, 61-day mean) | violation steps/day | violating days |
+|---:|---:|---:|---:|
+| 0.00 | 4857.2320 | 4.1475 | 33 / 61 |
+| 0.05 | 4857.7261 | 3.0492 | 28 / 61 |
+| 0.10 | 4858.2718 | 1.6393 | 20 / 61 |
+| 0.20 | 4859.5461 | 0.2623 | 6 / 61 |
+| **0.35** | **4862.7420** | **0.0000** | **0 / 61** |
+| 0.50 | 4867.9800 | 0.0000 | 0 / 61 |
+
+Three findings behind the headline:
+
+- **Executability was the cheap third of what the compromise was buying.**
+  The ε arm pays 179–209 EUR/day over the unconstrained optimum and gets 0–2
+  violating days; the margin arm pays 5.51 EUR/day and gets 0. The 174–204
+  EUR/day difference is what the ε arm's *other* ceilings cost — a CO₂ bound
+  the margin arm does not carry, and a peak reservation roughly 0.65 MW
+  deeper than executability required. A gated follow-on (the δ × CO₂ cross)
+  is promoted to split that price into its two parts; it is priced and
+  recorded, not run.
+- **The knee sat where the overshoot said it would.** The pre-run audit
+  measured the unconstrained plan's worst single-step overshoot at 0.2753 MW;
+  0.35 is the smallest grid value above it, and all four pre-registered
+  predictions (knee position, the win over the ε arm, monotone cost and
+  violation curves, feasibility everywhere) held. The result is not
+  knife-edged: even overshooting the knee to δ = 0.50 keeps the arm 168+
+  EUR/day ahead of the ε arm.
+- **The price curve is shallow because the margin binds on under half the
+  days** (28–38 of 61 across the grid): on the others the plan never wanted
+  the headroom, so reserving it costs nothing.
+
+This is the baseline the receding-horizon controller (roadmap C1) must beat:
+dynamic intraday correction that cannot beat a 5.51 EUR/day static insurance
+premium is not worth its complexity — a falsifiable bar, by construction.
 
 ### SQL data layer + data agent (natural-language querying)
 
@@ -792,4 +868,5 @@ data/               # raw / interim / processed (git-ignored)
 11. **Complete** — MILP optimality gap: the same planning problem formulated as an LP with tangent cuts (HiGHS/SciPy, no new dependency, no integer variable needed), certified per solve, equivalence to the NSGA-III problem unit-tested term by term. Planned-versus-planned on the same forecast, at three optimiser seeds against a ~19–30 EUR/day planned-cost noise floor: the dispatched plan costs 15.1% [15.0, 15.4] more than the proven optimum, decomposed exactly into 9.0% optimiser shortfall and 5.0% price of the three-objective compromise. Carried with the headline rather than behind it: the cost optimum pins the tie line at 3 MW on 37/61 days — part of the gap buys headroom the objective does not value. Of its two recorded follow-ons, executing the LP plan against the actuals has since been done (item 14 below); the NSGA-III budget sweep remains recorded and unstarted
 12. **Planned** — Split B, a full-year 2024 test split (additive: split A stays frozen so every existing number remains comparable). Buys a four-season test set (~4,380 windows vs 721 today). Only usable by models that need no NWP — the NWP archive begins 2024-02, so putting all of 2024 in test would leave the NWP models with no training data. Split A and split B numbers must never appear in the same table. Scoped out of the forecasting task into its own, precisely because a result set that may never share a table with the others is not a phase of them
 13. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help
-14. **Complete** — LP-plan execution check: both LP schedules (the cost optimum and the ε-constrained plan) replayed open-loop against the measured actuals through the same simulator as every other method, realised-versus-realised throughout, three optimiser seeds. The cost optimum realises 4857.2320 EUR/day — 575–603 EUR/day below the dispatched plan, cheaper on 61/61 days at every seed — but breaks the 3 MW tie limit on 33 of 61 days at 4.1475 steps/day, 90% of the forecast-free rule baseline's rate; the violations concentrate on the 37 tie-pinned days (31/37 vs 2/24, pre-registered and held). The ε plan keeps 383–396 EUR/day at 0–2 violating days, so the compromise's 179–209 EUR/day is what buys the tie limit back, and the planning-side "two thirds optimiser shortfall" split survives execution (65–69% vs 63%). Gated follow-on promoted: the tie-limit margin sweep — which, like the budget sweep, must now beat the realised ~390 EUR/day, not the planned 453
+14. **Complete** — LP-plan execution check: both LP schedules (the cost optimum and the ε-constrained plan) replayed open-loop against the measured actuals through the same simulator as every other method, realised-versus-realised throughout, three optimiser seeds. The cost optimum realises 4857.2320 EUR/day — 575–603 EUR/day below the dispatched plan, cheaper on 61/61 days at every seed — but breaks the 3 MW tie limit on 33 of 61 days at 4.1475 steps/day, 90% of the forecast-free rule baseline's rate; the violations concentrate on the 37 tie-pinned days (31/37 vs 2/24, pre-registered and held). The ε plan keeps 383–396 EUR/day at 0–2 violating days, so the compromise's 179–209 EUR/day is what buys the tie limit back, and the planning-side "two thirds optimiser shortfall" split survives execution (65–69% vs 63%). Gated follow-on promoted: the tie-limit margin sweep — which, like the budget sweep, must now beat the realised ~390 EUR/day, not the planned 453 (done, and it did — item 15)
+15. **Complete** — Static tie-line margin: the LP re-planned with the planner's tie ceiling tightened to 3.0 − δ MW across six δ values, executed open-loop against the actuals, physics and verdict unchanged at 3.0 MW for every arm. δ = 0.35 MW yields the project's first dispatchable free-standing LP plan: 0 of 61 violating days at 4862.74 EUR/day realised — 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds (6.1× the noise floor) and 569–598 EUR/day below the dispatched plan, seedless, one 22.1 ms solve per day. The headroom costs 5.51 EUR/day over the unconstrained optimum, so executability was the cheap third of the ε compromise's 179–209 EUR/day; all four pre-registered predictions held, both curves monotone, and the δ = 0 arm reproduced the cost optimum bit-for-bit. Promoted follow-on recorded, not started: the δ × CO₂ cross, which would split the ε arm's remaining 174–204 EUR/day into its CO₂ and excess-reservation parts. This margin arm is now the baseline the receding-horizon controller (C1) must beat

@@ -60,6 +60,17 @@ on the validation split, one point per test day per optimiser seed, reported
 in comparison.json under ``perfect_biased``. ``compare.days=[...]`` restricts
 a run to an explicit day list (scratch runs on exactly the robustness-subset
 days).
+
+Task 12 — static tie-line margin (item keys ``milp_margin_exec@{δ:.2f}``):
+``compare.tie_margins_mw`` additionally solves, per listed margin δ, the LP
+with the *planner's* tie ceiling tightened to ``tie_limit − δ``
+(``peak_max``, task 12 §2.1) and executes that plan open-loop like the other
+LP arms. The physics and the violation verdict stay at ``tie_limit`` — no
+code path carries ``peak_max`` into the rollout (task 12 §2.2). Requires
+``compare.milp_execute=true``; the margin arms are seedless and covered by
+``check_opt_seed_invariance`` via its ``exec_arms`` parameter (task 12 §5.4).
+Aggregation lands in comparison.json under ``milp_margin`` plus a pasteable
+``milp_margin.md``.
 """
 
 import itertools
@@ -175,7 +186,8 @@ def milp_physical(record: dict) -> dict:
     return {k: v for k, v in record.items() if k not in ("solve_s", "epsilon")}
 
 
-def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list[str]) -> int:
+def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list[str],
+                              exec_arms: tuple = ("milp_exec",)) -> int:
     """Assert seed-free quantities are identical across every optimiser seed.
 
     Only NSGA-III consumes ``optimize.seed``; rule and rl are nevertheless
@@ -191,10 +203,13 @@ def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list
     carries it. If it ever differs, the LP has picked up state it should not
     have.
 
-    ``milp_exec`` (task 11 §5.4) is covered too: the LP is deterministic and
-    the open-loop rollout is deterministic given the plan, so its physical
-    summary (timing metrics excluded) must be identical across seeds.
-    ``milp_eps_exec`` is excluded — seed-dependent by construction, its
+    Every arm named in ``exec_arms`` is covered too (default ``milp_exec``,
+    task 11 §5.4; the margin arms join it via this parameter, task 12 §5.4 —
+    ``methods`` cannot carry them, because it only filters the rule/rl loop
+    above): the LP is deterministic and the open-loop rollout is
+    deterministic given the plan, so each arm's physical summary (timing
+    metrics excluded) must be identical across seeds.
+    ``milp_eps_exec`` stays excluded — seed-dependent by construction, its
     ceilings come from that seed's own TOPSIS plan (same rule as ``epsilon``
     in :func:`milp_physical`); its provenance is protected by
     :func:`check_milp_epsilon_ceilings` instead.
@@ -230,18 +245,19 @@ def check_opt_seed_invariance(load, triples, opt_seeds: list[int], methods: list
                     f"(day={day}, mech={mech}, f={f}, noise_seed={s}) differs between "
                     f"opt_seed={opt_seeds[0]} and opt_seed={o}")
             checked += 1
-    for day, mech, f, s in triples:
-        first = load(day, mech, f, s, opt_seeds[0])
-        if "milp_exec" not in first:
-            continue
-        ref = physical(first["milp_exec"])
-        for o in opt_seeds[1:]:
-            if physical(load(day, mech, f, s, o)["milp_exec"]) != ref:
-                raise RuntimeError(
-                    f"optimiser seed leaked into 'milp_exec': physical summary for "
-                    f"(day={day}, mech={mech}, f={f}, noise_seed={s}) differs between "
-                    f"opt_seed={opt_seeds[0]} and opt_seed={o}")
-            checked += 1
+    for arm in exec_arms:
+        for day, mech, f, s in triples:
+            first = load(day, mech, f, s, opt_seeds[0])
+            if arm not in first:
+                continue
+            ref = physical(first[arm])
+            for o in opt_seeds[1:]:
+                if physical(load(day, mech, f, s, o)[arm]) != ref:
+                    raise RuntimeError(
+                        f"optimiser seed leaked into {arm!r}: physical summary for "
+                        f"(day={day}, mech={mech}, f={f}, noise_seed={s}) differs between "
+                        f"opt_seed={opt_seeds[0]} and opt_seed={o}")
+                checked += 1
     return checked
 
 
@@ -659,7 +675,7 @@ def _lp_objectives(P_mt, P_bat, planning: DayProfile, params) -> dict:
 
 
 def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict | None,
-               return_solutions: bool = False):
+               return_solutions: bool = False, tie_margins: tuple = ()):
     """The milp_planned cache record for one item (task 09 §6.2 + §8).
 
     Base solve always; with an ``nsga3_planned`` record also the ε-constrained
@@ -675,20 +691,28 @@ def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict
     stores no schedule (Round 1 check 1), so ``compare.milp_execute`` needs
     the in-scope solutions to roll out. Returns ``(record, base, eps)``;
     ``eps`` is None when no ε solve ran.
+
+    ``tie_margins`` (task 12 §5.2) additionally solves, per margin δ, the LP
+    with ``peak_max = tie_limit − δ`` and stores the PLANNED quantities under
+    ``margins[f"{δ:.2f}"]`` — never under ``epsilon``, whose shape
+    :func:`check_milp_epsilon_ceilings` polices, and deliberately without
+    ``solve_s``: :func:`milp_physical` strips wall-clock only at the top
+    level, so a nested solve time would trip the seed-invariance check on
+    every multi-seed item. The per-δ solve time survives as the executed
+    arm's ``decision_latency_s``. With margins and ``return_solutions`` the
+    return grows to ``(record, base, eps, {δ: MilpResult})``; with
+    ``tie_margins`` empty, record and return are exactly the task-11 ones.
     """
     n_tangents, feas_tol = int(milp_cfg["n_tangents"]), float(milp_cfg["feas_tol"])
 
-    def solve(**eps_kw):
+    def solve(label: str = "", hint: str = "", **eps_kw):
         try:
             return milp.solve_min_cost(
                 planning.fc_load, planning.fc_wind, planning.fc_solar,
                 planning.price_buy, planning.price_sell, params,
                 n_tangents=n_tangents, feas_tol=feas_tol, **eps_kw)
         except (milp.MilpInfeasibleError, milp.MilpCertificateError) as e:
-            hint = (" — the TOPSIS plan satisfies these ceilings by construction, "
-                    "so this is a bug, not a result" if eps_kw else "")
-            raise type(e)(f"day {planning.day}{' (ε-constrained)' if eps_kw else ''}: "
-                          f"{e}{hint}") from e
+            raise type(e)(f"day {planning.day}{label}: {e}{hint}") from e
 
     res = solve()
     eps = None
@@ -699,7 +723,10 @@ def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict
     if nsga3_planned is not None:
         tops = nsga3_planned["objectives"]
         co2_max, peak_max = float(tops["co2"]), float(tops["peak_grid"])
-        eps = solve(co2_max=co2_max, peak_max=peak_max)
+        eps = solve(" (ε-constrained)",
+                    " — the TOPSIS plan satisfies these ceilings by construction, "
+                    "so this is a bug, not a result",
+                    co2_max=co2_max, peak_max=peak_max)
         topsis_cost = float(tops["cost"])
         gap_delivered = topsis_cost - eps.lower_bound
         price_of_compromise = eps.lower_bound - res.lower_bound
@@ -714,8 +741,26 @@ def _milp_item(planning: DayProfile, params, milp_cfg: dict, nsga3_planned: dict
                           "lower_bound": eps.lower_bound, "upper_bound": eps.upper_bound,
                           "certificate": eps.certificate,
                           "objectives": _lp_objectives(eps.P_mt, eps.P_bat, planning, params)}
+    margin_solutions: dict[float, milp.MilpResult] = {}
+    if tie_margins:
+        rec["margins"] = {}
+        for d in tie_margins:
+            m = solve(f" (margin δ={d:.2f})", peak_max=params.tie_limit - d)
+            if d == 0.0 and abs(m.lower_bound - res.lower_bound) > feas_tol:
+                raise RuntimeError(
+                    f"day {planning.day}: the δ=0.00 margin LP's lower bound "
+                    f"{m.lower_bound!r} differs from the base LP's {res.lower_bound!r} "
+                    f"by more than feas_tol {feas_tol:g} — the margin code path changed "
+                    "the base problem (task 12 §3.3; lower_bound is the only quantity "
+                    "the two formulations are guaranteed to share)")
+            margin_solutions[d] = m
+            rec["margins"][f"{d:.2f}"] = {
+                "delta_mw": d, "peak_max": params.tie_limit - d,
+                "lower_bound": m.lower_bound, "upper_bound": m.upper_bound,
+                "certificate": m.certificate,
+                "objectives": _lp_objectives(m.P_mt, m.P_bat, planning, params)}
     if return_solutions:
-        return rec, res, eps
+        return (rec, res, eps, margin_solutions) if tie_margins else (rec, res, eps)
     return rec
 
 
@@ -737,6 +782,52 @@ def milp_execute_settings(cmp, milp_cfg: dict | None) -> float | None:
             "drop compare.milp_execute")
     floor = cmp.get("tie_violation_floor_mw")
     return float(floor) if floor is not None else float(milp_cfg["feas_tol"])
+
+
+def margin_key(delta: float) -> str:
+    """The item key of one margin arm (task 12 §3.4), e.g. ``milp_margin_exec@0.20``.
+
+    An ITEM key like ``milp_exec``, never a method: it must stay out of
+    :data:`METHODS` and the SQL layer's ``_METHODS``. The δ is baked into the
+    key at fixed precision so the list order in the config never becomes
+    meaning.
+    """
+    return f"milp_margin_exec@{delta:.2f}"
+
+
+def tie_margin_settings(cmp, tie_floor_mw: float | None, tie_limit: float) -> tuple[float, ...]:
+    """Resolve + validate ``compare.tie_margins_mw`` (task 12 §5.1).
+
+    Returns the validated δ tuple in config order (the arm key carries the
+    value, so order never becomes meaning); empty when the key is unset. The
+    key requires ``compare.milp_execute=true`` (``tie_floor_mw`` is non-None
+    exactly then) — the margin plans are only meaningful executed — and
+    raises naming both keys rather than silently doing nothing. Each δ must
+    satisfy ``0.0 <= δ < tie_limit`` (δ=0 is the §3.3 reproduction arm; a δ
+    at or above the limit leaves no tie capacity at all); duplicates raise,
+    including two δ that collide at the key's 2-decimal precision.
+    """
+    margins = [float(d) for d in (cmp.get("tie_margins_mw") or [])]
+    if not margins:
+        return ()
+    if tie_floor_mw is None:
+        raise ValueError(
+            "compare.tie_margins_mw requires compare.milp_execute=true (the margin "
+            "plans are executed open-loop through the milp_execute path); set "
+            "compare.milp_execute=true or drop compare.tie_margins_mw")
+    bad = [d for d in margins if not 0.0 <= d < tie_limit]
+    if bad:
+        raise ValueError(
+            f"compare.tie_margins_mw values must satisfy 0.0 <= δ < tie_limit "
+            f"({tie_limit:g} MW); offending: {bad}")
+    if len(set(margins)) != len(margins):
+        raise ValueError(f"compare.tie_margins_mw contains duplicates: {margins}")
+    keys = [margin_key(d) for d in margins]
+    if len(set(keys)) != len(keys):
+        raise ValueError(
+            f"compare.tie_margins_mw values collide at the arm key's 2-decimal "
+            f"precision: {margins} -> {keys}")
+    return tuple(margins)
 
 
 def _execution_extras(roll, p, floor_mw: float) -> dict:
@@ -807,7 +898,7 @@ def _terminal_at_bound(dev_signed: float, p) -> bool:
 def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, params, objectives,
                   opt_cfg, rl_model, env_cfg, baseline, subset_seed, methods: list[str],
                   bias: dict | None = None, milp_cfg: dict | None = None,
-                  tie_floor_mw: float | None = None) -> dict:
+                  tie_floor_mw: float | None = None, tie_margins: tuple = ()) -> dict:
     """Run the requested methods on one (day, mech, factor, noise draw); return their summaries.
 
     ``noise_seed`` selects the forecast-noise realization for whitenoise f>0
@@ -828,6 +919,14 @@ def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, par
     and ``milp_eps_exec``, outside :data:`METHODS` — with the LP's own solve
     time as the decision latency, asserts the §5.3 replay invariants, and adds
     the R6/R7 keys of :func:`_execution_extras` to every arm's summary dict.
+
+    ``tie_margins`` (task 12 §5.2, validated by :func:`tie_margin_settings`)
+    additionally executes one margin LP plan per δ — item keys
+    :func:`margin_key`, seedless like ``milp_exec`` — and applies the two
+    task-12 §5.3 anti-transposition checks where the schedules are known:
+    the executed plan's PLANNED peak must respect its own δ's ceiling, and
+    two δ whose bounds genuinely differ may not execute element-wise equal
+    schedules. Empty ``tie_margins`` leaves every existing path unchanged.
     """
     planning = _planning_profile(profile, mech, f, noise_seed, subset_seed, bias)
     # Task 08 §9.2: the cost decomposition's plan-independent term
@@ -857,12 +956,20 @@ def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, par
             out["milp_planned"] = _milp_item(planning, params, milp_cfg,
                                              out.get("nsga3_planned"))
         else:
-            rec, lp_base, lp_eps = _milp_item(planning, params, milp_cfg,
-                                              out.get("nsga3_planned"),
-                                              return_solutions=True)
+            if tie_margins:
+                rec, lp_base, lp_eps, lp_margins = _milp_item(
+                    planning, params, milp_cfg, out.get("nsga3_planned"),
+                    return_solutions=True, tie_margins=tie_margins)
+            else:
+                rec, lp_base, lp_eps = _milp_item(planning, params, milp_cfg,
+                                                  out.get("nsga3_planned"),
+                                                  return_solutions=True)
+                lp_margins = {}
             out["milp_planned"] = rec
             feas_tol = float(milp_cfg["feas_tol"])
-            for arm, lp in (("milp_exec", lp_base), ("milp_eps_exec", lp_eps)):
+            arm_lps = [("milp_exec", lp_base), ("milp_eps_exec", lp_eps)]
+            arm_lps += [(margin_key(d), lp_margins[d]) for d in sorted(lp_margins)]
+            for arm, lp in arm_lps:
                 if lp is None:
                     continue
                 rollouts[arm] = simulate(profile, params, plan_decider(lp.P_mt, lp.P_bat),
@@ -892,6 +999,65 @@ def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, par
                         "element-wise equal — milp_eps_exec is not executing the ε "
                         "schedule (task 11 §5.3c)")
                 out["milp_eps_exec"]["eps_ceilings_slack"] = bool(slack)
+            # Task 12 §5.3: the anti-transposition checks, applied where the
+            # schedules are known rather than by comparing outputs afterwards.
+            # The named failure mode is a margin arm rolled out from the wrong
+            # δ's MilpResult (most plausibly all of them from lp_base), which
+            # would flatten the whole δ curve and read as a clean negative
+            # result while every other assertion passes.
+            if lp_margins:
+                deltas = sorted(lp_margins)
+                # (a) The ceiling check, which raises: the EXECUTED plan's
+                # planned peak (its grid profile on the planning forecast)
+                # must respect its own δ's ceiling. Computed from the rollout's
+                # replayed schedule, so a transposition between solve and
+                # rollout cannot hide behind the planned record.
+                for d in deltas:
+                    arm = margin_key(d)
+                    g_plan = system.grid_power(
+                        rollouts[arm].P_mt, rollouts[arm].P_bat,
+                        planning.fc_load, planning.fc_wind, planning.fc_solar)
+                    planned_peak = float(np.abs(g_plan).max())
+                    if planned_peak > params.tie_limit - d + feas_tol:
+                        raise RuntimeError(
+                            f"day {planning.day}, arm {arm!r}: the executed plan's "
+                            f"planned peak {planned_peak:.6f} MW exceeds its planning "
+                            f"ceiling tie_limit − δ = {params.tie_limit - d:.6f} MW "
+                            f"(+ feas_tol {feas_tol:g}) — the arm is not executing its "
+                            "own δ's plan (task 12 §5.3)")
+                # (b) The distinctness check, also raising: where the tighter
+                # ceiling genuinely bit (bounds differ by more than feas_tol),
+                # the two executed schedules may not be element-wise equal —
+                # this catches the reverse transposition (a) cannot.
+                for d1, d2 in itertools.combinations(deltas, 2):
+                    bites = (lp_margins[d2].lower_bound
+                             - lp_margins[d1].lower_bound) > feas_tol
+                    a1, a2 = margin_key(d1), margin_key(d2)
+                    if bites and (
+                            np.array_equal(rollouts[a1].P_mt, rollouts[a2].P_mt)
+                            and np.array_equal(rollouts[a1].P_bat, rollouts[a2].P_bat)):
+                        raise RuntimeError(
+                            f"day {planning.day}: margins δ={d1:.2f} and δ={d2:.2f} "
+                            f"have lower bounds differing by more than feas_tol "
+                            f"{feas_tol:g} but element-wise equal executed schedules "
+                            "— a transposed margin rollout (task 12 §5.3)")
+                # Reported, never raised: per δ, whether the ceiling did not
+                # bite at all against the base LP ("the margin never bit on N
+                # days" is a §8 fact), and the count of planned-peak
+                # non-monotone pairs — z carries zero objective weight, so a
+                # tighter δ can legally return a vertex with a HIGHER peak at
+                # identical cost (the §3.3 degeneracy); asserting monotonicity
+                # here would contradict §3.3.
+                for d in deltas:
+                    out[margin_key(d)]["margin_ceiling_slack"] = bool(
+                        lp_margins[d].lower_bound - lp_base.lower_bound <= feas_tol)
+                nonmono = []
+                for d1, d2 in itertools.combinations(deltas, 2):
+                    pk1 = rec["margins"][f"{d1:.2f}"]["objectives"]["peak_grid"]
+                    pk2 = rec["margins"][f"{d2:.2f}"]["objectives"]["peak_grid"]
+                    if pk2 > pk1 + feas_tol:
+                        nonmono.append([d1, d2])
+                out["milp_margin_nonmonotone_peak_pairs"] = nonmono
     if tie_floor_mw is not None:
         for arm, roll in rollouts.items():
             out[arm].update(_execution_extras(roll, params, tie_floor_mw))
@@ -1569,6 +1735,281 @@ def milp_exec_markdown(block: dict) -> str:
     return "\n".join(lines) + "\n"
 
 
+# --------------------------------------------------------------------------- #
+# Static tie-line margin aggregation (task 12 §5.5)
+# --------------------------------------------------------------------------- #
+def milp_margin_block(items_by_seed: dict[int, list[dict]], days: list[str], by_day,
+                      p, floor_mw: float, margins: tuple) -> dict:
+    """The milp_margin block of comparison.json (task 12 §5.5).
+
+    Tabulation only — the §8 readings happen in the log. Margin arms are
+    seedless (invariance proved by ``check_opt_seed_invariance``, task 12
+    §5.4/§9), so their stats are reported ONCE at the base seed, never as a
+    seed range; the paired comparisons are per seed because the OTHER side
+    (``nsga3``, ``milp_eps_exec``) carries the seed. R8: every δ appears in
+    the curve, losers included; coverage is loud per δ. ``milp_exec_block``
+    is deliberately not widened — its shape is a published record (11 log).
+    """
+    opt_seeds = sorted(int(o) for o in items_by_seed)
+    base = opt_seeds[0]
+    base_items = items_by_seed[base]
+    keys = [margin_key(d) for d in margins]
+    n_missing = {f"{d:.2f}": sum(1 for it in base_items if margin_key(d) not in it)
+                 for d in margins}
+    if all(n == len(base_items) for n in n_missing.values()):
+        raise RuntimeError(
+            f"compare.tie_margins_mw is set but none of the {len(base_items)} cached "
+            "nominal items carries a margin arm — the cache predates the setting "
+            "(resume skips existing files); re-solve into a fresh compare.cache_dir "
+            "instead of resuming onto it")
+
+    arms = {}
+    for d, k in zip(margins, keys):
+        arms[k] = {
+            "delta_mw": d,
+            "planning_peak_max_mw": p.tie_limit - d,
+            "seed_axis": "invariant — proved by check_opt_seed_invariance, "
+                         "reported once, never as a seed range (task 12 §9)",
+            "stats": _exec_arm_stats(base_items, days, k, p),
+        }
+
+    # §3.5 table 1 — continuity: every arm paired against nsga3 per seed, the
+    # reader's existing frame. Per seed even for seedless arms: nsga3 differs.
+    continuity = {}
+    for arm in ("rule", "rl", "milp_exec", "milp_eps_exec", *keys):
+        continuity[f"{arm}_vs_nsga3"] = {}
+        for o in opt_seeds:
+            items = [it for it in items_by_seed[o] if arm in it and "nsga3" in it]
+            continuity[f"{arm}_vs_nsga3"][f"o{o}"] = None if not items else {
+                m: _paired(items, m, [], pairs=((arm, "nsga3"),))[f"{arm}_vs_nsga3"]
+                for m in EXEC_PAIRED_METRICS}
+
+    # §3.5 table 2 — the win test, the only table that decides: each δ against
+    # milp_eps_exec directly, paired per day, per seed. Routing through nsga3
+    # would add its seed spread to both sides of a comparison that needs none.
+    win_test = {}
+    for k in keys:
+        win_test[f"{k}_vs_milp_eps_exec"] = {}
+        for o in opt_seeds:
+            items = [it for it in items_by_seed[o] if k in it and "milp_eps_exec" in it]
+            win_test[f"{k}_vs_milp_eps_exec"][f"o{o}"] = None if not items else {
+                m: _paired(items, m, [], pairs=((k, "milp_eps_exec"),))
+                [f"{k}_vs_milp_eps_exec"] for m in EXEC_PAIRED_METRICS}
+
+    # R3 breakevens against nsga3, same shape as the task-11 block.
+    breakevens = {}
+    for k in keys:
+        breakevens[k] = {}
+        for o in opt_seeds:
+            items = [it for it in items_by_seed[o] if k in it and "nsga3" in it]
+            if not items:
+                breakevens[k][f"o{o}"] = None
+                continue
+            nc = sum(it["nsga3"]["cost_eur"] for it in items)
+            ac = sum(it[k]["cost_eur"] for it in items)
+            breakevens[k][f"o{o}"] = {
+                "eur_per_mw": breakeven_eur(
+                    nc, ac, sum(it[k]["tie_violation_mw_material"] for it in items),
+                    sum(it["nsga3"]["tie_violation_mw_material"] for it in items)),
+                "eur_per_step": breakeven_eur(
+                    nc, ac, sum(it[k]["tie_violation_steps_material"] for it in items),
+                    sum(it["nsga3"]["tie_violation_steps_material"] for it in items)),
+                "floor_mw": floor_mw,
+            }
+
+    # The δ curve (R8: every δ, including the losers). Planned peak and
+    # realised peak share a row per §3.7's explicitly weaker rule for peaks —
+    # and are never differenced. The borrowed-energy euro bound prices R7's
+    # signed terminal deviation at each day's own maximum buy price.
+    curve = []
+    for d, k in zip(margins, keys):
+        st = arms[k]["stats"]
+        have = [(day, it) for day, it in zip(days, base_items) if k in it]
+        pp = [float(it["milp_planned"]["margins"][f"{d:.2f}"]["objectives"]["peak_grid"])
+              for _, it in have
+              if f"{d:.2f}" in ((it.get("milp_planned") or {}).get("margins") or {})]
+        eur = [max(0.0, -float(it[k]["terminal_soc_dev_signed"]) * p.bat_capacity)
+               * float(np.max(by_day[day].price_buy)) for day, it in have]
+        curve.append({
+            "delta_mw": d,
+            "arm": k,
+            "n_days": len(have),
+            "n_missing": n_missing[f"{d:.2f}"],
+            "planning_peak_max_mw": p.tie_limit - d,
+            "planned_peak_mw": None if not pp else
+                {"mean": float(np.mean(pp)), **_median_range(pp)},
+            "stats": st,
+            "days_ceiling_slack": sum(1 for _, it in have
+                                      if it[k].get("margin_ceiling_slack") is True),
+            "borrowed_energy_eur_bound": None if not eur else
+                {"mean": float(np.mean(eur)), "median": float(np.median(eur)),
+                 "max": float(np.max(eur))},
+        })
+
+    # §3.3's δ=0 reproduction arm, realised side: lower_bound equality is
+    # asserted at solve time; realised differences against milp_exec are legal
+    # vertex degeneracy and are REPORTED as findings, never asserted away.
+    delta0 = None
+    if 0.0 in margins:
+        k0 = margin_key(0.0)
+        rows = [(day, it) for day, it in zip(days, base_items)
+                if k0 in it and "milp_exec" in it]
+        if rows:
+            cost_diff = [abs(float(it[k0]["cost_eur"]) - float(it["milp_exec"]["cost_eur"]))
+                         for _, it in rows]
+            delta0 = {
+                "n_days": len(rows),
+                "days_realised_cost_differs": sum(1 for v in cost_diff if v > 0.0),
+                "max_abs_realised_cost_diff_eur": float(max(cost_diff)),
+                "days_material_violation_steps_differ": sum(
+                    1 for _, it in rows
+                    if it[k0]["tie_violation_steps_material"]
+                    != it["milp_exec"]["tie_violation_steps_material"]),
+                "note": "lower_bound equality asserted at solve time (task 12 §3.3); "
+                        "schedule-level differences are legal LP vertex degeneracy — "
+                        "a finding for the log, never a failure to engineer away",
+            }
+
+    nonmono = sum(len(it.get("milp_margin_nonmonotone_peak_pairs") or [])
+                  for it in base_items)
+
+    return {
+        "n_days": len(days),
+        "opt_seeds": opt_seeds,
+        "tie_violation_floor_mw": floor_mw,
+        "margins_mw": [float(d) for d in margins],
+        "n_missing": n_missing,
+        "noise_floor_eur_per_day": dict(NSGA3_COST_NOISE_FLOOR),
+        "arms": arms,
+        "continuity_vs_nsga3": continuity,
+        "win_test_vs_milp_eps_exec": win_test,
+        "breakevens_vs_nsga3": breakevens,
+        "delta_curve": curve,
+        "delta0_reproduction": delta0,
+        "planned_peak_nonmonotone_pairs": nonmono,
+    }
+
+
+def milp_margin_markdown(block: dict) -> str:
+    """Pasteable milp_margin tables, R1–R8-compliant. Tabulation only — the
+    §8 readings belong to the log, not this function."""
+    floor = block["tie_violation_floor_mw"]
+    nf = block["noise_floor_eur_per_day"]
+    awaiting = "— (awaiting Batch E-A)"
+    lines = [
+        "Static tie-line margin arms (task 12): LP plans built with the PLANNER'S tie",
+        "ceiling tightened to 3.0 − δ MW, executed open-loop against the measured",
+        "actuals through rl.rollout.simulate; the physics and the violation verdict",
+        "stay at tie_limit = 3.0 MW for every δ. Every cost below is REALISED. The",
+        "planned-peak column is the one PLANNED quantity in this file (task 12 §3.7's",
+        "weaker peak rule: it may share a table with realised peaks, never be",
+        "differenced against them). Margin arms are seedless — invariance proved, so",
+        f"stats are reported once, never as a seed range. Violation floor {floor:g} MW",
+        f"(R6: raw and material always together); noise floor {nf['value']} EUR/day",
+        f"({nf['source']}).",
+        "",
+        "## δ curve (R8: every δ, losers included)",
+        "",
+        "| δ (MW) | plan ceiling (MW) | n days | planned peak mean (MW) | realised cost mean "
+        "(median [min, max]) | realised peak mean (MW) | viol steps/day raw / material | "
+        "days any / material viol | worst violation day | terminal signed mean | days ceiling "
+        "slack | missing |",
+        "|---:|---:|---:|---:|---|---:|---|---|---|---:|---:|---:|",
+    ]
+    for row in block["delta_curve"]:
+        st = row["stats"]
+        if st is None:
+            lines.append(f"| {row['delta_mw']:.2f} | {row['planning_peak_max_mw']:.2f} | 0 "
+                         f"| {awaiting} | — | — | — | — | — | — | — | {row['n_missing']} |")
+            continue
+        c = st["metrics"]["cost_eur"]
+        pk = row["planned_peak_mw"]
+        wv = st["worst_violation_day"]
+        wv_s = "—" if wv is None else (f"{wv['day']} ({wv['tie_violation_mw_material']:.4f} MW, "
+                                       f"{wv['tie_violation_steps_material']} steps)")
+        lines.append(
+            f"| {row['delta_mw']:.2f} | {row['planning_peak_max_mw']:.2f} | {st['n_days']} | "
+            f"{pk['mean']:.4f} | {c['mean']:.4f} ({c['median']:.2f} [{c['min']:.2f}, "
+            f"{c['max']:.2f}]) | {st['metrics']['peak_mw']['mean']:.4f} | "
+            f"{st['metrics']['tie_violation_steps']['mean']:.4f} / "
+            f"{st['metrics']['tie_violation_steps_material']['mean']:.4f} | "
+            f"{st['days_with_any_violation']} / {st['days_with_material_violation']} | {wv_s} | "
+            f"{st['metrics']['terminal_soc_dev_signed']['mean']:+.6f} | "
+            f"{row['days_ceiling_slack']} | {row['n_missing']} |")
+
+    lines += ["", "## Per-arm R1 metric set (base seed; margin arms are seedless)", "",
+              "| arm | metric | mean | median [min, max] |", "|---|---|---:|---|"]
+    for k, entry in block["arms"].items():
+        st = entry["stats"]
+        if st is None:
+            lines.append(f"| {k} | {awaiting} | — | — |")
+            continue
+        for m in EXEC_METRICS:
+            v = st["metrics"][m]
+            lines.append(f"| {k} | `{m}` | {v['mean']:.4f} | "
+                         f"{v['median']:.4f} [{v['min']:.4f}, {v['max']:.4f}] |")
+
+    lines += ["", "## Continuity: every arm paired per-day vs nsga3 (mean diff ± std, "
+              "arm-lower win rate; negative = arm cheaper/lower)", "",
+              "| pair | seed | metric | mean diff | std | win rate % | n |",
+              "|---|---|---|---:|---:|---:|---:|"]
+    for pair, per_seed in block["continuity_vs_nsga3"].items():
+        for ok, st in per_seed.items():
+            if st is None:
+                lines.append(f"| {pair} | {ok} | {awaiting} | — | — | — |")
+                continue
+            for m, dd in st.items():
+                lines.append(f"| {pair} | {ok} | `{m}` | {dd['mean_diff']:.4f} | "
+                             f"{dd['std_diff']:.4f} | {dd['a_lower_win_rate_pct']:.1f} | "
+                             f"{dd['n_days']} |")
+
+    lines += ["", "## The win test (§3.5, the only table that decides): each δ paired "
+              "per-day vs milp_eps_exec, per seed (negative = margin arm cheaper/lower)", "",
+              "| pair | seed | metric | mean diff | std | win rate % | n |",
+              "|---|---|---|---:|---:|---:|---:|"]
+    for pair, per_seed in block["win_test_vs_milp_eps_exec"].items():
+        for ok, st in per_seed.items():
+            if st is None:
+                lines.append(f"| {pair} | {ok} | {awaiting} | — | — | — |")
+                continue
+            for m, dd in st.items():
+                lines.append(f"| {pair} | {ok} | `{m}` | {dd['mean_diff']:.4f} | "
+                             f"{dd['std_diff']:.4f} | {dd['a_lower_win_rate_pct']:.1f} | "
+                             f"{dd['n_days']} |")
+
+    lines += ["", f"Breakevens vs nsga3 (R3), material counts (floor {floor:g} MW): the arm "
+              "is cheaper only if one MW (one step) over the tie limit costs less than:", "",
+              "| arm | seed | EUR per MW | EUR per step |", "|---|---|---|---|"]
+
+    def bk(cell):
+        return "null — " + cell["reason"] if cell["value"] is None else f"{cell['value']:.2f}"
+
+    for arm, per_seed in block["breakevens_vs_nsga3"].items():
+        for ok, st in per_seed.items():
+            if st is None:
+                lines.append(f"| {arm} | {ok} | {awaiting} | — |")
+            else:
+                lines.append(f"| {arm} | {ok} | {bk(st['eur_per_mw'])} | "
+                             f"{bk(st['eur_per_step'])} |")
+
+    d0 = block["delta0_reproduction"]
+    if d0 is not None:
+        lines += ["", f"δ = 0 reproduction arm (§3.3): over {d0['n_days']} days, the realised "
+                  f"cost differs from milp_exec on {d0['days_realised_cost_differs']} day(s) "
+                  f"(max |diff| {d0['max_abs_realised_cost_diff_eur']:.4f} EUR) and the "
+                  f"material violation-step count differs on "
+                  f"{d0['days_material_violation_steps_differ']} day(s). "
+                  f"{d0['note']}."]
+    lines += ["", f"Planned-peak non-monotone (day, δ1, δ2) pairs (diagnostic, §5.3 — legal "
+              f"vertex degeneracy, never asserted): {block['planned_peak_nonmonotone_pairs']}."]
+    for row in block["delta_curve"]:
+        if row["n_missing"]:
+            lines += ["", f"WARNING: {row['n_missing']} nominal item(s) lack "
+                      f"{row['arm']} — the aggregates cover fewer items than the day "
+                      "count suggests."]
+    return "\n".join(lines) + "\n"
+
+
 @hydra.main(config_path="../configs", config_name="pipeline", version_base=None)
 def main(cfg: DictConfig) -> None:
     df = pd.read_parquet(resolve(cfg.paths.processed_dir) / f"{cfg.data.name}_dataset.parquet")
@@ -1619,6 +2060,10 @@ def main(cfg: DictConfig) -> None:
     # violation floor and is non-None exactly when the flag is on; the flag
     # without compare.milp raises inside milp_execute_settings.
     tie_floor = milp_execute_settings(cmp, milp_cfg)
+    # Task 12 §5.1: static planning margins δ (item keys milp_margin_exec@δ),
+    # validated against the tie limit; requires milp_execute (raises naming
+    # both keys). Empty tuple = every existing path unchanged.
+    tie_margins = tie_margin_settings(cmp, tie_floor, params.tie_limit)
     # Forecast tier (task 08 §7): one run = one tier. The tier names the cache
     # entries; the profiles must come from the matching forecast source, which
     # the caller sets via rl.train.forecast_source (+ forecast.run_name for
@@ -1732,7 +2177,8 @@ def main(cfg: DictConfig) -> None:
             continue  # written as a nominal alias by an earlier item this run
         item = _compute_item(by_day[day], mech, f, s, params, objectives, opt_cfgs[o],
                              rl_model, env_cfg, baseline, subset_seed, methods, bias,
-                             milp_cfg=milp_cfg, tie_floor_mw=tie_floor)
+                             milp_cfg=milp_cfg, tie_floor_mw=tie_floor,
+                             tie_margins=tie_margins)
         write_item(cache_dir, day, f, s, o, item, tier=tier, mech=mech)
         if mech != MECH_WHITENOISE or f == 0.0:
             letter = FACTOR_LETTER[mech]
@@ -1795,9 +2241,16 @@ def main(cfg: DictConfig) -> None:
     spread = None
     if len(opt_seeds) > 1:
         triples = sorted({(d, m, f, s) for d, m, f, s, _ in work})
-        n_checked = check_opt_seed_invariance(load, triples, opt_seeds, methods)
+        # Task 12 §5.4: the margin arms are seedless and must be COVERED, via
+        # the real exec_arms parameter — composing them into `methods` would
+        # be silently accepted and check nothing (methods only filters the
+        # hard-coded rule/rl loop).
+        exec_arms = ("milp_exec",) + tuple(margin_key(d) for d in tie_margins)
+        n_checked = check_opt_seed_invariance(load, triples, opt_seeds, methods,
+                                              exec_arms=exec_arms)
         log.info("opt-seed invariance check PASSED: rule/rl physical summaries identical "
-                 "across opt seeds %s (%d comparisons)", opt_seeds, n_checked)
+                 "across opt seeds %s (%d comparisons; exec arms covered: %s)",
+                 opt_seeds, n_checked, list(exec_arms))
         summaries_by_seed = {o: [load(p.day, MECH_WHITENOISE, 0.0, 0, o) for p in profiles]
                              for o in opt_seeds}
         spread = {
@@ -1853,6 +2306,7 @@ def main(cfg: DictConfig) -> None:
     # fills in gap_delivered / price_of_compromise later.
     milp_block = None
     exec_block = None
+    margin_block = None
     if milp_cfg is not None:
         milp_items_by_seed = {o: [load(p.day, MECH_WHITENOISE, 0.0, 0, o) for p in profiles]
                               for o in opt_seeds}
@@ -1872,6 +2326,12 @@ def main(cfg: DictConfig) -> None:
             log.info("milp_exec: %d items missing milp_exec, %d missing milp_eps_exec "
                      "(floor %g MW)", exec_block["n_missing_milp_exec"],
                      exec_block["n_missing_milp_eps_exec"], tie_floor)
+            if tie_margins:
+                margin_block = milp_margin_block(milp_items_by_seed,
+                                                 [p.day for p in profiles],
+                                                 by_day, params, tie_floor, tie_margins)
+                log.info("milp_margin: δ grid %s, missing per δ %s",
+                         margin_block["margins_mw"], margin_block["n_missing"])
 
     out_dir.mkdir(parents=True, exist_ok=True)
     prev_path = out_dir / "comparison.json"
@@ -1917,6 +2377,8 @@ def main(cfg: DictConfig) -> None:
         comparison["milp_gap"] = milp_block
     if exec_block is not None:
         comparison["milp_exec"] = exec_block
+    if margin_block is not None:
+        comparison["milp_margin"] = margin_block
     prev_path.write_text(json.dumps(comparison, indent=2))
     log.info("comparison -> %s", prev_path)
     if spread is not None:
@@ -1935,6 +2397,10 @@ def main(cfg: DictConfig) -> None:
         me_path = out_dir / "milp_exec.md"
         me_path.write_text(milp_exec_markdown(exec_block))
         log.info("milp execution report -> %s", me_path)
+    if margin_block is not None:
+        mm_path = out_dir / "milp_margin.md"
+        mm_path.write_text(milp_margin_markdown(margin_block))
+        log.info("milp margin report -> %s", mm_path)
 
     fig_dir.mkdir(parents=True, exist_ok=True)
     report.plot_comparison_bars(agg, methods, fig_dir / "dispatch_comparison_bars.png", len(profiles))

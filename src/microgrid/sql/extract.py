@@ -28,8 +28,9 @@ DISPATCH_RESULT_COLUMNS = [
 ]
 # The per-method summary keys a cache item may hold. Items also carry
 # non-method keys (forecast_mae_mw, nsga3_planned, milp_planned, milp_exec,
-# milp_eps_exec) that must never become rows, so methods are selected
-# explicitly rather than iterating the dict.
+# milp_eps_exec, and task 12's milp_margin_exec@{δ} family) that must never
+# become rows, so methods are selected explicitly rather than iterating the
+# dict.
 _METHODS = ("rule", "nsga3", "rl")
 
 

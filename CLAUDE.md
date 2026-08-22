@@ -1,4 +1,4 @@
-# CLAUDE.md — read this first, then the ACTIVE TASK file. Nothing else is required to start.
+# CLAUDE.md — read this first, then docs/plan.md, then the ACTIVE TASK file. Nothing else is required to start.
 
 ## What this project is
 
@@ -129,6 +129,7 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 09 | MILP optimality gap: how far NSGA-III is from the deterministic optimum (roadmap C2) | ✅ done | [docs/tasks/09-milp-gap.md](docs/tasks/09-milp-gap.md) — results in [docs/experiments/09-milp-gap-log.md](docs/experiments/09-milp-gap-log.md) (§5 is the synthesis); gaps are planned-versus-planned on the forecast, never against a realised cost; dispatched plan +15.1 % vs the proven optimum, two thirds optimiser shortfall, one third compromise price, part of it buying unpriced tie-line headroom |
 | 10 | Multi-day episodes: is there cross-day value, and does RL capture it? | ⬜ pending | [docs/tasks/10-multiday-episode.md](docs/tasks/10-multiday-episode.md) — its own spec places it after C1 (rolling MPC); additive to task 04, whose daily-arm numbers stay frozen |
 | 11 | LP-plan execution check: realised cost + tie violations of the LP schedule (task 09 §11 follow-on) | ✅ done | [docs/tasks/11-lp-plan-execution.md](docs/tasks/11-lp-plan-execution.md) — results in [docs/experiments/11-lp-execution-log.md](docs/experiments/11-lp-execution-log.md) (§5 is the synthesis), which owns the realised numbers of the two LP arms; realised-versus-realised throughout, so nothing here enters the 09 log's tables and no planned cost enters this one's. The cost optimum executes 575–603 EUR/day cheaper but breaks the tie limit on 33/61 days; the ε plan keeps 383–396 EUR/day at 0–2 violating days; the tie-limit margin sweep is promoted (task 11 §11), target the realised ~390 |
+| 12 | Static tie-line margin: the δ at which the LP plan becomes dispatchable, and what that headroom costs | ✅ done | [docs/tasks/12-tie-margin.md](docs/tasks/12-tie-margin.md) — results in [docs/experiments/12-tie-margin-log.md](docs/experiments/12-tie-margin-log.md) (§5 is the synthesis); artifacts `models/comparison/block_e/`, now a published read-only record. δ = 0.35 MW: 0/61 violating days at 4862.74 EUR/day realised, 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds; the headroom costs 5.51 EUR/day vs the unconstrained optimum. Branch-1 headline; all four predictions held; asymmetric-margin gate not fired, δ × CO₂ cross promoted (no spec, no board row). The margin arm is the baseline task 13 (MPC) must beat |
 | S2 | SQL layer: carry the task-08 dispatch-cache key through | ✅ done | [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) — plumbing only; no number in any README, task file or log may change |
 | S3 | SQL layer over the full 2019-2024 history (NaN = absent measurement) | ✅ done | [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md) — a NaN is an absent measurement: dropped by design, count reported, never imputed; solar coverage starts 2020-06-30 |
 
@@ -143,9 +144,17 @@ It is explicitly not binding — it says so at the top.
 
 ## ACTIVE TASK
 
-> **ACTIVE TASK: none — task 11 closed on 2026-08-09, and the owner names what
-> opens next; do not start anything on your own.** Task 11's archive summary is
-> at the top of
+> **ACTIVE TASK: none.** Task 12 closed on 2026-08-22 — archive summary at the
+> top of [docs/tasks/12-tie-margin.md](docs/tasks/12-tie-margin.md); results in
+> [docs/experiments/12-tie-margin-log.md](docs/experiments/12-tie-margin-log.md)
+> (§5 is the synthesis). `models/comparison/block_e/` joins the published,
+> **read-only** records. Its rule outlives it: the δ = 0.35 MW margin arm
+> (0/61 violating days at 4862.74 EUR/day realised, seedless) is the baseline
+> task 13 (rolling MPC, plan.md §3 Weeks 2–3) must beat — dynamic correction
+> that cannot beat a 5.51 EUR/day static insurance premium is not worth its
+> complexity.
+>
+> Task 11 closed on 2026-08-09; its archive summary is at the top of
 > [docs/tasks/11-lp-plan-execution.md](docs/tasks/11-lp-plan-execution.md);
 > results in
 > [docs/experiments/11-lp-execution-log.md](docs/experiments/11-lp-execution-log.md)
@@ -165,8 +174,9 @@ It is explicitly not binding — it says so at the top.
 > restates this for the one case that will tempt a reader, the LP plan's own
 > realised cost against its own planned bound; the 11 log's §4.9/§5
 > decomposition shows the compliant alternative: compare within-stage
-> differences, never across the boundary), and the four `models/comparison*`
-> directories above are all read-only published records.
+> differences, never across the boundary), and the five `models/comparison*`
+> directories above (now including `block_e/`) are all read-only published
+> records.
 >
 > Five items have specs or verdicts but are **not** started, and none may be
 > begun without the owner saying so: task 07 (Split B, spec exists — split A and
@@ -174,19 +184,25 @@ It is explicitly not binding — it says so at the top.
 > that need no NWP because the NWP archive begins 2024-02); task 08's gated
 > follow-on, the battery/tie-line sizing sweep (task 08 §11, fired, no spec);
 > task 09's remaining gated follow-on, the NSGA-III budget sweep (gate fired —
-> promoted, no spec yet); task 10 (multi-day episodes, spec exists, placed
-> after C1 by its own spec); and task 11's gated follow-on, the tie-limit
-> margin sweep (task 11 §11, gate fired — promoted, no spec yet). Task 11's
-> scoping note binds both sweeps: their target is the realised ~390 EUR/day
-> the ε arm already demonstrates, not task 09's planned 452.74.
+> promoted, no spec yet; `docs/plan.md` §3 places it at Week 4); task 10
+> (multi-day episodes, spec exists, placed after C1 by its own spec); and
+> task 12's promoted follow-on, the δ × CO₂ cross (task 12 §11, gate fired at
+> close — would split the ε arm's remaining 174–204 EUR/day into its CO₂ and
+> excess-reservation parts; priced at 366 LP solves + 366 rollouts, no spec).
+> Task 12's asymmetric-margin gate did **not** fire (its whole upside,
+> 5.51 EUR/day, is inside the noise floor) and is closed, not pending.
+> Task 11's scoping note still binds the budget sweep:
+> its target is the realised ~390 EUR/day the ε arm already demonstrates, not
+> task 09's planned 452.74.
 >
-> Tasks 04, 05, 06, 08, 09, 11, S2 and S3 are done — archive summaries at the
-> top of [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md),
+> Tasks 04, 05, 06, 08, 09, 11, 12, S2 and S3 are done — archive summaries at
+> the top of [docs/tasks/04-drl-dispatch.md](docs/tasks/04-drl-dispatch.md),
 > [docs/tasks/05-patchtst.md](docs/tasks/05-patchtst.md),
 > [docs/tasks/06-data-agent.md](docs/tasks/06-data-agent.md),
 > [docs/tasks/08-forecast-value.md](docs/tasks/08-forecast-value.md),
 > [docs/tasks/09-milp-gap.md](docs/tasks/09-milp-gap.md),
 > [docs/tasks/11-lp-plan-execution.md](docs/tasks/11-lp-plan-execution.md),
+> [docs/tasks/12-tie-margin.md](docs/tasks/12-tie-margin.md),
 > [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) and
 > [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md).
 > S3's rule outlives the task: in the SQL layer a NaN is an absent
