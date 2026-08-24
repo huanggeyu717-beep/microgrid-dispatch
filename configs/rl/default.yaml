@@ -33,6 +33,21 @@ env:
   # Observation scale constants (bring MW / EUR·MWh^-1 quantities to O(1)).
   power_scale: 4.0             # ~ load peak [MW]
   price_scale: 200.0           # ~ peak buy price [EUR/MWh]
+  # Hard tie-line feasibility. false reproduces the published task 04 / task 15
+  # behaviour exactly: the tie limit is neither projected nor punished, only
+  # measured, which is why the learned policy violates it on 21-32 of 61 test
+  # days (15 log 5.3). true projects each step's (P_mt, P_bat) onto the tie band
+  # the same way they are already projected onto the ramp window and the
+  # SoC-feasible window -- feasibility by projection, not punishment, which is
+  # the contract rl/env.py's module docstring states.
+  project_tie: false
+  # Hard terminal-SoC feasibility (task D1 phase 2). false = the published
+  # behaviour, where e_init is only a reward-shaping target and the policy ends
+  # the day 0.07-0.30 MWh off against a 0.05 MWh tolerance (D1 log 3.2). true
+  # keeps e_init reachable at every step, so the schedule can be repeated
+  # tomorrow. Where it conflicts with project_tie the terminal window gives way:
+  # a tie violation is permanent, a terminal shortfall is still recoverable.
+  project_terminal: false
   # Reward (per step): -(dcost + co2_price*dco2) / cost_scale, both in EUR.
   reward:
     co2_price: 30.0            # EUR per tCO2 — carbon price folding CO2 into cost

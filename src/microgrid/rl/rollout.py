@@ -40,6 +40,7 @@ class RolloutResult:
     co2: float
     peak: float
     terminal_soc_dev: float          # |SoC_T - SoC_0| as a fraction of capacity
+    terminal_soc_signed: float       # (SoC_T - SoC_0), signed: <0 drained, >0 filled
     tie_violation_steps: int         # steps with |P_grid| > tie_limit
     tie_violation_mag: float         # summed MW over the limit
     projection: float                # summed |requested - projected| setpoint magnitude
@@ -60,6 +61,7 @@ class RolloutResult:
             "co2_tco2": round(self.co2, 4),
             "peak_mw": round(self.peak, 4),
             "terminal_soc_dev": round(self.terminal_soc_dev, 4),
+            "terminal_soc_signed": round(self.terminal_soc_signed, 4),
             "tie_violation_steps": int(self.tie_violation_steps),
             "tie_violation_mw": round(self.tie_violation_mag, 4),
             "projection_mw": round(self.projection, 4),
@@ -78,12 +80,19 @@ def simulate(
     method: str,
     *,
     decision_latency_s: float | None = None,
+    project_tie: bool = False,
+    project_terminal: bool = False,
 ) -> RolloutResult:
     """Roll ``decide_fn`` through one day and return the realized metrics.
 
     ``decision_latency_s`` overrides the measured per-step decide time with an
     externally timed value (used for NSGA-III, whose cost is the one-shot daily
     solve, not the trivial open-loop replay).
+
+    ``project_tie`` forwards to :func:`~microgrid.rl.env.advance`. It is off by
+    default and is passed only for the closed-loop policy, so the rule and
+    NSGA-III replays -- whose plans already respect the tie limit or are being
+    measured against it -- are untouched.
     """
     E, prev_mt, peak = p.e_init, None, 0.0
     cost = co2 = proj = tie_mag = 0.0
@@ -98,7 +107,8 @@ def simulate(
         t0 = perf_counter()
         p_mt_req, p_bat_req = decide_fn(t, E, prev_mt, day)
         decide_s += perf_counter() - t0
-        o = advance(t, E, prev_mt, p_mt_req, p_bat_req, day, p)
+        o = advance(t, E, prev_mt, p_mt_req, p_bat_req, day, p,
+                    project_tie=project_tie, project_terminal=project_terminal)
         cost += o.dcost
         co2 += o.dco2
         proj += o.proj_mag
@@ -119,6 +129,7 @@ def simulate(
         day=day.day, method=method,
         cost=cost, co2=co2, peak=peak,
         terminal_soc_dev=abs(E - p.e_init) / p.bat_capacity,
+        terminal_soc_signed=(E - p.e_init) / p.bat_capacity,
         tie_violation_steps=tie_steps, tie_violation_mag=tie_mag, projection=proj,
         export_steps=int(exporting.sum()),
         export_mwh=float(-P_grid[exporting].sum() * p.dt_h),

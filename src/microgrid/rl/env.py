@@ -40,6 +40,7 @@ from microgrid.optimize import system
 from microgrid.optimize.system import SystemParams
 
 H = 96  # 15-min steps per day
+_TIE_EPS = 1e-9  # tolerance when testing whether a projection cleared the tie limit
 _OBS_CLIP = 10.0  # observations are scaled to O(1); clip to a finite Box for SB3/checker
 
 
@@ -75,6 +76,15 @@ class EnvConfig:
     cost_scale: float = 100.0   # divides per-step EUR reward to O(1)
     w_soc: float = 500.0        # terminal EUR per unit |SoC_T - SoC_0|
     w_peak: float = 100.0       # terminal EUR per MW episode grid peak
+    # Hard tie-line feasibility (task D1). false = the published task 04/15
+    # behaviour, where the tie limit is neither projected nor punished and
+    # only measured. true projects each step onto the tie band the same way
+    # P_mt and P_bat are already projected onto theirs.
+    project_tie: bool = False
+    # Hard terminal-SoC feasibility (task D1 phase 2). false = today's
+    # behaviour, where the terminal target is reward-shaped only. true keeps
+    # e_init reachable at every step, so the day can be repeated.
+    project_terminal: bool = False
 
     @classmethod
     def from_cfg(cls, env_cfg) -> "EnvConfig":
@@ -87,6 +97,8 @@ class EnvConfig:
             cost_scale=float(r.get("cost_scale", 100.0)),
             w_soc=float(r.get("w_soc", 500.0)),
             w_peak=float(r.get("w_peak", 100.0)),
+            project_tie=bool(env_cfg.get("project_tie", False)),
+            project_terminal=bool(env_cfg.get("project_terminal", False)),
         )
 
 
@@ -123,20 +135,51 @@ def advance(
     p_bat_req: float,
     day: DayProfile,
     p: SystemParams,
+    *,
+    project_tie: bool = False,
+    project_terminal: bool = False,
 ) -> StepOutcome:
     """Project the requested setpoints to feasibility, then simulate one step.
 
     Projection (not penalty): P_mt clipped to the ramp window around ``prev_mt``
     (skipped on the first step, ``prev_mt is None``) and the turbine bounds;
-    P_bat clipped to the SoC-feasible window. All cost/emission/SoC terms come
-    from :mod:`microgrid.optimize.system` single-step primitives.
+    P_bat clipped to the SoC-feasible window. With ``project_tie`` the pair is
+    then projected onto the tie-line band by
+    :func:`~microgrid.optimize.system.tie_feasible_setpoints` -- off by default,
+    so every published rollout keeps its behaviour. All cost/emission/SoC terms
+    come from :mod:`microgrid.optimize.system` single-step primitives.
     """
-    p_mt = p_mt_req
+    mt_lo, mt_hi = p.mt_p_min, p.mt_p_max
     if prev_mt is not None:
-        p_mt = min(max(p_mt, prev_mt - p.mt_ramp), prev_mt + p.mt_ramp)
-    p_mt = min(max(p_mt, p.mt_p_min), p.mt_p_max)
-    lo_b, hi_b = system.soc_feasible_pbat_bounds(E, p)
-    p_bat = min(max(p_bat_req, lo_b), hi_b)
+        mt_lo = max(mt_lo, prev_mt - p.mt_ramp)
+        mt_hi = min(mt_hi, prev_mt + p.mt_ramp)
+    p_mt = min(max(p_mt_req, mt_lo), mt_hi)
+    soc_lo, soc_hi = system.soc_feasible_pbat_bounds(E, p)
+    bat_lo, bat_hi = soc_lo, soc_hi
+    if project_terminal:
+        t_lo, t_hi = system.terminal_feasible_pbat_bounds(E, len(day.load) - t - 1, p)
+        bat_lo, bat_hi = max(soc_lo, t_lo), min(soc_hi, t_hi)
+        if bat_lo > bat_hi:
+            # the terminal band is out of reach from here; take the physically
+            # feasible point closest to it rather than an empty window
+            edge = soc_hi if t_lo > soc_hi else soc_lo
+            bat_lo = bat_hi = edge
+    p_bat = min(max(p_bat_req, bat_lo), bat_hi)
+    if project_tie:
+        net = float(day.load[t] - day.wind[t] - day.solar[t])
+        p_mt, p_bat = system.tie_feasible_setpoints(
+            p_mt, p_bat, net, (mt_lo, mt_hi), (bat_lo, bat_hi), p
+        )
+        if abs(net - p_mt - p_bat) > p.tie_limit + _TIE_EPS and (bat_lo, bat_hi) != (soc_lo, soc_hi):
+            # The two hard windows conflict. Give way on the terminal one: a
+            # tie-line violation at this step is permanent, a terminal-SoC
+            # shortfall is still recoverable at the next one. Retried against
+            # the SoC window alone, which is never relaxed.
+            p_bat = min(max(p_bat_req, soc_lo), soc_hi)
+            p_mt = min(max(p_mt_req, mt_lo), mt_hi)
+            p_mt, p_bat = system.tie_feasible_setpoints(
+                p_mt, p_bat, net, (mt_lo, mt_hi), (soc_lo, soc_hi), p
+            )
     proj_mag = abs(p_mt - p_mt_req) + abs(p_bat - p_bat_req)
 
     p_grid = float(system.grid_power(p_mt, p_bat, day.load[t], day.wind[t], day.solar[t]))
@@ -206,7 +249,9 @@ class MicrogridEnv(gym.Env):
     def step(self, action):
         p, d, t = self.p, self.day, self.t
         p_mt_req, p_bat_req = map_action(action, p)
-        o = advance(t, self.E, self.prev_mt, p_mt_req, p_bat_req, d, p)
+        o = advance(t, self.E, self.prev_mt, p_mt_req, p_bat_req, d, p,
+                    project_tie=self.cfg.project_tie,
+                    project_terminal=self.cfg.project_terminal)
 
         reward = -(o.dcost + self.cfg.co2_price * o.dco2) / self.cfg.cost_scale
 

@@ -17,6 +17,7 @@ from omegaconf import OmegaConf
 from microgrid.optimize import system
 from microgrid.rl.baseline import RuleBasedPolicy
 from microgrid.rl.env import (
+    H,
     DayProfile,
     EnvConfig,
     MicrogridEnv,
@@ -306,3 +307,199 @@ def test_sac_smoke_learns_and_keeps_invariants(sys_cfg, params, env_cfg):
         assert injected == pytest.approx(day.load[t])
         if term:
             break
+
+
+# --------------------------------------------------------------------------- #
+# Tie-line projection (D1): rl.env.project_tie
+# --------------------------------------------------------------------------- #
+def _mt_window(prev_mt, p):
+    lo, hi = p.mt_p_min, p.mt_p_max
+    if prev_mt is not None:
+        lo, hi = max(lo, prev_mt - p.mt_ramp), min(hi, prev_mt + p.mt_ramp)
+    return lo, hi
+
+
+def test_project_tie_off_is_identical_to_today(sys_cfg, params):
+    """The switch is additive: off, every step reproduces the published path.
+
+    Guards the task 04 / task 15 rollouts, whose numbers were produced with no
+    tie projection at all.
+    """
+    day = _synthetic_day(sys_cfg)
+    E, prev_mt = params.e_init, None
+    rng = np.random.default_rng(0)
+    for t in range(H):
+        req = map_action(rng.uniform(-1, 1, 2), params)
+        a = advance(t, E, prev_mt, *req, day, params)
+        b = advance(t, E, prev_mt, *req, day, params, project_tie=False)
+        assert (a.p_mt, a.p_bat, a.p_grid, a.E_next) == (b.p_mt, b.p_bat, b.p_grid, b.E_next)
+        E, prev_mt = a.E_next, a.p_mt
+
+
+def test_projection_removes_the_violation_when_the_windows_allow_it(params):
+    """Inside the reachable band, |P_grid| lands within tie_limit exactly."""
+    mt_bounds, bat_bounds = (params.mt_p_min, params.mt_p_max), (-1.0, 1.0)
+    # net far above what an unprojected request would leave on the tie line
+    for net in (0.0, 2.0, 4.0, -1.0):
+        for req in ((params.mt_p_min, -1.0), (params.mt_p_max, 1.0), (1.0, 0.0)):
+            mt, bat = system.tie_feasible_setpoints(*req, net, mt_bounds, bat_bounds, params)
+            assert mt_bounds[0] - 1e-12 <= mt <= mt_bounds[1] + 1e-12
+            assert bat_bounds[0] - 1e-12 <= bat <= bat_bounds[1] + 1e-12
+            reach_lo, reach_hi = mt_bounds[0] + bat_bounds[0], mt_bounds[1] + bat_bounds[1]
+            if reach_lo <= net - params.tie_limit and net + params.tie_limit <= reach_hi \
+                    or (reach_lo <= net + params.tie_limit and reach_hi >= net - params.tie_limit):
+                assert abs(net - mt - bat) <= params.tie_limit + 1e-9
+
+
+def test_projection_is_a_no_op_when_already_feasible(params):
+    """A request the tie line can already carry is returned untouched."""
+    mt_bounds, bat_bounds = (params.mt_p_min, params.mt_p_max), (-1.0, 1.0)
+    mt_req, bat_req, net = 1.0, 0.0, 1.0          # P_grid = 0, well inside the limit
+    assert abs(net - mt_req - bat_req) <= params.tie_limit
+    assert system.tie_feasible_setpoints(
+        mt_req, bat_req, net, mt_bounds, bat_bounds, params) == (mt_req, bat_req)
+
+
+def test_projection_never_makes_an_infeasible_step_worse(params):
+    """Where the windows cannot reach the band, it still moves toward it."""
+    mt_bounds, bat_bounds = (0.1, 0.2), (0.0, 0.0)   # almost no freedom
+    net = 20.0                                        # unreachable band
+    mt, bat = system.tie_feasible_setpoints(0.1, 0.0, net, mt_bounds, bat_bounds, params)
+    assert abs(net - mt - bat) <= abs(net - 0.1 - 0.0) + 1e-12
+    assert mt == mt_bounds[1]                         # pushed to the reachable end
+
+
+def test_env_with_projection_cuts_tie_violations(sys_cfg, params):
+    """End to end: the same random actions violate far less with the switch on."""
+    day = _synthetic_day(sys_cfg)
+
+    def run(project_tie):
+        E, prev_mt, steps = params.e_init, None, 0
+        rng = np.random.default_rng(7)
+        for t in range(H):
+            req = map_action(rng.uniform(-1, 1, 2), params)
+            o = advance(t, E, prev_mt, *req, day, params, project_tie=project_tie)
+            steps += o.tie_viol > 0
+            E, prev_mt = o.E_next, o.p_mt
+        return steps
+
+    assert run(True) <= run(False)
+
+
+# --------------------------------------------------------------------------- #
+# Terminal-SoC projection (D1 phase 2): rl.env.project_terminal
+# --------------------------------------------------------------------------- #
+def test_terminal_band_narrows_to_the_tolerance(params):
+    """At the last step the reachable band IS the constraint."""
+    lo, hi = system.terminal_reachable_energy_band(params.e_init, 0, params)
+    assert lo == pytest.approx(params.e_init - params.terminal_tol)
+    assert hi == pytest.approx(params.e_init + params.terminal_tol)
+    wide_lo, wide_hi = system.terminal_reachable_energy_band(params.e_init, 95, params)
+    assert wide_lo < lo and wide_hi > hi          # wide early, tight late
+
+
+def test_both_switches_off_is_identical_to_today(sys_cfg, params):
+    """The published path is reproduced step for step with both switches off."""
+    day = _synthetic_day(sys_cfg)
+    E, prev_mt = params.e_init, None
+    rng = np.random.default_rng(3)
+    for t in range(H):
+        req = map_action(rng.uniform(-1, 1, 2), params)
+        a = advance(t, E, prev_mt, *req, day, params)
+        b = advance(t, E, prev_mt, *req, day, params,
+                    project_tie=False, project_terminal=False)
+        assert (a.p_mt, a.p_bat, a.p_grid, a.E_next) == (b.p_mt, b.p_bat, b.p_grid, b.E_next)
+        E, prev_mt = a.E_next, a.p_mt
+
+
+def _episode(sys_cfg, params, *, project_tie, project_terminal, seed=11):
+    """Roll random actions through a whole day; return (tie_steps, |E_T - e_init|)."""
+    day = _synthetic_day(sys_cfg)
+    E, prev_mt, steps = params.e_init, None, 0
+    rng = np.random.default_rng(seed)
+    for t in range(H):
+        req = map_action(rng.uniform(-1, 1, 2), params)
+        o = advance(t, E, prev_mt, *req, day, params,
+                    project_tie=project_tie, project_terminal=project_terminal)
+        steps += o.tie_viol > 0
+        E, prev_mt = o.E_next, o.p_mt
+    return steps, abs(E - params.e_init)
+
+
+def test_terminal_projection_lands_inside_the_tolerance(sys_cfg, params):
+    """Random actions all day still end the store where it started."""
+    _, dev = _episode(sys_cfg, params, project_tie=False, project_terminal=True)
+    assert dev <= params.terminal_tol + 1e-9, f"terminal dev {dev:.6f} MWh"
+
+
+def test_both_projections_hold_together(sys_cfg, params):
+    """The joint acceptance test: zero tie violations AND an energy-neutral day.
+
+    This is what "dispatchable" means for the learned controller -- the two
+    constraints it was breaking, both satisfied by construction rather than by
+    training luck (D1 log §3.5).
+    """
+    for seed in (11, 12, 13):
+        steps, dev = _episode(sys_cfg, params, project_tie=True,
+                              project_terminal=True, seed=seed)
+        assert steps == 0, f"seed {seed}: {steps} tie-violating steps"
+        assert dev <= params.terminal_tol + 1e-9, f"seed {seed}: terminal dev {dev:.6f} MWh"
+
+
+def test_the_tie_limit_is_never_given_up_to_the_terminal_window(sys_cfg, params):
+    """Where the two windows conflict, the tie limit wins (env.advance)."""
+    for seed in (11, 12, 13):
+        both, _ = _episode(sys_cfg, params, project_tie=True, project_terminal=True, seed=seed)
+        tie_only, _ = _episode(sys_cfg, params, project_tie=True,
+                               project_terminal=False, seed=seed)
+        assert both <= tie_only
+
+
+def test_energy_band_window_uses_the_charge_branch_above_E_prev(params):
+    """Regression: the window inverted through the wrong efficiency.
+
+    When the target band sits ABOVE the current store energy the battery has to
+    charge to reach it, so the power landing on the lower edge must invert
+    through eta_charge, not eta_discharge. Using the discharge branch there
+    over-stated the window by eta_chg*eta_dis per step, which compounded over
+    the horizon into a missed terminal target (D1, 2026-08-24).
+    """
+    E = params.e_init - 0.1                        # just below the band, reachable
+    band_lo, band_hi = params.e_init - 0.05, params.e_init + 0.05
+    lo, hi = system._pbat_window_for_energy_band(E, band_lo, band_hi, params)
+    assert hi < 0.0                                # charging is mandatory here
+    assert system.soc_step(E, hi, params) == pytest.approx(band_lo)
+    assert system.soc_step(E, lo, params) == pytest.approx(band_hi)
+
+
+@pytest.fixture()
+def params_soc_dependent(sys_cfg):
+    """The task-15 physics the controller actually runs on (k = 0.10)."""
+    cfg = OmegaConf.merge(sys_cfg, OmegaConf.create(
+        {"battery": {"soc_efficiency": {"k_charge": 0.10, "k_discharge": 0.10}}}))
+    return system.params_from_cfg(cfg)
+
+
+def test_both_projections_hold_on_the_soc_dependent_physics(sys_cfg, params_soc_dependent):
+    """The joint guarantee must hold on the physics D1 is actually run on."""
+    p = params_soc_dependent
+    assert p.soc_dependent_efficiency
+    for seed in (11, 12, 13):
+        steps, dev = _episode(sys_cfg, p, project_tie=True, project_terminal=True, seed=seed)
+        assert steps == 0, f"seed {seed}: {steps} tie-violating steps"
+        assert dev <= p.terminal_tol + 1e-9, f"seed {seed}: terminal dev {dev:.6f} MWh"
+
+
+def test_projection_lands_strictly_inside_the_limits(sys_cfg, params_soc_dependent):
+    """Regression: landing exactly ON a limit rounds one step past it.
+
+    The first full run of both projections reported 1-4 tie-violating days per
+    seed whose entire violation magnitude was 0.0000 MW -- floating-point dust
+    from projecting onto the boundary itself. Both projections now aim a
+    physically meaningless margin inside (D1, 2026-08-24).
+    """
+    p = params_soc_dependent
+    for seed in (11, 12, 13, 14, 15):
+        steps, dev = _episode(sys_cfg, p, project_tie=True, project_terminal=True, seed=seed)
+        assert steps == 0, f"seed {seed}: {steps} tie-violating steps"
+        assert dev < p.terminal_tol, f"seed {seed}: terminal dev {dev:.9f} not strictly inside"

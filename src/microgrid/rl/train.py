@@ -98,8 +98,14 @@ class TrainMonitor(BaseCallback):
         return True
 
     def _evaluate(self) -> None:
+        # project_tie must match the env the policy is training in, or the
+        # checkpoint would be selected on rollouts that do not enforce the tie
+        # limit the deployed controller enforces (task D1).
         decide = policy_decider(self.model, self.p, self.env_cfg)
-        res = [simulate(self.val[i], self.p, decide, "rl") for i in self.eval_idx]
+        res = [simulate(self.val[i], self.p, decide, "rl",
+                        project_tie=self.env_cfg.project_tie,
+                        project_terminal=self.env_cfg.project_terminal)
+               for i in self.eval_idx]
         mean_cost = float(np.mean([r.cost for r in res]))
         mean_soc_dev = float(np.mean([r.terminal_soc_dev for r in res]))
         row = {

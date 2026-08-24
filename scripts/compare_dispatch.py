@@ -949,7 +949,9 @@ def _compute_item(profile: DayProfile, mech: str, f: float, noise_seed: int, par
         out["nsga3_planned"] = planned
     if "rl" in methods:
         rollouts["rl"] = simulate(_with_forecast(profile, planning), params,
-                                  policy_decider(rl_model, params, env_cfg), "rl")
+                                  policy_decider(rl_model, params, env_cfg), "rl",
+                                  project_tie=env_cfg.project_tie,
+                                  project_terminal=env_cfg.project_terminal)
         out["rl"] = rollouts["rl"].summary()
     if milp_cfg is not None:
         if tie_floor_mw is None:

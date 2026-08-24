@@ -27,6 +27,13 @@ import pandas as pd
 from omegaconf import DictConfig
 
 
+# Margins that keep a projection landing ON a limit from rounding just past it.
+# Both are physically negligible: 1 W against a 3 MW tie line, 1 mWh against a
+# 50 Wh terminal tolerance. See tie_feasible_setpoints (task D1).
+_NUMERICAL_MARGIN_MW = 1e-6
+_NUMERICAL_MARGIN_MWH = 1e-6
+
+
 @dataclass(frozen=True)
 class SystemParams:
     """Flat, hashable snapshot of system.yaml (energies pre-derived to MWh)."""
