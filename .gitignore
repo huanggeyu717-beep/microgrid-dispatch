@@ -31,6 +31,17 @@ Thumbs.db
 # Global patterns on purpose: the models/**-scoped versions left binaries at
 # any other path one `git add -A` away from entering history permanently.
 *.pt
+# ...with exactly three exceptions, by full path, never by pattern: the LSTM
+# checkpoints the dispatch chain resolves by default (forecast.run_name: null,
+# model=lstm). 159,489 bytes each, 468 kB together. They ship so that a clone
+# can start the forecast service and run the pipeline with nothing downloaded
+# and nothing trained — the gap docs/plan.md section 2 calls this repository's
+# largest against its stated purpose (task S4 phase 2.1). Listing the three
+# paths rather than relaxing the pattern keeps the reason above intact: no
+# other binary can reach history one `git add -A` away.
+!models/load_lstm/best.pt
+!models/wind_lstm/best.pt
+!models/solar_lstm/best.pt
 # SB3 replay buffer (large; only needed to resume training)
 *.pkl
 # SB3 RL checkpoints (best/last)
@@ -55,3 +66,19 @@ reports/figures/learning_curve_*.png
 # models/comparison/cache/ (task 04, 241 files) stays tracked: log section 1 is
 # a re-aggregation of exactly those files.
 models/comparison/block_b/cache/
+
+# Scratch runs: compare.cache_dir / compare.out_dir redirected away from the
+# published models/comparison* records (task 15 §5 D8). Regenerable from the
+# commands recorded in the run's own experiment log — task 15 phase 0a's two
+# arms are 740 files / 3.2 MB and are reproduced by the commands in
+# docs/experiments/15-soc-efficiency-log.md §1. Nothing here is a record: a
+# result that matters is read out into a log, never left in scratch.
+models/scratch/
+
+# The owner's personal navigation page: which step the project is on, what to
+# paste into the next conversation, and which of the four numbering schemes a
+# name belongs to. Written in Chinese and deliberately untracked — it is a
+# working aid, not project documentation, and the authority stays CLAUDE.md ->
+# docs/plan.md -> the active task file. Losing it costs nothing: it is
+# regenerable from those three.
+docs/next.md

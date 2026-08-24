@@ -2,7 +2,7 @@
 
 | field | value |
 |---|---|
-| status | **ACTIVE**, round A (phase 1 only) |
+| status | **ACTIVE**, round C (phase 3 only). Phase 1 closed 2026-08-22, phase 2 built and verified 2026-08-23 |
 | timebox | phase 1: half a day. Phases 2–3: about four days, sized to fit inside task 15's training waits |
 | priority | phase 1 is a **prerequisite for task 15**; phases 2–3 are the project's largest unaddressed gap against its stated purpose |
 | where results go | **nowhere.** S4 owns no experiment number and writes to no log. See §6 D1 |
@@ -16,22 +16,51 @@
 
 ---
 
-## 2. Round instruction — round A, phase 1 only
+## 2. Round instruction — round C, phase 3 only
 
-**Do phase 1 and stop.** Phases 2 and 3 are specified below so the shape is
-visible, but they are not this round's work and must not be started.
+**Phase 2 is built and verified on the reference machine** (§12): the suite is
+green at 286 passed, six malformed requests are refused by name, and a real
+4.5 kB request was served over HTTP from `models/wind_lstm/best.pt`. One item
+stays open there — the served-vs-record check reports FAIL on a threshold set
+in absolute MW where the arithmetic is float32; the measured disagreement is one
+float32 step at each target's own magnitude. It is being confirmed, and it
+cannot change what the container looks like, so phase 3 does not wait for it.
 
-1. Run **Phase 0** (§7) and write its three findings into this file's §12
-   progress checklist as plain text. Phase 0 is inspection and one local test
-   run; it changes no file under `src/`.
-2. Implement phase 1 (§7): an automated test run on every change.
-3. Run `.venv/bin/pytest` locally, paste its last line verbatim, list every file
-   you changed, and **stop without committing**.
+**Do phase 3 and stop.** One command, from a genuinely clean clone.
 
-Do not touch `src/microgrid/**`, any config under `configs/`, any file under
-`docs/experiments/`, any README, or any `models/` directory in this round. If
-phase 0 finds something that appears to require such a change, record it as a
-finding and stop — do not act on it.
+1. **`Dockerfile`, `.dockerignore`, `compose.yaml`.** The image serves the
+   phase 2 interface and nothing else. torch comes from the CPU wheel index
+   (§4) — the default index serves CUDA wheels, an order of magnitude larger
+   and pure waste in a project that never touches a GPU.
+2. **Keep the build context honest.** A clone has no `data/`, but the *owner's
+   working tree does*, along with 65 MB of `models/rl_sac/` and eighteen 8.3 MB
+   PatchTST runs. None of it may enter the image. Report the measured build
+   context size and the final image size; they are capability statements, not
+   experiment numbers (D1).
+3. **Verify from a real clean clone, not from the working tree.** `git clone`
+   the repository into a temporary directory and build *there*. Building in the
+   working tree cannot detect the failure this phase exists to prevent — that
+   the image silently depends on an artifact only the owner has. This is the
+   same standard phase 1's criterion 3 was held to: **demonstrated, not
+   asserted**, and phase 1 is the reason that standard is written down (its
+   first red-suite probe passed while the suite was red).
+4. **Then call the running container**: `/health` must report three
+   checkpoints, and one real request must come back with 96 steps. From the
+   clone, with nothing downloaded and nothing trained.
+5. Record the base image's actual Python version and whether it matches the
+   3.14 reference environment (D6) — the same honesty phase 1 applied to the
+   GitHub Actions runner.
+6. Run `.venv/bin/pytest`, paste its last line verbatim, list every file you
+   changed, and **stop without committing**.
+
+Do not touch any file under `docs/experiments/`, either README, or any
+`models/comparison*` directory. Do not touch `configs/system/**` or
+`optimize/system.py` — task 15 has uncommitted phase-1 work parked there.
+
+**The READMEs are the close-out, not this round** (§7 phase 3 note): today
+`README.md`'s Quick start opens with "download Elia data" and neither README
+mentions a service, an interface or a container anywhere. Until that changes,
+none of S4 is visible to the reader this repository exists for.
 
 ---
 
@@ -107,9 +136,13 @@ in §11 are the whole definition of done.
 
 ## 6. Deliberately not doing
 
-- **Any change to `src/microgrid/**` in round A.** Phase 1 adds automation
-  around the existing suite; it does not fix, extend or refactor what the suite
-  covers.
+- **Any change to `src/microgrid/**` in round A.** Phase 1 added automation
+  around the existing suite; it did not fix, extend or refactor what the suite
+  covers. Round B lifts this for phase 2's one refactor — extracting the
+  window-to-prediction step — and for nothing else.
+- **Changing what `optimize/inputs.py` computes.** Phase 2 extracts a function
+  out of it and calls it; the published forecast path keeps its behaviour, and a
+  test demonstrates that rather than claiming it.
 - **Enabling the `slow` marker in the automated run.** Those are heavy
   end-to-end solves; they belong to a manual or scheduled run, not to every
   change. If phase 0 finds that the physics guard task 15 needs lives only in
@@ -154,7 +187,7 @@ An automated run triggered on every change to the repository that:
 
 Record the runner's Python version per D6.
 
-### Phase 2 — a callable forecast interface *(not this round)*
+### Phase 2 — a callable forecast interface *(this round)*
 
 Serves existing checkpoints through `forecast/checkpoints.py`. Its first design
 decision is the one §4 flags: a clone has no `*.pt` and no `data/`, so the
@@ -162,6 +195,87 @@ interface either takes its input window in the request (self-contained, needs no
 artifacts), or reads mounted artifacts, or ships a small demo bundle. These are
 three different claims about what "runs with one command" means; the choice is
 made in writing before any code.
+
+#### 2.1 The artifact decision, made 2026-08-23
+
+Two questions that had been running together, separated: **what a request
+carries** and **where the weights come from**. They are independent, and each is
+answered below.
+
+**Decision A — the request carries its own input window.** The service is
+stateless and never reads `data/`. Established by inspection of
+`optimize/inputs.py::_model_median` and `forecast/windows.py::future_columns` at
+the shipped `configs/forecast/default.yaml`, the input contract of one call is:
+
+| part | shape | where it comes from |
+|---|---|---|
+| encoder history | 96 steps x 3 columns — `wind_measured`, `solar_measured`, `load_measured` | the caller (the 24 h before the issue time) |
+| decoder calendar | 96 steps x 7 columns — `tod_sin/cos`, `dow_sin/cos`, `is_weekend`, `doy_sin/cos` | **derived by the service from the issue date**, never sent |
+| decoder TSO column | 96 steps x 1 — Elia's day-ahead forecast for the target | the caller |
+| output | 96 steps x 3 quantiles — q10 / q50 / q90, physical MW | returned |
+
+So a request is roughly **384 numbers plus a timestamp**, a few kB of JSON. The
+one thing this makes explicit rather than hiding: because
+`use_tso_forecast_input: true`, **the caller must supply Elia's day-ahead
+forecast**, not only measured history. That is a property of the trained model,
+not of the interface, and the interface says so instead of quietly filling it in.
+
+Why this over reading a mounted dataset: it removes the 35 MB
+`data/processed/elia_dataset.parquet` from the deployment story completely,
+which is most of what stands between a clone and a running service — the gap
+`plan.md` §2 item 3 calls the whole point of this task. It is also the shape a
+real day-ahead service has: inputs arrive with the request.
+
+**The work this implies, and its one hard constraint.** `_model_median`
+currently takes the whole processed DataFrame, locates the day with
+`df.index.get_loc(...)`, and lets `ForecastWindows` slice the window. Phase 2
+needs the same computation driven by an explicit window instead. **The existing
+path may not change behaviour**: `optimize/inputs.py` produces the forecasts
+every published dispatch number was computed from. The refactor extracts the
+window-to-prediction step and has `_model_median` call it; a test asserts the
+two agree on a day the dataset contains, so the equivalence is demonstrated
+rather than asserted (D1: a disagreement is a bug in S4, never a new result).
+
+**Decision B — three LSTM checkpoints ship with the repository.** The dispatch
+chain's default resolution (`forecast.run_name: null`, `model=lstm`) is
+`models/<target>_lstm/best.pt`, and each of the three is **159,489 bytes —
+468 kB for all three**. They go into git behind a narrow negation in
+`.gitignore`, naming the three exact paths, never weakening the global `*.pt`
+rule that comment block deliberately chose:
+
+```
+!models/load_lstm/best.pt
+!models/wind_lstm/best.pt
+!models/solar_lstm/best.pt
+```
+
+Rejected: mounting the local `models/` directory (works only on the owner's
+machine, so it answers none of §3's question), and downloading weights at
+container start (adds a network dependency and a hosting location to maintain —
+an external thing that can rot, attached to a portfolio meant to still run in a
+year).
+
+**Consequence to accept knowingly:** these three checkpoints become published
+artifacts of the repository. They are already described by
+`models/<target>_lstm/metrics.json`, which is tracked today, so no number
+changes and no README moves — but the binaries are now part of the record and a
+retrain that replaces them is a visible change, not a local one.
+
+#### 2.2 New dependencies, named here before they are added (D3)
+
+No existing pin changes. Two new pinned entries:
+
+* **`fastapi`** — the HTTP layer. Chosen over a hand-rolled `http.server`
+  because request validation is the bulk of this interface's real work (a 96-step
+  window with the wrong length or a NaN must be rejected with a readable message,
+  not fed to the model), and because it generates a browsable interactive page at
+  `/docs` from the same type declarations — for a portfolio, that page *is* part
+  of the deliverable.
+* **`uvicorn`** — the server that runs it. FastAPI is not a server on its own.
+
+Both are pure-Python wheels with no CUDA or system-library entanglement. Exact
+pinned versions are written into `requirements.txt` in the same edit that adds
+them, and the automated run of phase 1 is what proves they install on 3.14.
 
 ### Phase 3 — a container image *(not this round)*
 
@@ -188,6 +302,20 @@ cache. Neither is a per-item rate, because neither is a batch.
 
 ## 10. Gated follow-ons
 
+- **Trimming the service image.** Measured 2026-08-23 inside the built image:
+  torch **642 MB**, pyarrow 140, scipy 118 (+31 `scipy.libs`), sympy 77,
+  pandas 76, numpy 40 (+27), matplotlib 38 (+28 fontTools, +16 `pillow.libs`),
+  pymoo 25, openai 21, networkx 18 — 2.09 GB on disk, 443 MB content size. The
+  service reads none of pyarrow, scipy, matplotlib, pymoo, openai or
+  stable-baselines3; sympy and networkx are torch's own and cannot go. A
+  service-only install would therefore save roughly **430 MB of ~1.4 GB**, i.e.
+  about a fifth of the image, and would leave torch's 642 MB untouched either
+  way. **Gate: not promoted.** The saving is real but not decisive, and it
+  costs a second pinned dependency list that can drift out of step with the one
+  the test suite runs against — which would undermine the one guarantee S4
+  exists to make (D1: the served forecast is the recorded one). Recorded with
+  its number so a later round can overturn this on evidence rather than
+  re-derive it.
 - **Drift monitoring** (roadmap §5 E). **Gate:** promote only once phases 1–3
   are green and there is room inside task 15's waits. Its motivation is this
   project's own measurement — Elia's forecast skill is non-stationary over
@@ -320,8 +448,130 @@ cache. Neither is a per-item rate, because neither is a batch.
       warning cannot become a failure when Node 20 support is withdrawn. That
       bump is the only change to the workflow since run #1, and it needs a
       second push to take effect.
-- [ ] Phase 2 — artifact decision written down, then the interface
-- [ ] Phase 3 — container image, one command from a clean clone
+- [x] **Phase 2 — the artifact decision, written down before any code**
+      (2026-08-23, §7 phase 2.1). Two questions separated: the request carries
+      its own input window (96x3 history + 96x1 TSO day-ahead + an issue date;
+      the 7 calendar columns are derived service-side), so the service is
+      stateless and `data/processed/` leaves the deployment story entirely; and
+      the three `models/<target>_lstm/best.pt` checkpoints — 159,489 bytes each,
+      **468 kB together** — ship with the repository behind three exact-path
+      negations in `.gitignore`, leaving the global `*.pt` rule intact. New
+      pins named before adding: `fastapi`, `uvicorn`.
+- [x] **Phase 2 — the window-to-prediction path built** (2026-08-23).
+      `src/microgrid/forecast/serve.py`: `load_forecaster` (the checkpoint-to-
+      model assembly, **extracted from** `optimize/inputs.py::_model_median`,
+      which now calls it) and `predict_window` (a self-contained window in,
+      `[H, Q]` physical MW out). Calendar columns are derived by asking
+      `data.features.add_calendar` for exactly the encodings the checkpoint's
+      own `calendar_columns` need, so nothing is re-derived and a future column
+      with no known producer raises instead of arriving silently absent.
+      `inputs.py` keeps the window and the prediction call it always had — only
+      the assembly moved — so what the published path computes is unchanged.
+- [x] **Phase 2 — the interface** (2026-08-23). `src/microgrid/service/api.py`
+      (FastAPI) and `scripts/serve_forecast.py`. Three endpoints: `/health`
+      reports which checkpoints were found without failing when none are;
+      `GET /forecast/{target}/contract` states the window this checkpoint needs,
+      read off the checkpoint rather than documented separately;
+      `POST /forecast/{target}` serves it. Checked at import in an isolated
+      environment: the app builds, OpenAPI generates, and the four error paths
+      answer 404 / 503 / 422 / 422 with reasons.
+- [x] **Phase 2 — pins and the `.gitignore` exceptions.** `fastapi==0.141.1`
+      and `uvicorn==0.46.0` added, both named in §7 phase 2.2 first; no existing
+      pin changed. Three exact-path negations added; verified with
+      `git check-ignore -v` that the three `<target>_lstm/best.pt` are now
+      tracked and that `models/solar_lstm/last.pt` and the PatchTST checkpoints
+      still are not — the global `*.pt` rule is intact.
+- [x] **Phase 2 — request validation exercised** (2026-08-23, reference
+      machine). Six malformed requests, each refused by name with what was
+      expected: window one step short; a NaN in the history; a missing history
+      column; the TSO forecast absent when the checkpoint requires it; a TSO
+      array of the wrong length; an issue time off the 15-minute grid. No
+      malformed request reached the model.
+- [x] **Phase 2 — `.venv/bin/pytest` green** on the reference machine,
+      2026-08-23. Last line, verbatim:
+      `286 passed, 6 skipped, 4 deselected in 3.28s`
+      Identical to the count before the `optimize/inputs.py` refactor — nothing
+      was added, weakened or skipped to get there.
+- [x] **Phase 2 — the service runs and serves the real checkpoints.** Started
+      from `scripts/serve_forecast.py`; a request built from the dataset for
+      2024-11-01 (**384 numbers plus a timestamp, 4.5 kB of JSON**) was posted
+      over HTTP and answered from `models/wind_lstm/best.pt` with 96 steps at
+      q10/q50/q90. That figure is the concrete form of the phase 2.1 claim:
+      what used to require a 35 MB dataset on disk is now 4.5 kB in the request.
+- [x] **Phase 2 — the served forecast reproduces the record; the FAIL was a
+      mis-set criterion, and that is now confirmed rather than argued.** Measured max |served − record|: load 9.766e-04 MW on a
+      9874.9 MW peak (9.89e-08 relative), wind 2.441e-04 on 416.9 (5.86e-07),
+      solar 1.221e-04 on 1462.3 (8.35e-08). Each is **exactly a power of two** —
+      2^-10, 2^-12, 2^-13 — and each is exactly one float32 step at the
+      magnitude that target's inverse transform (`x*std + mean`) works at. The
+      check's criterion was an absolute 1e-6 MW, which is a thousand times
+      finer than float32 can represent at these magnitudes and could never have
+      been met; the criterion is the defect, not the code. **Being confirmed
+      rather than asserted** (`models/scratch/s4_ulp.py`, comparing the two
+      paths' scaled input arrays bit for bit) before this item is ticked and the
+      criterion has been restated as a relative one (1e-6 relative, about 8
+      float32 eps).
+      **What settled it** (`models/scratch/s4_ulp.py`): the scaled arrays the
+      two paths feed the model are **bit-identical — max|diff| = 0.000e+00 for
+      `x_hist` and `x_fut`, on all three targets**. So the window this service
+      builds from a request — its calendar encodings, its scaling, its TSO
+      column — is exactly the training-time window. That was the only
+      substantive risk in the extraction, and it is excluded by measurement.
+      The residual step arises inside torch's own arithmetic on identical
+      inputs. Its exact origin is **deliberately not pursued**: `CLAUDE.md` §2
+      rules out determinism work, and nothing about a float32 last bit can
+      reach a dispatch conclusion — the noise floor of every cost claim in this
+      repository is 28.46 EUR/day.
+- [x] **Phase 3 — image built** (2026-08-23): `Dockerfile`, `.dockerignore`,
+      `compose.yaml`. `python:3.14-slim` base; torch installed from the CPU
+      wheel index *before* `requirements.txt` so the pinned line is already
+      satisfied and pip never reaches for a CUDA build; the full pinned set is
+      installed rather than a service subset, because a second requirements
+      file could drift out of step with the one the suite runs against;
+      `PYTHONPATH=/app/src` rather than an editable install, since
+      `paths.project_root()` finds `/app/pyproject.toml` from there; the
+      HEALTHCHECK calls `/health` rather than opening a socket, because
+      checkpoints load lazily and a socket probe would call an image with no
+      models in it healthy. `compose.yaml` mounts no volume — if it needed one,
+      phase 2 would have chosen the wrong interface shape.
+- [x] **Phase 3 — build context measured, not assumed.** Simulating Docker's
+      last-match-wins rules over the owner's working tree: **153 files, 1.8 MB**.
+      The three `<target>_lstm/best.pt` are in; `data/processed/elia_dataset.parquet`
+      (35 MB), `models/*/last.pt`, the PatchTST runs and the root `*.log` files
+      are all excluded. Without `.dockerignore` the context would have carried
+      the 35 MB dataset, 65 MB of `models/rl_sac/` and eighteen 8.3 MB PatchTST
+      runs — and would have built here and failed for everyone else.
+- [x] **Phase 3 — the image builds and serves, from a clone-equivalent tree**
+      (2026-08-23, reference machine). Built in `/tmp` from a directory
+      assembled out of `git ls-files` plus `git ls-files --others
+      --exclude-standard` — i.e. what a clone will contain once the checkpoints
+      are committed — never from the working tree. `docker compose up --build`
+      is the whole command. `/health` on the running container:
+      `{"status": "ok", "checkpoints": {"load": "/app/models/load_lstm/best.pt",
+      "wind": ..., "solar": ...}, "unavailable": []}` — all three resolved from
+      inside the image, with no volume mounted and nothing downloaded or
+      trained. **Image: 2.09 GB on disk, 443 MB content size.**
+- [ ] **Phase 3 — OPEN, and it is ordered behind a commit.** The clean-clone
+      verification cannot pass yet: the three checkpoints are **untracked**
+      (`git ls-files --others --exclude-standard` lists them; `git ls-files`
+      does not), so `git clone` today produces a tree without them and the image
+      would fail at its `COPY models/.../best.pt` line. Git is read-only for the
+      assistant (`CLAUDE.md` §2) — the owner stages and commits. Until then the
+      honest substitute is to build from a directory assembled out of
+      `git ls-files` **plus** `git ls-files --others --exclude-standard`, which
+      is exactly what a clone will contain once those files are committed
+      (2,238 tracked today, 2,251 after). Building in the working tree proves
+      nothing this phase is about.
+- [ ] **Close — the READMEs.** This is where S4 becomes visible or does not
+      exist. `README.md`'s Quick start (line 761) still opens with "download
+      Elia data" and then "train the forecast models"; neither README contains
+      the words service, interface, API, Docker or container anywhere. Phases
+      1–3 are invisible to the reader this repository was written for until that
+      changes. §13's capability statement is filled in here — and **not from a
+      prediction**: the automated run has not executed since any of this round's
+      work, so the clean-clone counts it will report are unknown until the owner
+      commits and the workflow runs. Filling the template before that would be
+      exactly the guess §13's closing note forbids.
 - [ ] Close — archive summary, task board row, ACTIVE TASK back to none
 
 ---

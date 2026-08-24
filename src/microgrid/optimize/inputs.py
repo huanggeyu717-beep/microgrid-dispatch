@@ -28,7 +28,7 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
-from omegaconf import DictConfig, OmegaConf
+from omegaconf import DictConfig
 
 from microgrid import schema
 from microgrid.forecast.checkpoints import CheckpointMismatchError, load_checkpoint
@@ -67,19 +67,22 @@ def _model_median(
     run_name: str | None,
 ) -> tuple[np.ndarray, Path]:
     """Checkpointed model's median forecast for the day (national MW) plus the
-    resolved checkpoint path. Raises on any failure."""
-    from microgrid.assemble import build_model
-    from microgrid.forecast.evaluate import predict
-    from microgrid.forecast.scaling import Scaler
-    from microgrid.forecast.windows import ForecastWindows, future_columns
+    resolved checkpoint path. Raises on any failure.
 
-    ckpt, ckpt_path = load_checkpoint(models_dir, target, model_cfg, run_name)
-    fcfg = OmegaConf.create(ckpt["forecast_cfg"])
-    # Base is the live model group (carries the `_target_` the assembler needs);
-    # the checkpoint's saved hyperparameters (hidden_size, ...) win, so a legacy
-    # checkpoint written before `_target_` existed still loads correctly.
-    mcfg = OmegaConf.merge(model_cfg, OmegaConf.create(ckpt["model_cfg"]))
-    scaler = Scaler.from_dict(ckpt["scaler"])
+    The checkpoint-to-model assembly lives in
+    :func:`microgrid.forecast.serve.load_forecaster` (S4 phase 2), so the served
+    interface and this path — which produced the forecasts behind every
+    published dispatch number — build the same model from the same checkpoint.
+    Only the assembly moved: the window still comes from ``df`` through
+    ``ForecastWindows`` and the prediction still goes through
+    ``evaluate.predict``, so what this function computes is unchanged.
+    """
+    from microgrid.forecast.evaluate import predict
+    from microgrid.forecast.serve import load_forecaster
+    from microgrid.forecast.windows import ForecastWindows
+
+    fc = load_forecaster(models_dir, target, model_cfg, run_name)
+    fcfg, scaler = fc.fcfg, fc.scaler
 
     ds = ForecastWindows(df, fcfg, "test", scaler)   # builds full-length scaled arrays
     t0 = df.index.get_loc(pd.Timestamp(day, tz="UTC"))
@@ -87,17 +90,9 @@ def _model_median(
         raise ValueError(f"day {day}: no leakage-free window (need {fcfg.context_steps} steps of context)")
     ds.starts = np.array([t0])                        # single day-ahead window at day 00:00
 
-    model = build_model(
-        mcfg,
-        n_hist=len(fcfg.history_columns),
-        n_fut=len(future_columns(fcfg)),
-        n_quantiles=len(fcfg.quantiles),
-        horizon=H,
-    )
-    model.load_state_dict(ckpt["state_dict"])
-    pred = predict(model, ds)[0]                       # [H, Q] physical MW
+    pred = predict(fc.model, ds)[0]                    # [H, Q] physical MW
     qi_med = list(fcfg.quantiles).index(0.5)
-    return pred[:, qi_med], ckpt_path
+    return pred[:, qi_med], fc.checkpoint_path
 
 
 def _series_for_day(

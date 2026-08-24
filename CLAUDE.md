@@ -99,6 +99,20 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
     a standing preference, not a style note. (The ordinary engineering words
     "diagnostic" / "diagnosis" are fine and are used in the codebase; the
     ban is on medical *imagery and analogy*, not on that vocabulary.)
+  - **The ban covers clinical-trial vocabulary used literally, not only as
+    imagery — and it binds hardest in Chinese.** The owner reads and writes as
+    an engineer. In Chinese, **never write 「臂」** for a variant of an
+    experiment: write **「组」**（对照组、基线组、方案组）or name the thing
+    directly（规则法、搜索器、控制器）. Same for 「队列」→「批」/「组」,
+    「筛查」→「筛选」, 「入组」→「纳入」. If a word's most common everyday use
+    is in a hospital, it is the wrong word here even when its technical meaning
+    is exact.
+  - **English published records keep "arm", and are not rewritten.** The 11 and
+    12 logs and the `models/comparison*` records use "arm" throughout and are
+    read-only; renaming it in new English prose would split the vocabulary
+    against them. So: "arm" survives in English documents for continuity, and
+    is never carried into Chinese. Where new English prose can say "group" or
+    "variant" without clashing with a quoted record, prefer it.
   - **Do not assume the owner's home discipline.** Their undergraduate and
     master's fields differ, and neither should be treated as the default
     frame. Do not translate a concept into the vocabulary of a field the
@@ -132,8 +146,13 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 12 | Static tie-line margin: the δ at which the LP plan becomes dispatchable, and what that headroom costs | ✅ done | [docs/tasks/12-tie-margin.md](docs/tasks/12-tie-margin.md) — results in [docs/experiments/12-tie-margin-log.md](docs/experiments/12-tie-margin-log.md) (§5 is the synthesis); artifacts `models/comparison/block_e/`, now a published read-only record. δ = 0.35 MW: 0/61 violating days at 4862.74 EUR/day realised, 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds; the headroom costs 5.51 EUR/day vs the unconstrained optimum. Branch-1 headline; all four predictions held; asymmetric-margin gate not fired, δ × CO₂ cross promoted (no spec, no board row). The margin arm is the baseline task 13 (MPC) must beat |
 | S2 | SQL layer: carry the task-08 dispatch-cache key through | ✅ done | [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) — plumbing only; no number in any README, task file or log may change |
 | S3 | SQL layer over the full 2019-2024 history (NaN = absent measurement) | ✅ done | [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md) — a NaN is an absent measurement: dropped by design, count reported, never imputed; solar coverage starts 2020-06-30 |
+| S4 | Service layer: automated test run, callable forecast interface, container | 🔵 active (round B, phase 2); phase 1 green on GitHub Actions | [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) — owns no experiment number; phase 1 (the automated test run) is the guard that must exist before task 15 changes `optimize/system.py` |
+| 15 | SoC-dependent battery efficiency: physics the LP cannot represent | ⏸ parked mid-phase-1 (built, suite green, never run end to end) | [docs/tasks/15-soc-efficiency.md](docs/tasks/15-soc-efficiency.md) — results in `docs/experiments/15-soc-efficiency-log.md`; a new result set, so no task-15 number may share a table with a current-physics number |
 
-Board notes: the **NSGA-III budget sweep** (gap versus `pop_size` × `n_gen` at
+Board notes: **13 and 14 are reserved and unused.** 13 is named as rolling MPC
+by task 12's closed, published log and 14 as the budget sweep by `docs/plan.md`;
+the gap in the numbering is deliberate and neither number may be reassigned. The
+**NSGA-III budget sweep** (gap versus `pop_size` × `n_gen` at
 three optimiser seeds) is a **promoted but unstarted** follow-on of task 09 —
 its gate fired (09 §11 verdict, log §4.4) but it has no spec and no board row
 until the owner creates it.
@@ -144,7 +163,84 @@ It is explicitly not binding — it says so at the top.
 
 ## ACTIVE TASK
 
-> **ACTIVE TASK: none.** Task 12 closed on 2026-08-22 — archive summary at the
+> **ACTIVE TASK: S4 — the service layer**, round B, phase 2 (the callable
+> forecast interface) only. Spec:
+> [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) §2 and §7.
+>
+> **The schedule was resolved by the owner on 2026-08-23 in favour of the
+> service layer.** `plan.md` §2 item 3 says the untouched gap against this
+> repository's stated purpose is that nothing here can be *run* by someone who
+> has not set up a Python environment, and that "that gap is now the whole
+> schedule"; §3 then made task 15 the two-week main line and demoted S4's
+> phases 2–3 to filling its training waits. Those two readings conflict, and
+> item 3 wins: S4 phases 2–3 run now, and task 15 waits. Nothing about task 15
+> is withdrawn — it depends on nothing S4 does, and S4 depends on nothing
+> task 15 does.
+>
+> **Task 15 phase 1 is built and its suite is green, but it is parked mid-round
+> and has never been executed end to end.** No NSGA-III solve has yet run with
+> `system=soc_efficiency`; the coverage is unit-level. Its uncommitted work sits
+> in the tree — `configs/system/soc_efficiency.yaml`, four physics sites in
+> `optimize/system.py`, `energy_neutral_project`, `nsga3.py`, and 19 tests. **S4
+> must not touch `configs/system/**` or `optimize/system.py` while it is
+> parked.** Task 15's own §12 lists the two items it owes on resumption: the
+> smoke run, and §9's compute budget re-derived (the bisecting repair costs 34
+> trajectory walks per call where the old one-pass scaling cost one, so the
+> 3.49 s/day NSGA-III rate will move).
+>
+> **S4 phase 1 closed on 2026-08-22.** The
+> automated test run is `.github/workflows/tests.yml` (GitHub Actions,
+> `ubuntu-latest`, Python 3.14.7 against the 3.14.6 reference environment), and
+> it now guards `optimize/system.py` on every change — which is the whole reason
+> it was sequenced first. On a clean clone the default selection is **265
+> passed, 8 skipped, 4 deselected**, two fewer executed than the reference
+> environment's 267/6/4 because two tests self-skip without gitignored
+> artifacts. A red suite was **demonstrated** to fail the run, not assumed: the
+> first probe passed a red suite silently because the `pytest` step lacked
+> `pipefail`, and that defect was found and fixed before the criterion was
+> ticked. Full record in
+> [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) §12.
+> S4 phases 2–3 (callable forecast interface, container) are pending and are
+> sized to fit inside task 15's training waits.
+>
+> One rule from S4 phase 0 outlives it and binds task 15:
+> **`system.py::battery_store_energies` had no direct test** — its only cover
+> was an inequality in `test_milp.py` that a wrong store-energy total can
+> satisfy. The owner's decision (S4 §12 finding 3) is that the gap closes
+> *before* the function is touched, and phase 1 did that first.
+>
+> **Task 15 phase 0 closed on 2026-08-22.** Reading in
+> [docs/experiments/15-soc-efficiency-log.md](docs/experiments/15-soc-efficiency-log.md)
+> §1, labelled a **current-physics** measurement and never to be tabled with a
+> task-15 result: `EnergyNeutralRepair` is worth **85.03 EUR/day** (arm medians;
+> paired per-seed median 85.92, range 66.98–128.97) against the 28.46 EUR/day
+> floor, with repair-on at terminal-SoC deviation 0.000000 everywhere and
+> repair-off drifting to the 0.0125 tolerance boundary. Dropping the repair is
+> **excluded without being tried**; it is kept, and phase 1 builds the
+> solve-for-the-scalar variant (`plan.md` §3.2 answer 2).
+>
+> Two rules from that round outlive it. **The repository holds exactly one
+> efficiency expression** — nothing may reintroduce a second copy. Phase 0b put
+> it in `system.py::battery_store_energies`; phase 1 moved it one level down to
+> `system.py::battery_efficiencies`, which every other physics site now reads,
+> so `nsga3.py` contains no efficiency arithmetic at all. And
+> **`compare.robust_subset` must be set explicitly on every run whose reading
+> does not use the robustness curve**: its default of 12 adds 540 NSGA-III
+> solves per arm and silently triples a budget (task 15 §9, correction).
+>
+> **Task 15 phase 1 is built but not yet run.** The model is written up in
+> log §2 — `eta_chg(s) = eta_charge*(1 - k_charge*s)`,
+> `eta_dis(s) = eta_discharge*(1 - k_discharge*(1-s))` at `k = 0.10` both sides,
+> evaluated at the SoC entering each step — in `configs/system/soc_efficiency.yaml`,
+> with `k = 0` reducing exactly to today's constants so every existing config
+> and fixture is the degenerate case. `configs/system/default.yaml` is untouched.
+> Two things are outstanding before phase 2: `.venv/bin/pytest` has **not** been
+> run on the reference machine for this round, and §9's compute budget needs
+> re-deriving — the bisecting repair costs 34 trajectory walks per call where
+> the old one-pass scaling cost one, so the 3.49 s/day NSGA-III rate will move.
+> No arm was run and no result number was recorded, as §2 requires.
+>
+> Task 12 closed on 2026-08-22 — archive summary at the
 > top of [docs/tasks/12-tie-margin.md](docs/tasks/12-tie-margin.md); results in
 > [docs/experiments/12-tie-margin-log.md](docs/experiments/12-tie-margin-log.md)
 > (§5 is the synthesis). `models/comparison/block_e/` joins the published,

@@ -1,0 +1,36 @@
+# Build context for the forecast service image (task S4 phase 3).
+#
+# A clean clone contains none of the heavy things below — but the OWNER'S
+# working tree does, and `docker build` sends the whole directory to the daemon.
+# Without this file the image would quietly carry a 35 MB dataset, 65 MB of RL
+# checkpoints and eighteen 8.3 MB PatchTST runs, none of which the service
+# reads. Worse, it would build fine here and fail for anyone else — the exact
+# failure phase 3 exists to prevent.
+
+.git
+.venv
+__pycache__
+*.pyc
+.pytest_cache
+.DS_Store
+.claude
+.github
+
+# Not read by the service. The dataset is the point of phase 2's design: the
+# request carries its own window, so the image needs no data at all.
+data
+reports
+sql
+tests
+notebooks
+*.log
+
+# Everything under models/ except the three LSTM run directories the dispatch
+# chain resolves by default — the same three the .gitignore negations track.
+# `models/*` excludes each entry, then the three are named back in; the
+# resume checkpoints inside them are excluded again afterwards (last rule wins).
+models/*
+!models/load_lstm
+!models/wind_lstm
+!models/solar_lstm
+models/*/last.pt
