@@ -1,0 +1,34 @@
+# Task 15 physics: battery efficiency that depends on the state of charge.
+#
+# This is the SAME microgrid as configs/system/default.yaml with one extension,
+# and it says so structurally rather than by copying: the defaults list below
+# pulls in `system/default` and this file adds only the new block. default.yaml
+# is never touched (task 15 §5 D1), and every arm inside one task-15 comparison
+# faces exactly these physics.
+#
+# The model, its parameters and the justification are written up in
+# docs/experiments/15-soc-efficiency-log.md §2, before the code existed:
+#
+#   eta_chg(s) = eta_charge    * (1 - k_charge    * s)
+#   eta_dis(s) = eta_discharge * (1 - k_discharge * (1 - s))
+#
+# with s = E / capacity_mwh the state of charge as a fraction. Charge
+# acceptance falls as the store fills; discharge efficiency falls as it empties.
+# Over the usable band (soc_min 0.15 .. soc_max 0.90) each side moves about
+# 7 percentage points at the values below.
+#
+# k = 0 on both sides reduces EXACTLY to the two constants of default.yaml, and
+# that degenerate case is the regression test (tests/test_optimize.py). Both k
+# must satisfy 0 <= k < 1; system.params_from_cfg raises otherwise.
+#
+# This is the physics the LP of optimize/milp.py cannot represent at all — its
+# two scalar coefficients `coef_pd, coef_pc` become decision-dependent, making
+# the SoC rows bilinear and non-convex (log §2.6). That is the point of task 15.
+defaults:
+  - default
+  - _self_
+
+battery:
+  soc_efficiency:
+    k_charge: 0.10        # taper of the charge efficiency with rising SoC
+    k_discharge: 0.10     # taper of the discharge efficiency with falling SoC

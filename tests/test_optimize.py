@@ -7,9 +7,11 @@ NSGA-III solve is exercised by scripts/optimize_dispatch.py, not the unit suite.
 import numpy as np
 import pandas as pd
 import pytest
+from hydra import compose, initialize_config_dir
 from omegaconf import OmegaConf
 
 from microgrid.optimize import system
+from microgrid.paths import project_root
 from microgrid.optimize.topsis import entropy_weights, knee_point, minmax_normalize, topsis
 
 
@@ -74,6 +76,67 @@ def test_soc_batch_matches_loop(params):
     E_batch = system.soc_trajectory(P, params)
     for i in range(5):
         assert np.allclose(E_batch[i], system.soc_trajectory(P[i], params))
+
+
+# --------------------------------------------------------------------------- #
+# Store-side energy totals
+# --------------------------------------------------------------------------- #
+# Written before task 15 phase 1 changed `battery_store_energies`, closing the
+# gap S4 phase 0 finding 3 recorded: the function had no direct test, and its
+# only coverage was an *inequality* in test_milp.py that a wrong store-energy
+# total can satisfy. These assert the totals themselves.
+#
+# They were written against the old ``(dis, chg, p)`` signature and then had
+# their CALL FORM adapted when phase 1 changed it to ``(P_bat, p)``. Not one
+# asserted value moved: under the degenerate k = 0 setting these fixtures run,
+# the new implementation is today's arithmetic.
+def test_store_energies_match_asymmetric_efficiency(params):
+    """Store totals are the discharge/charge sums, each at its own efficiency."""
+    dt = params.dt_h
+    P_bat = np.array([-1.0, 0.5, 0.0, -0.4, 1.0])
+    removed, added = system.battery_store_energies(P_bat, params)
+    # discharge takes MORE from the store than it delivers (divide by eta)
+    assert removed == pytest.approx((0.5 + 1.0) * dt / params.eta_discharge)
+    # charge puts LESS into the store than it draws (multiply by eta)
+    assert added == pytest.approx((1.0 + 0.4) * dt * params.eta_charge)
+    # and the two efficiencies are genuinely applied in opposite directions
+    assert removed > (0.5 + 1.0) * dt
+    assert added < (1.0 + 0.4) * dt
+
+
+def test_store_energies_agree_with_soc_trajectory_net_drain(params):
+    """removed - added is exactly the net drain soc_trajectory produces.
+
+    This is the invariant EnergyNeutralRepair relies on: removed == added is
+    what makes the terminal SoC land back on e_init.
+    """
+    rng = np.random.default_rng(7)
+    P_bat = rng.uniform(-1.0, 1.0, size=96)
+    removed, added = system.battery_store_energies(P_bat, params)
+    E = system.soc_trajectory(P_bat, params)
+    assert removed - added == pytest.approx(params.e_init - E[-1])
+
+
+def test_store_energies_balanced_schedule_is_energy_neutral(params):
+    """A schedule whose totals match ends the horizon exactly at e_init."""
+    dt, eta_c, eta_d = params.dt_h, params.eta_charge, params.eta_discharge
+    # charge 1 MW for one step, then discharge whatever returns the same store energy
+    p_dis = 1.0 * eta_c * eta_d
+    P_bat = np.array([-1.0, p_dis])
+    removed, added = system.battery_store_energies(P_bat, params)
+    assert removed == pytest.approx(added)
+    assert system.soc_trajectory(P_bat, params)[-1] == pytest.approx(params.e_init)
+
+
+def test_store_energies_batch_matches_rows(params):
+    rng = np.random.default_rng(11)
+    P = rng.uniform(-1.0, 1.0, size=(4, 96))
+    rem, add = system.battery_store_energies(P, params)
+    assert rem.shape == (4,) and add.shape == (4,)
+    for i in range(4):
+        r_i, a_i = system.battery_store_energies(P[i], params)
+        assert rem[i] == pytest.approx(r_i)
+        assert add[i] == pytest.approx(a_i)
 
 
 # --------------------------------------------------------------------------- #
@@ -281,3 +344,211 @@ def test_knee_point_interior():
     idx = knee_point(F)
     assert idx not in (0, len(F) - 1)
     assert idx == 2                                  # symmetric convex knee is the middle
+
+
+# --------------------------------------------------------------------------- #
+# SoC-dependent battery efficiency (task 15 phase 1)
+# --------------------------------------------------------------------------- #
+# The model is written up in docs/experiments/15-soc-efficiency-log.md §2:
+#   eta_chg(s) = eta_charge    * (1 - k_charge    * s)
+#   eta_dis(s) = eta_discharge * (1 - k_discharge * (1 - s))
+# The k = 0 reduction to today's constants is the regression test the task file
+# names, and it is asserted at all four physics sites rather than inferred.
+@pytest.fixture()
+def soc_eff_cfg(sys_cfg):
+    cfg = OmegaConf.create(OmegaConf.to_container(sys_cfg, resolve=True))
+    cfg.battery.soc_efficiency = {"k_charge": 0.10, "k_discharge": 0.10}
+    return cfg
+
+
+@pytest.fixture()
+def soc_eff_params(soc_eff_cfg):
+    return system.params_from_cfg(soc_eff_cfg)
+
+
+def test_soc_efficiency_absent_block_is_the_degenerate_case(params):
+    """Every config that does not opt in keeps the two constants exactly."""
+    assert params.k_eta_charge == 0.0 and params.k_eta_discharge == 0.0
+    assert params.soc_dependent_efficiency is False
+    eta_c, eta_d = system.battery_efficiencies(np.array([0.6, 2.0, 3.6]), params)
+    assert eta_c == params.eta_charge          # scalars, not arrays: exact fast path
+    assert eta_d == params.eta_discharge
+
+
+def test_soc_efficiency_zero_k_reduces_exactly_at_all_four_sites(sys_cfg, params):
+    """k = 0 written explicitly reproduces the constant-efficiency physics."""
+    sys_cfg.battery.soc_efficiency = {"k_charge": 0.0, "k_discharge": 0.0}
+    p0 = system.params_from_cfg(sys_cfg)
+    rng = np.random.default_rng(3)
+    P_bat = rng.uniform(-1.0, 1.0, size=(6, 96))
+    # 1. soc_trajectory  2. battery_store_energies
+    assert np.array_equal(system.soc_trajectory(P_bat, p0),
+                          system.soc_trajectory(P_bat, params))
+    r0, a0 = system.battery_store_energies(P_bat, p0)
+    r1, a1 = system.battery_store_energies(P_bat, params)
+    assert np.array_equal(r0, r1) and np.array_equal(a0, a1)
+    # 3. soc_step  4. soc_feasible_pbat_bounds
+    for E in (0.7, 2.0, 3.5):
+        for pb in (-1.0, -0.3, 0.0, 0.4, 1.0):
+            assert system.soc_step(E, pb, p0) == system.soc_step(E, pb, params)
+        assert system.soc_feasible_pbat_bounds(E, p0) == \
+               system.soc_feasible_pbat_bounds(E, params)
+
+
+def test_soc_efficiency_is_monotone_in_the_stated_directions(soc_eff_params):
+    """Charging worsens as the store fills; discharging worsens as it empties."""
+    p = soc_eff_params
+    s = np.array([0.15, 0.50, 0.90])
+    eta_c, eta_d = system.battery_efficiencies(s * p.bat_capacity, p)
+    assert eta_c[0] > eta_c[1] > eta_c[2]      # charge acceptance falls with SoC
+    assert eta_d[0] < eta_d[1] < eta_d[2]      # discharge efficiency rises with SoC
+    # the values the log's table states, and the guard that keeps eta in (0, eta0]
+    assert eta_c == pytest.approx([0.93575, 0.90250, 0.86450])
+    assert eta_d == pytest.approx([0.86925, 0.90250, 0.94050])
+    assert np.all((0.0 < eta_c) & (eta_c <= p.eta_charge))
+    assert np.all((0.0 < eta_d) & (eta_d <= p.eta_discharge))
+
+
+def test_soc_efficiency_argument_is_clipped_outside_the_physical_range(soc_eff_params):
+    """Infeasible candidates are scored too; eta must stay finite and monotone."""
+    p = soc_eff_params
+    eta_c, eta_d = system.battery_efficiencies(np.array([-50.0, 0.0, 4.0, 500.0]), p)
+    assert np.all(np.isfinite(eta_c)) and np.all(eta_d > 0.0)
+    assert eta_c[0] == eta_c[1] and eta_c[2] == eta_c[3]   # clipped at s = 0 and s = 1
+
+
+def test_soc_efficiency_rejects_k_outside_zero_one(sys_cfg):
+    for bad in (-0.01, 1.0, 1.5):
+        sys_cfg.battery.soc_efficiency = {"k_charge": bad, "k_discharge": 0.0}
+        with pytest.raises(ValueError, match="0 <= k < 1"):
+            system.params_from_cfg(sys_cfg)
+
+
+def test_soc_step_recursion_matches_trajectory_under_soc_dependence(soc_eff_params):
+    """The per-step and vectorised paths stay one physics under the new model."""
+    p = soc_eff_params
+    rng = np.random.default_rng(5)
+    P_bat = rng.uniform(-1.0, 1.0, size=48)
+    E, traj = p.e_init, [p.e_init]
+    for t in range(len(P_bat)):
+        E = system.soc_step(E, float(P_bat[t]), p)
+        traj.append(E)
+    assert np.allclose(traj, system.soc_trajectory(P_bat, p))
+
+
+def test_soc_feasible_bounds_stay_exact_under_soc_dependence(soc_eff_params):
+    """The closed-form inverse still holds: the window's edges land on the limits."""
+    p = soc_eff_params
+    for E in np.linspace(p.e_min, p.e_max, 9):
+        lo, hi = system.soc_feasible_pbat_bounds(float(E), p)
+        assert system.soc_step(float(E), lo, p) <= p.e_max + 1e-9
+        assert system.soc_step(float(E), hi, p) >= p.e_min - 1e-9
+
+
+def test_store_energies_are_path_dependent_under_soc_dependence(soc_eff_params):
+    """The totals stop being computable from the power arrays alone.
+
+    Two schedules with identical discharge and charge *powers* in a different
+    order have identical totals under a constant efficiency, and different ones
+    once the efficiency follows the SoC. This is the property that forced the
+    signature change, so it is asserted rather than described.
+    """
+    p = soc_eff_params
+    a = np.array([-1.0, -1.0, 1.0, 1.0])
+    b = np.array([1.0, -1.0, -1.0, 1.0])       # same powers, different order
+    assert np.array_equal(np.sort(a), np.sort(b))
+    ra, aa = system.battery_store_energies(a, p)
+    rb, ab = system.battery_store_energies(b, p)
+    assert not np.isclose(ra, rb) or not np.isclose(aa, ab)
+
+
+def test_store_energies_net_drain_matches_trajectory_under_soc_dependence(soc_eff_params):
+    p = soc_eff_params
+    rng = np.random.default_rng(13)
+    P_bat = rng.uniform(-1.0, 1.0, size=(3, 96))
+    removed, added = system.battery_store_energies(P_bat, p)
+    E = system.soc_trajectory(P_bat, p)
+    assert np.allclose(removed - added, p.e_init - E[:, -1])
+
+
+# --------------------------------------------------------------------------- #
+# The energy-neutral projection (NSGA-III's search aid), both regimes
+# --------------------------------------------------------------------------- #
+def test_energy_neutral_projection_is_closed_form_on_constant_efficiency(params):
+    """The current-physics path keeps the exact scaling, not a converged one."""
+    rng = np.random.default_rng(17)
+    P_bat = rng.uniform(-1.0, 1.0, size=(32, 96))
+    out = system.energy_neutral_project(P_bat, params)
+    dis = np.clip(P_bat, 0.0, None)
+    chg = np.clip(P_bat, None, 0.0)
+    dis_e = (dis * params.dt_h / params.eta_discharge).sum(axis=-1)
+    chg_e = (-chg * params.dt_h * params.eta_charge).sum(axis=-1)
+    both = (dis_e > 1e-9) & (chg_e > 1e-9)
+    s_dis = np.where(both & (dis_e > chg_e), chg_e / np.maximum(dis_e, 1e-9), 1.0)
+    s_chg = np.where(both & (chg_e > dis_e), dis_e / np.maximum(chg_e, 1e-9), 1.0)
+    expected = dis * s_dis[:, None] + chg * s_chg[:, None]
+    expected[~both] = 0.0
+    assert np.array_equal(out, expected)
+
+
+def test_energy_neutral_projection_lands_on_the_manifold(params, soc_eff_params):
+    """Both regimes end the horizon at e_init — the repair's actual job."""
+    rng = np.random.default_rng(19)
+    P_bat = rng.uniform(-1.0, 1.0, size=(24, 96))
+    for p in (params, soc_eff_params):
+        out = system.energy_neutral_project(P_bat, p)
+        E = system.soc_trajectory(out, p)
+        assert np.allclose(E[:, -1], p.e_init, atol=1e-8), p.soc_dependent_efficiency
+        assert np.all(np.abs(E[:, -1] - p.e_init) < p.terminal_tol)
+
+
+def test_energy_neutral_projection_only_shrinks_magnitudes(soc_eff_params):
+    """Scaling down keeps every step inside the converter bounds by construction."""
+    rng = np.random.default_rng(23)
+    P_bat = rng.uniform(-1.0, 1.0, size=(16, 96))
+    out = system.energy_neutral_project(P_bat, soc_eff_params)
+    assert np.all(np.abs(out) <= np.abs(P_bat) + 1e-12)
+    assert np.all(np.sign(out) * np.sign(P_bat) >= 0)   # no step changes direction
+
+
+def test_energy_neutral_projection_zeroes_single_direction_rows(soc_eff_params):
+    """A schedule that only charges cannot be balanced by scaling -> no throughput."""
+    only_charge = np.full((1, 96), -0.5)
+    only_discharge = np.full((1, 96), 0.5)
+    for X in (only_charge, only_discharge):
+        out = system.energy_neutral_project(X, soc_eff_params)
+        assert np.all(out == 0.0)
+
+
+def test_energy_neutral_projection_leaves_balanced_rows_alone(soc_eff_params):
+    """A schedule already on the manifold is returned unchanged, not re-scaled."""
+    p = soc_eff_params
+    balanced = system.energy_neutral_project(
+        np.array([[-1.0, 0.6, -0.4, 0.9, -0.2, 0.3]]), p
+    )
+    again = system.energy_neutral_project(balanced, p)
+    assert np.allclose(again, balanced, atol=1e-9)
+
+
+def test_soc_efficiency_config_extends_default_by_exactly_one_block():
+    """`system=soc_efficiency` composes, and differs from default by the new block.
+
+    This is what makes "all arms inside a comparison face identical physics"
+    (task 15 §5 D1) structural rather than a promise: the two configs are
+    compared key by key, so a future edit to either that changes any other
+    physical parameter fails here.
+    """
+    with initialize_config_dir(config_dir=str(project_root() / "configs"), version_base=None):
+        base = compose(config_name="pipeline", overrides=["system=default"])
+        soc = compose(config_name="pipeline", overrides=["system=soc_efficiency"])
+    b = OmegaConf.to_container(base.system, resolve=True)
+    s = OmegaConf.to_container(soc.system, resolve=True)
+    added = s["battery"].pop("soc_efficiency")
+    assert added == {"k_charge": 0.10, "k_discharge": 0.10}
+    assert s == b, "soc_efficiency.yaml must extend default.yaml, not restate it"
+
+    p_new = system.params_from_cfg(soc.system)
+    assert p_new.soc_dependent_efficiency is True
+    assert (p_new.k_eta_charge, p_new.k_eta_discharge) == (0.10, 0.10)
+    # and the shipped default stays the degenerate case, untouched by task 15
+    assert system.params_from_cfg(base.system).soc_dependent_efficiency is False

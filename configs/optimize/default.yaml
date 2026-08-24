@@ -31,6 +31,13 @@ pop_size: 200
 n_gen: 400
 seed: 42
 
+# Task 15 phase 0a: NSGA-III's EnergyNeutralRepair search aid. true reproduces
+# today's behaviour exactly; false substitutes a local no-op repair so the
+# repair's value can be measured (61 days x 3 seeds, repair-on vs repair-off).
+# NOTE: the dispatch-cache key does not encode this switch — a repair-off run
+# must use its own compare.cache_dir, never share one with a repair-on run.
+energy_neutral_repair: true
+
 # Deterministic LP lower bound (task 09, microgrid/optimize/milp.py), read by
 # scripts/compare_dispatch.py when compare.milp=true. The module keeps the same
 # values as keyword defaults so tests can call it without a config.

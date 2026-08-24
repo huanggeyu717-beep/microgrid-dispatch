@@ -30,6 +30,7 @@ from pymoo.util.nds.non_dominated_sorting import NonDominatedSorting
 from pymoo.util.ref_dirs import get_reference_directions
 
 from microgrid.optimize.problem import DispatchProblem
+from microgrid.optimize.system import energy_neutral_project
 
 log = logging.getLogger(__name__)
 
@@ -121,11 +122,18 @@ class EnergyNeutralRepair(Repair):
     """Project each schedule to exact battery energy-neutrality (E_final == E_init).
 
     The terminal-SoC constraint defines a thin manifold that cripples a GA's
-    spread. Scaling the smaller of {charge, discharge} store-energy down to match
-    the larger makes every individual energy-neutral *by construction* — always
+    spread. Scaling the larger of {charge, discharge} store-energy down to match
+    the smaller makes every individual energy-neutral *by construction* — always
     within power bounds (magnitudes only shrink) — so NSGA-III can devote its
     search to the cost/CO2 trade-off. The physics (asymmetric efficiencies) and
     the constraint itself are unchanged; this only guides where candidates land.
+
+    All of the arithmetic lives in ``system.energy_neutral_project`` — this
+    class is the pymoo adapter and nothing else, so ``nsga3.py`` contains no
+    efficiency expression at all (task 15 phase 0b's rule, kept by phase 1).
+    Under a SoC-dependent efficiency the single scaling no longer lands on the
+    manifold and that function bisects for the factor instead; the caller does
+    not change.
     """
 
     def __init__(self, params, eps: float = 1e-9):
@@ -134,19 +142,21 @@ class EnergyNeutralRepair(Repair):
         self.eps = eps
 
     def _do(self, problem, X, **kwargs):
-        p, H, eps = self.p, problem.H, self.eps
+        H = problem.H
         X = X.copy()
-        Pb = X[:, H:]
-        dis = np.clip(Pb, 0.0, None)
-        chg = np.clip(Pb, None, 0.0)                      # <= 0
-        dis_e = (dis * p.dt_h / p.eta_discharge).sum(axis=1)   # energy removed from store
-        chg_e = (-chg * p.dt_h * p.eta_charge).sum(axis=1)     # energy added to store
-        both = (dis_e > eps) & (chg_e > eps)
-        s_dis = np.where(both & (dis_e > chg_e), chg_e / np.maximum(dis_e, eps), 1.0)
-        s_chg = np.where(both & (chg_e > dis_e), dis_e / np.maximum(chg_e, eps), 1.0)
-        Pb_new = dis * s_dis[:, None] + chg * s_chg[:, None]
-        Pb_new[~both] = 0.0                              # single-direction -> no throughput
-        X[:, H:] = Pb_new
+        X[:, H:] = energy_neutral_project(X[:, H:], self.p, eps=self.eps)
+        return X
+
+
+class _NoRepair(Repair):
+    """Identity repair for the ``optimize.energy_neutral_repair=false`` arm.
+
+    Defined here rather than imported from pymoo so the switch does not depend
+    on a library detail (task 15 phase 0a). Returning X unchanged leaves the
+    terminal-SoC constraint to NSGA-III's feasibility-first ranking alone.
+    """
+
+    def _do(self, problem, X, **kwargs):
         return X
 
 
@@ -186,8 +196,10 @@ def solve(problem: DispatchProblem, cfg: DictConfig, verbose: bool = False):
     feasible individuals over the run), falling back to the final population's
     non-dominated set if the archive is somehow empty.
     """
+    use_repair = bool(cfg.get("energy_neutral_repair", True))
+    repair = EnergyNeutralRepair(problem.p) if use_repair else _NoRepair()
     algorithm = make_algorithm(
-        cfg, DispatchSampling(seed=int(cfg.seed)), EnergyNeutralRepair(problem.p), n_obj=problem.n_obj
+        cfg, DispatchSampling(seed=int(cfg.seed)), repair, n_obj=problem.n_obj
     )
     archive = FeasibleArchive()
     res = minimize(
