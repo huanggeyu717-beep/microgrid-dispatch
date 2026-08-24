@@ -306,13 +306,16 @@ conclusion.** That is the point at which it is worth showing to someone.
   shows a high ceiling.
 - **PatchTST + NWP.** De-motivated: more parameters lose at ~2,700 windows,
   observed four times now including §11.4.
-- **Re-running RL against the current forecaster.** Document the mismatch in
-  both READMEs instead — "SAC results are based on the original single-year
-  forecasts and have not been re-run". (An earlier version of this bullet also
-  said RL's constraint violation rate was not evaluated; it has been, twice —
-  1.6393 steps/day (08 log §4.1) on 22 of 61 days (11 log §3.3), re-measured in
-  `block_d`.) Honest labelling is cheaper than a re-run and this project already
-  trades on that.
+- ~~**Re-running RL against the current forecaster.** Document the mismatch in
+  both READMEs instead.~~ **Overturned by task 15 (2026-08-24).** This trade was
+  priced on the premise that the learned policy was not the centre of the
+  project. That premise stopped holding, so task 15 §5 D4 retrained against the
+  current forecaster and the mismatch label is retired rather than restated —
+  for the SoC-dependent results. The label still applies, correctly, to the
+  three-way comparison of task 04, whose numbers are unchanged and were never
+  re-run. (An earlier version of this bullet also said RL's constraint violation
+  rate was not evaluated; it has been, twice — 1.6393 steps/day (08 log §4.1) on
+  22 of 61 days (11 log §3.3), re-measured in `block_d`.)
 - **Making the models bigger because a GPU is available.** The binding
   constraint is information (wind) and possibly sample size, never compute.
   §11.4 and the scaling curve are the evidence.

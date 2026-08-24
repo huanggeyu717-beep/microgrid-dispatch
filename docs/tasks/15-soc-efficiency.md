@@ -2,7 +2,7 @@
 
 | field | value |
 |---|---|
-| status | **phase 1 built, suite green, smoked (2026-08-23); the SBX NaN finding is diagnosed and no longer blocks phase 2 (2026-08-24, log §3).** It is a pre-existing defect in `nsga3.DispatchSampling`, not new to the new physics and not a pymoo bug; it costs 0.0025-0.0050 % of offspring on the new physics against 0.0188-0.0263 % on the current one, so `plan.md` §3.2's do-not-weaken-NSGA-III guard is not engaged. Two owner decisions are open in §12 (whether to fix the sampler, and the stale claim in `CLAUDE.md`); nothing else blocks. Phase 0 closed 2026-08-22; S4 phase 1 went green on 2026-08-22 (S4 §12), which lifted the earlier block — the automated test run now guards `optimize/system.py` on every change |
+| status | **✅ done, 2026-08-24.** The model-class statement stands: `milp.py` is inapplicable, not slower. Both pre-registered cost predictions were falsified with the wrong sign. Synthesis in log §6; the controller follow-on is task D1 |
 | timebox | 2 weeks |
 | priority | the project's main line: it is where the learned policy stops competing against a proven optimum and starts competing against a heuristic |
 | where results go | this task owns `docs/experiments/15-soc-efficiency-log.md`. It may **quote** the 05/08/09/11/12 logs with a citation and may **never** put a current-physics number in a table with a task-15 number |
@@ -12,7 +12,21 @@
 
 ## 1. Archive summary
 
-*(≤15 lines, filled at close. Leave empty until then.)*
+Extended the physics into a class the LP construction of task 09 cannot represent
+at all — SoC-dependent battery efficiency, `k = 0.10` both sides, in a new
+`configs/system/soc_efficiency.yaml` that extends `default.yaml` rather than
+restating it. `milp.py`'s two scalar coefficients stop existing; the SoC rows turn
+bilinear and non-convex and the tangent-cut trick does not transfer. NSGA-III and
+the RL env followed with no change of their own. Phase 0 measured the
+`EnergyNeutralRepair` question instead of arguing it (85.03 EUR/day, kept) and
+phase 1 built the bisecting projection. Re-measured noise floor **45.8574
+EUR/day**. Results, three optimiser seeds x three RL training seeds, 61 days:
+rule 5347.5657 at 38/61 violating days, NSGA-III 5469.0572 at **0/61**, the
+retrained policy 5187.8002 at 21–32/61. **P1 and P2 both falsified with the wrong
+sign** and recorded as wrong: the two cheapest groups are the two that do not pay
+for feasibility. That gap is what task D1 then closed. One claim was withdrawn
+mid-task — the SBX NaN is not new to the new physics, and the zero grep count
+that suggested it was is void (Hydra job logs cannot contain a warning).
 
 ---
 
@@ -506,7 +520,7 @@ the default.
       1.0 MW rating, and **TOPSIS picked one in 0 of 6 runs** — the affected
       member sits at the front's extreme end. Verdict: not severe, do not fix
       inside task 15.
-- [ ] **OWNER DECISION (deferred, low priority) — the sampler defect itself.** It is a defect in this
+- [x] **OWNER DECISION, 2026-08-24: not fixed.** The sampler defect itself. It is a defect in this
       repository's code, but **pre-existing** and not task 15's, so it is neither
       branch step 2 of §2 anticipated. The one-line fix (clip after the mean
       removal, or scale instead of clip) changes the NSGA-III warm start on the
@@ -516,7 +530,7 @@ the default.
       the same 61 days x 3 seeds protocol §1 used. Nothing was changed in this
       round; the three diagnostic scripts are in `models/scratch/t15_diag/`
       (gitignored).
-- [ ] **OWNER DECISION — the stale claim in `CLAUDE.md`.** Its ACTIVE TASK block
+- [x] **OWNER DECISION, 2026-08-24: corrected.** `CLAUDE.md`'s ACTIVE TASK block now records the withdrawal. Original item: Its ACTIVE TASK block
       still states the finding is "new to the new physics, not inherited noise"
       and cites the zero grep count. That is the first thing a fresh conversation
       reads. Left untouched here because `CLAUDE.md` is the owner's contract, not
@@ -526,7 +540,7 @@ the default.
       `286 passed, 6 skipped, 4 deselected in 3.78s`
       Same 286 / 6 / 4 as the 2026-08-23 run: the diagnosis changed no source
       file, only this file and the log, so nothing was weakened or skipped.
-- [ ] *(phase 2)* **first retrain attempt DISCARDED, 2026-08-24 — unequal training
+- [x] *(phase 2)* **first retrain attempt DISCARDED, 2026-08-24 — unequal training
       budgets.** The three seeds finished cleanly (28 min wall clock, three
       processes in parallel with `OMP_NUM_THREADS=1`, ~190 steps/s each) but
       `train_summary.json` records `cumulative_timesteps` **410000 / 320000 /
@@ -545,7 +559,7 @@ the default.
       also got more draws at the bar. That confound would sit directly under
       P2 (log §4), the prediction the task exists to test. Nothing is deleted —
       `models/scratch/t15_rl_seed4{2,3,4}/` stay as the record.
-- [ ] *(phase 2)* **provenance gap to close on the retrain.**
+- [x] *(phase 2)* **provenance gap closed** — `--cfg job` dump beside the checkpoints. Original item:
       `hydra.output_subdir: null` (`configs/pipeline.yaml:78`) and
       `train_summary.json` records only algo / steps / day counts /
       `best_val_cost` / `env_cfg` — **no `system` block**. So no training
@@ -563,7 +577,7 @@ the default.
       `models/scratch/t15_rl2_composed_config.yaml` before training and carries
       `battery.soc_efficiency.k_charge: 0.1` / `k_discharge: 0.1` — the new
       physics is now evidenced by an artifact, not only by the command line.
-- [ ] **OWNER DECISION — checkpoint selection favours the depleted-battery
+- [x] **OWNER DECISION, 2026-08-24: not changed** (D1's hard terminal projection closes the risk from the other end). Checkpoint selection favours the depleted-battery
       evaluations.** `best.zip` is chosen by `val_cost` **alone**
       (`train.py`, `monitor.best_val_cost`), and `val_cost` does not carry the
       terminal-SoC penalty the *reward* carries. `configs/rl/default.yaml` is
@@ -605,7 +619,7 @@ the default.
       construction as 08 §4.1, no extra run needed), predictions scored
       (P3/P4 hold, **P1 and P2 falsified with the wrong sign**, P5 unscorable),
       synthesis and gate verdicts in log §6.2–§6.5
-- [ ] close — archive summary, board row, ACTIVE TASK back to none
+- [x] close — archive summary, board row, ACTIVE TASK back to none, both READMEs
 
 ---
 

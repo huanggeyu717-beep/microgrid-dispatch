@@ -38,6 +38,8 @@ flowchart LR
 | PostgreSQL data layer | Complete |
 | LLM data agent (natural language → SQL) | Complete |
 | Service layer — test run on every push, callable forecast interface, container | Complete |
+| SoC-dependent battery efficiency — physics the LP construction cannot represent at all | Complete |
+| Safe RL — per-step projection of the tie line and terminal SoC; a dispatchable learned controller | Complete |
 
 ## Results preview
 
@@ -392,12 +394,15 @@ data as well as for weather.
   number in this project describes late-autumn/winter performance; nothing
   here supports a claim about summer, and no seasonal comparison is possible
   without changing the frozen split.
-- **The dispatch and RL results below were produced with the original
-  single-year LSTM forecasts.** The newer forecasters were later fed through
-  the same dispatch as alternative input tiers (see "What is forecast accuracy
-  worth to dispatch?"): on realised cost they are indistinguishable from the
-  original LSTM, so re-basing the published comparison on them would not
-  change its conclusions.
+- **The dispatch and RL results in the three-way comparison below were
+  produced with the original single-year LSTM forecasts.** The newer
+  forecasters were later fed through the same dispatch as alternative input
+  tiers (see "What is forecast accuracy worth to dispatch?"): on realised cost
+  they are indistinguishable from the original LSTM, so re-basing the published
+  comparison on them would not change its conclusions. The label applies to
+  that comparison only — the policy in "Physics the exact solver cannot
+  represent" further down was retrained against the current forecaster, so
+  those results carry no such mismatch.
 - The standalone forecaster's wind error is ~1.85× Elia's (341.62 vs 185.08).
   The honest framing is not that it beats the TSO — it does not — but that it
   uses **none of Elia's outputs**: only public weather data and its own
@@ -436,6 +441,14 @@ Day-ahead dispatch is recast as a **sequential decision** problem: one day of 96
 
 - **Environment** (`src/microgrid/rl/env.py`, passes the official `gymnasium` `env_checker`): the physics **fully reuses** `system.py` — per-step primitives (`soc_step`/`fuel_cost_step`/…) were added for the closed loop, with unit tests asserting that "step-wise sums == the original vectorised whole-day functions", i.e. the environment introduces no new physics (the source of physics stays unique). **Feasibility via projection, not penalties**: actions are first clipped into the ramp-feasible interval (P_mt) and the SoC-feasible interval (P_bat), with projection magnitude logged as a diagnostic. Observations (all normalised) include SoC, sinusoidal within-day step encoding, current measured wind/solar/load, the next 2 h of LSTM median forecasts, current/next buy price, and the remaining-steps fraction.
 - **Reward**: `-(Δcost + carbon_price·ΔCO₂)/scale` accumulated per step, plus a terminal `-(w_soc·|SoC_T−SoC_0| + w_peak·grid_peak)` — so that all three comparison metrics (cost / CO₂ / peak) exert training pressure. **A non-trivial tuning lesson**: `w_soc` must be **greater than** the arbitrage value of draining the battery's initial charge (~266 EUR for a full discharge), otherwise the policy rationally empties the battery at day's end to cut cost — unfair cheating against the energy-neutral NSGA/rule baselines (symptom: `soc_dev` stuck at 0.35). Raising `w_soc` from 500 to 1500 restored near energy-neutrality (`soc_dev ≈ 0.03`).
+**The lesson has a second half, found later** (see "A dispatchable learned
+controller"): a terminal penalty large enough to deter the policy is still a
+*soft* term, and it does not survive contact with a *hard* per-step constraint.
+Once the tie limit was enforced by projection, the same reward pushed the store
+out again — the corrector spends the battery to cut an import, and a penalty in
+the objective cannot undo an action the projection has already taken. Soft
+shaping and hard feasibility are not interchangeable, and the second one is what
+a dispatchable controller needs.
 - **SAC** (Soft Actor-Critic — an off-policy RL algorithm for continuous actions that maximises return plus policy entropy to sustain exploration; `stable-baselines3` implementation) is trained on the forecast training period (Jan–Sep), validated on October, and **never touches** Nov–Dec until the final comparison. Training is **time-boxed and resumable** (replay buffer + checkpoints saved, learning curves flushed incrementally), converging in ~130k steps on CPU; validation cost 5017 → 4826 EUR. PPO is a documented fallback switch (`rl=ppo`).
 
 **Three-way comparison (`scripts/compare_dispatch.py`, 61 test days, Nov–Dec)**: all three methods receive the **same LSTM median forecasts** and are executed against **measured ground truth** through the same physical path (`rollout.simulate`) — NSGA-III+TOPSIS re-optimises each day (full budget, ~10 s/day) and then runs **open-loop**; the RL policy rolls **closed-loop** (observing ground truth as it decides); the rule baseline runs closed-loop.
@@ -740,6 +753,114 @@ Three findings behind the headline:
 This is the baseline the receding-horizon controller (roadmap C1) must beat:
 dynamic intraday correction that cannot beat a 5.51 EUR/day static insurance
 premium is not worth its complexity — a falsifiable bar, by construction.
+
+### Physics the exact solver cannot represent — and a dispatchable learned controller
+
+Every dispatch result above shares a hidden dependency: the deterministic LP of
+the optimality-gap section is valid because of what `configs/system/default.yaml`
+happens to contain, not because of anything about microgrids. `milp.py` encodes
+battery efficiency as **two scalar coefficients**
+(`coef_pd, coef_pc = dt/eta_discharge, -dt*eta_charge`). Make the efficiency
+depend on the state of charge and those coefficients stop existing: the SoC rows
+turn bilinear and non-convex, and the tangent-cut trick that rescues the
+quadratic fuel curve does not transfer, because it needs convexity in one
+variable and the SoC rows come in both directions. **The exact solver is not
+slowed here, it is inapplicable** — so there is no proven optimum to measure
+against, and the learned policy stops competing with a certificate and starts
+competing with a heuristic search.
+
+`configs/system/soc_efficiency.yaml` is that model: `eta_chg(s) = eta_charge·(1 −
+k·s)` and `eta_dis(s) = eta_discharge·(1 − k·(1−s))` at `k = 0.10` both sides,
+evaluated at the SoC entering each step. It **extends** `default.yaml` through
+its defaults list rather than restating it, and at `k = 0` reduces exactly to
+today's constants — that degenerate case is the regression test. NSGA-III and
+the RL environment follow the new physics with no change of their own, because
+both read it from `optimize/system.py`; only the LP cannot.
+
+**The learned controller needed two constraints enforced before it was
+dispatchable, and neither was.** `constraint_vector` carries five constraints.
+The RL environment hard-projected three of them (turbine ramp, and the SoC
+limits via a closed-form feasible window) and left two to reward shaping — the
+tie limit was in fact only *measured*, never projected and never penalised. So
+the policy broke it, on 21–32 of 61 days, for the simple reason that nothing in
+its training signal or its action mapping ever said not to.
+
+Both now get the same treatment as the other three: a closed-form per-step
+window, applied to the request before the physics runs. The tie limit is a band
+on the **sum** of the two setpoints, since `P_grid = net − P_mt − P_bat`. The
+terminal SoC is a horizon constraint but has a per-step window too — the store
+energies from which `e_init` is still reachable in the steps remaining, which is
+wide early in the day and narrows to the tolerance itself at the last step.
+Keeping the state inside it at every step *is* the induction; that is recursive
+feasibility, closed form here because the per-step charge and discharge limits
+are constants. Both live behind config switches that default to off, so every
+published rollout above is unchanged.
+
+**Results on the new physics** (61 Nov–Dec 2024 test days, realised against
+measured actuals through the same shared path; NSGA-III at three optimiser
+seeds, the policy at three training seeds; the policy retrained against the
+current forecaster). Re-measured noise floor: **45.86 EUR/day**.
+
+| Method | Realised cost (EUR/day) | Tie-line violations | Days over terminal-SoC tolerance | Grid peak (MW) |
+|---|:---:|:---:|:---:|:---:|
+| Rule baseline | 5347.57 | 38 / 61 days | 61 / 61 | 2.97 |
+| NSGA-III+TOPSIS | 5469.06 [5441.36, 5487.22] | **0 / 61** | **0 / 61** | **1.95** |
+| RL, unprojected | 5187.80 | 21–32 / 61 days | 23–53 / 61 | 2.73–2.84 |
+| **RL, both constraints projected** | **5215.32** [5209.61, 5233.26] | **0 / 61** | **0 / 61** | 2.55 |
+
+> These numbers describe the SoC-dependent physics and may not be compared with
+> any number elsewhere in this README, which describes the constant-efficiency
+> model. The two are different problems, and mixing them would manufacture
+> differences that do not exist.
+
+**What it cost to become dispatchable: 27.52 EUR/day — inside the 45.86 EUR/day
+noise floor**, so at this measurement's resolution it is not distinguishable
+from free. The controller keeps **253.74 EUR/day** over NSGA-III with disjoint
+three-seed ranges: 90 % of the advantage it held before any constraint was
+enforced.
+
+Three things in that progression were not predicted and are the actual findings:
+
+- **Enforcing the first constraint broke the second.** Projecting only the tie
+  line took violations to zero and pushed terminal-SoC failures *up*, from
+  23–53 to 53–60 days of 61 — mechanically, because cutting an import means
+  raising `P_mt + P_bat` and the battery is the cheap half of that sum.
+  Constraint-by-constraint repair is not additive.
+- **Enforcing the second made the controller cheaper, not dearer** — 5234.37 to
+  5215.32. A policy that must return the store cannot spend it early and then
+  buy through the evening peak tariff.
+- **The training-seed spread collapsed** from 106.48 EUR/day to 23.66, from 2.3×
+  the noise floor to 0.5×. The more of the feasible set is guaranteed by
+  construction, the less of the outcome depends on which seed the policy drew.
+  For a controller that is worth as much as the mean.
+
+**The caveat, because it is systematic.** The policy ends every one of the 61
+days exactly **0.05 MWh short** — the full terminal tolerance, drained, on all
+three seeds — where NSGA-III returns 0.0000. It is legal, and the projection is
+doing what it was told: inside the tolerance band, draining is free energy.
+Worth roughly 6 EUR/day of unpaid-for energy, which changes no verdict, but a
+controller that needs a daily top-up is a different operational proposition from
+one that does not. Aiming the projection at `e_init` itself rather than at the
+edge of its tolerance would remove it; **that has not been measured**, and it is
+recorded as a follow-on rather than quietly assumed to be free.
+
+**The limit of the method.** These projections are greedy and memoryless. They
+work here because each constraint has a closed-form per-step window — the
+terminal one only after a reachability argument. Nothing in this result says a
+greedy projection would survive a constraint whose feasible set genuinely
+requires planning ahead; the first candidate for that is rolling-horizon
+control, which now has a measured reason to exist rather than an assumed one.
+
+**So this repository has two recommended methods, one per model.** On the
+constant-efficiency model the recommendation is the **0.35 MW static tie-line
+margin** on the LP plan — 4862.74 EUR/day realised at 0/61 violating days, for a
+5.51 EUR/day insurance premium (see the tie-line margin section). On the
+SoC-dependent model, where no LP exists to build a margin on, it is the
+**projected learned controller** — dispatchable on every constraint, and
+253.74 EUR/day below the only other method that also is.
+
+Full record: `docs/experiments/15-soc-efficiency-log.md` and
+`docs/experiments/D1-safe-rl-log.md`.
 
 ### SQL data layer + data agent (natural-language querying)
 

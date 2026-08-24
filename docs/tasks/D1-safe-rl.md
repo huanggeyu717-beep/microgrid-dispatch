@@ -2,7 +2,7 @@
 
 | field | value |
 |---|---|
-| status | **round C — result in hand, 2026-08-24.** The controller is dispatchable: 0/61 tie-violating days and 0/61 days outside the terminal tolerance, at a feasibility price inside the noise floor, keeping 253.74 EUR/day over NSGA-III. Awaiting the documentation close-out and the owner's decision on §4.5 |
+| status | **✅ done, 2026-08-24.** The learned controller is dispatchable: 0/61 on both constraints it was breaking, at a feasibility price inside the noise floor, keeping 253.74 EUR/day over NSGA-III. Synthesis in log §4 |
 | timebox | 1 day of attention; ~75 min of machine time per full cycle |
 | priority | the owner's stated goal: the RL controller is currently **not usable**, and this is the one change that addresses that directly |
 | where results go | this task owns `docs/experiments/D1-safe-rl-log.md`. Its numbers are **new-physics** numbers (identical `system=soc_efficiency` config as task 15), so they may share a table with task 15's and may **never** share one with a current-physics number |
@@ -12,7 +12,22 @@
 
 ## 1. Archive summary
 
-*(≤15 lines, filled at close. Leave empty until then.)*
+The learned policy broke two of the five constraints in `constraint_vector`
+because neither was projected nor punished — the tie limit was only *measured*,
+and the terminal SoC was reward-shaped. Both now have a closed-form per-step
+window beside the ramp and SoC windows, behind switches defaulting to false so
+every published rollout is unchanged. Tie: a band on the **sum** of the two
+setpoints. Terminal SoC: the store energies from which `e_init` is still
+reachable in the steps remaining — recursive feasibility, narrowing to the
+tolerance at the last step. Result over 61 days and three training seeds:
+**0/61** tie-violating days (from 21–32) and **0/61** days outside the terminal
+tolerance (from 23–53), at **5215.3207 EUR/day**. Feasibility cost **27.52
+EUR/day — inside the 45.8574 floor**, and the policy keeps **253.74 EUR/day**
+over NSGA-III with disjoint ranges. Three unpredicted findings: fixing the first
+constraint broke the second; fixing the second made the controller *cheaper*;
+and the seed spread collapsed from 2.3x the floor to 0.5x. Q3 was falsified in
+the favourable direction. Caveat: the policy spends the full 0.05 MWh terminal
+allowance every day, worth ~6 EUR/day, unmeasured to remove.
 
 ---
 
@@ -187,7 +202,7 @@ oversubscribe.
 - [x] retrain, three seeds, both projections, 300000 steps each, zero resumes
 - [x] the three groups, three runs into `models/scratch/d1c_arms_rl{42,43,44}/`
 - [x] pre-checks, tables, predictions scored (Q1/Q2/Q4 hold, **Q3 falsified in the favourable direction**, Q5 n/a), synthesis — log §4
-- [ ] close — archive summary, board row, ACTIVE TASK
+- [x] close — archive summary, board row, ACTIVE TASK, both READMEs
 
 ## 13. The headline template
 

@@ -147,7 +147,8 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | S2 | SQL layer: carry the task-08 dispatch-cache key through | ✅ done | [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) — plumbing only; no number in any README, task file or log may change |
 | S3 | SQL layer over the full 2019-2024 history (NaN = absent measurement) | ✅ done | [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md) — a NaN is an absent measurement: dropped by design, count reported, never imputed; solar coverage starts 2020-06-30 |
 | S4 | Service layer: automated test run, callable forecast interface, container | ✅ done | [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) — owns no experiment number; `docker compose up` from a clean clone, request-carried input window, three LSTM checkpoints (468 kB) shipped; both READMEs updated |
-| 15 | SoC-dependent battery efficiency: physics the LP cannot represent | 🔵 active (round B, phase 1 — built and smoked, **uncommitted**, one open finding) | [docs/tasks/15-soc-efficiency.md](docs/tasks/15-soc-efficiency.md) — results in `docs/experiments/15-soc-efficiency-log.md`; a new result set, so no task-15 number may share a table with a current-physics number |
+| 15 | SoC-dependent battery efficiency: physics the LP cannot represent | ✅ done | [docs/tasks/15-soc-efficiency.md](docs/tasks/15-soc-efficiency.md) — results in [docs/experiments/15-soc-efficiency-log.md](docs/experiments/15-soc-efficiency-log.md) (§6 is the synthesis); `milp.py` is **inapplicable**, not slower — its two scalar efficiency coefficients stop existing and the SoC rows turn bilinear and non-convex. Re-measured noise floor **45.8574 EUR/day**. Both pre-registered cost predictions were falsified with the wrong sign and are recorded as wrong. No task-15 number may share a table with a current-physics number |
+| D1 | Safe RL: per-step projection of the tie line and terminal SoC | ✅ done | [docs/tasks/D1-safe-rl.md](docs/tasks/D1-safe-rl.md) — results in [docs/experiments/D1-safe-rl-log.md](docs/experiments/D1-safe-rl-log.md) (§4 is the synthesis). Keeps roadmap block D's own name rather than a number, so the 13/14 reservation stays visible. The learned controller is **dispatchable**: 0/61 tie-violating days and 0/61 days outside the terminal tolerance, at a feasibility price of 27.52 EUR/day — *inside* the noise floor — keeping 253.74 EUR/day over NSGA-III with disjoint three-seed ranges. Same physics as task 15, so its numbers may share a table with task 15's and never with a current-physics number |
 
 Board notes: **13 and 14 are reserved and unused.** 13 is named as rolling MPC
 by task 12's closed, published log and 14 as the budget sweep by `docs/plan.md`;
@@ -163,33 +164,74 @@ It is explicitly not binding — it says so at the top.
 
 ## ACTIVE TASK
 
-> **ACTIVE TASK: task 15 — SoC-dependent battery efficiency**, round B, phase 1
-> (resuming). Spec: [docs/tasks/15-soc-efficiency.md](docs/tasks/15-soc-efficiency.md)
-> §2 and §7; results in
-> [docs/experiments/15-soc-efficiency-log.md](docs/experiments/15-soc-efficiency-log.md).
+> **ACTIVE TASK: none.** Task 15 and task D1 both closed on 2026-08-24. Nothing
+> is in flight; nothing may be started without the owner saying so.
 >
-> **Phase 1 is built, its suite is green and it has been smoked — and none of it
-> is committed.** In the working tree: `configs/system/soc_efficiency.yaml`, four
-> physics sites in `optimize/system.py`, `energy_neutral_project`, `nsga3.py`,
-> 19 tests in `tests/test_optimize.py`, and the two task-15 documents. The
-> smoke run (3 days, 1 optimiser seed, `system=soc_efficiency`) reached the
-> energy-neutral manifold and gave a measured **14.32 s/day** against 3.49 s/day
-> on the current physics — 4.1x, so §9's compute budget was re-derived (phase 2's
-> NSGA-III item is ≈ 44 min, not ≈ 11) and the `tol` / `n_gen` trade was closed
-> without being taken.
+> **What the two of them established, in one place.** Task 15 extended the
+> physics into a class the LP construction of task 09 cannot represent at all —
+> a SoC-dependent battery efficiency, `configs/system/soc_efficiency.yaml`,
+> `k = 0.10` both sides. `milp.py`'s two scalar coefficients stop existing, so
+> there is no proven optimum on that model and the learned policy competes
+> against a heuristic rather than a certificate. D1 then made the learned
+> controller **dispatchable** by giving the two constraints it was breaking the
+> same treatment the ramp and SoC windows already had: a closed-form per-step
+> projection, behind `rl.env.project_tie` / `rl.env.project_terminal`, both
+> defaulting to false so every published rollout is unchanged.
 >
-> **One open finding blocks phase 2 and is the first thing to resolve.** The
-> smoke run emits `sbx.py: RuntimeWarning: invalid value encountered in power`
-> from pymoo's crossover. The pre-existing current-physics logs
-> (`compare_dispatch.log`, `optimize_dispatch.log`) contain **zero** occurrences,
-> so it is new to the new physics, not inherited noise. NaN offspring are
-> evaluated, come out infeasible and are discarded by feasibility-first ranking,
-> so nothing looks wrong — the cost is *lost search effort, silently*. Task 15
-> exists to compare a learned policy against NSGA-III, and `plan.md` §3.2 forbids
-> quietly weakening NSGA-III precisely because it flatters the policy in that
-> comparison. Resolve it before phase 2's arms run, not after. Detail in the
-> task file's §12.
+> **Three rules from this round outlive it.**
+> 1. **The repository now has two recommended methods, one per model.** On the
+>    constant-efficiency model it is the 0.35 MW margin group (4862.74 EUR/day,
+>    0/61 violating days, task 12). On the SoC-dependent model, where no LP
+>    exists to build a margin on, it is the projected learned controller
+>    (5215.3207 EUR/day, 0/61 on both constraints, 253.74 EUR/day below
+>    NSGA-III with disjoint three-seed ranges). Both READMEs say so.
+> 2. **Task-15 / D1 numbers never share a table with a current-physics number.**
+>    Different physics, different problems. The two READMEs keep them in
+>    separate sections with the rule stated in the text.
+> 3. **Soft shaping and hard feasibility are not interchangeable.** `w_soc` was
+>    raised to 1500 in task 04 to stop the policy draining the store, and it
+>    worked — until a hard tie-line projection was added, at which point the same
+>    reward pushed the store out again on 53–60 of 61 days. A penalty in the
+>    objective cannot undo an action a projection has already taken.
 >
+> **Recorded, decided, and deliberately not done** (each with its measurement,
+> so a future round does not re-derive it):
+> - **The `DispatchSampling` bounds defect.** It clips the battery block into
+>   the power box and *then* removes the mean, which is not box-preserving:
+>   81 of 200 warm-start rows leave the box, worst +0.4656 MW on a 1.0 MW bound.
+>   It is pre-existing, not task 15's, and **not a pymoo bug** — pymoo's SBX
+>   assumes in-box parents and clamps only its own output, which is why an
+>   out-of-box parent makes `beta < 1` and takes a fractional power of a
+>   negative number (15 log §3). Measured cost: 0.0025–0.0050 % of offspring on
+>   the new physics, *less* than the 0.0188–0.0263 % it costs on the current
+>   physics, so `plan.md` §3.2's do-not-weaken-NSGA-III guard is not engaged.
+>   At most one out-of-box member per 635–862 point front, and TOPSIS selected
+>   one in 0 of 6 runs. **Owner's decision, 2026-08-24: not fixed.** A fix would
+>   change the warm start on the current physics too — the path every published
+>   NSGA-III number came from — so it needs its own task and its own
+>   before/after measurement.
+> - **Checkpoint selection by `val_cost` alone.** It favours the evaluations
+>   where the policy happened to end the day off-neutral, because ending
+>   depleted is cheap: two of three seeds selected checkpoints at 2.5x and 5.9x
+>   their own run's median validation deviation (15 log §12). Pre-existing and
+>   on task 04's published path. **Owner's decision: not changed.** D1's hard
+>   terminal projection closes the risk from the other end.
+> - **The terminal tolerance as an allowance.** The projected controller ends
+>   all 61 days exactly 0.05 MWh short — the full tolerance, drained, every
+>   seed, where NSGA-III returns 0.0000 (D1 log §4.5). Worth ~6 EUR/day; no
+>   verdict moves. Aiming the projection at `e_init` itself would remove it and
+>   **has not been measured**; priced at one 75-minute cycle in `plan.md` §6.
+>   An operations question, not a code one.
+>
+> **One correction this round had to make to its own record.** The SBX
+> RuntimeWarning was first written up as *new to the new physics*, on the
+> evidence that `grep -c` over `compare_dispatch.log` and `optimize_dispatch.log`
+> returns 0. That evidence is void: both are **Hydra job logs** written by a
+> `FileHandler`, Python warnings go to stderr, and `logging.captureWarnings` is
+> never called — so no warning of any kind can appear in either file. The
+> current physics emits the identical warning, and more of it. The claim is
+> withdrawn in 15 log §3.4 rather than quietly reworded.
+
 > **S4 closed on 2026-08-23** — archive summary at the top of
 > [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md). Phases 1–3
 > are committed and both READMEs now open with how to run the project. Its rules

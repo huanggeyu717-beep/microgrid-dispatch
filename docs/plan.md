@@ -414,19 +414,28 @@ back to none at close.
 
 ## 6. Open decisions
 
-- **How the running service gets a model and its inputs.** Checkpoints (`*.pt`)
-  and every `data/` artifact are gitignored, so a clone contains neither.
-  Mounting them, shipping a small demo bundle, or making the interface take its
-  input window in the request are three different answers with three different
-  claims about what "one command" means. Decided in S4's task file, not here.
+- ~~**How the running service gets a model and its inputs.**~~ **Closed by S4**
+  (2026-08-23): three LSTM checkpoints (468 kB) are shipped behind exact-path
+  `.gitignore` negations and the interface takes its input window in the
+  request, so `docker compose up` works from a clean clone.
 - ~~Which of §3.2's three answers `EnergyNeutralRepair` takes.~~ **Closed
   2026-08-22 by measurement**: worth 85.03 EUR/day, clear of the floor, repair
   kept, answer 2 selected (§3.2).
-- **What `battery_store_energies` becomes** under a path-dependent efficiency.
-  It cannot keep computing store totals from the power arrays alone; the
-  signature changes and it is fixed together with the repair (task 15 §7
-  phase 1).
-- **Whether the README's recommended-method statement (§3.3) waits for task 15
-  or lands first.** It is independent of both tasks and cheaper than either.
+- ~~**What `battery_store_energies` becomes** under a path-dependent
+  efficiency.~~ **Closed by task 15 phase 1**: it walks the trajectory instead
+  of reading the power arrays alone, and `energy_neutral_project` bisects for
+  the scaling factor. Both reduce exactly to the old form at `k = 0`.
+- ~~**Whether the README's recommended-method statement (§3.3) waits for task 15
+  or lands first.**~~ **Closed 2026-08-24**: it waited, and landed once, as two
+  statements rather than one — the margin group on the constant-efficiency
+  model, the projected learned controller on the SoC-dependent one, since the
+  latter has no LP to build a margin on.
+- **Is the terminal-SoC tolerance an allowance or a measurement slack?** The
+  projected controller ends all 61 days exactly 0.05 MWh short — the full
+  tolerance, drained, every seed (D1 log §4.5). Aiming the projection at
+  `e_init` itself would remove it. Worth ~6 EUR/day of unpaid energy against a
+  253.74 EUR/day lead, so no verdict moves; **not measured**, and priced at one
+  75-minute cycle (retrain 3 seeds + the three groups). An operations question,
+  not a code one.
 - **Does the roadmap need a priority row for tasks 11, 12 and 15?** All three
   postdate roadmap §6's table.
