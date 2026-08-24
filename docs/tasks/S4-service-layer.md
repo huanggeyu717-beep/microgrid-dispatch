@@ -2,7 +2,7 @@
 
 | field | value |
 |---|---|
-| status | **ACTIVE**, round C (phase 3 only). Phase 1 closed 2026-08-22, phase 2 built and verified 2026-08-23 |
+| status | **CLOSED 2026-08-23.** Phases 1–3 all built, verified and (1–3) committed; both READMEs updated |
 | timebox | phase 1: half a day. Phases 2–3: about four days, sized to fit inside task 15's training waits |
 | priority | phase 1 is a **prerequisite for task 15**; phases 2–3 are the project's largest unaddressed gap against its stated purpose |
 | where results go | **nowhere.** S4 owns no experiment number and writes to no log. See §6 D1 |
@@ -12,7 +12,28 @@
 
 ## 1. Archive summary
 
-*(≤15 lines, filled at close. Leave empty until then.)*
+S4 closed the gap `plan.md` §2 item 3 calls this repository's whole schedule: nothing
+here could be *run* by someone who had not set up a Python environment. Three phases,
+each with its guarantee demonstrated rather than asserted.
+
+**Phase 1 — a test run on every push.** Its red-suite probe found the workflow's own
+defect before confirming anything: with no `pipefail`, the `pytest` step handed the
+runner `tee`'s exit status, so a red suite passed silently. Fixed, re-probed, then ticked.
+
+**Phase 2 — a callable forecast interface.** The decision that made it possible was where
+inputs come from: the request carries its own 96-step window (384 numbers, ~4.5 kB), so
+the service holds no dataset and the 35 MB parquet leaves the deployment story; the three
+LSTM checkpoints (468 kB) ship behind exact-path `.gitignore` exceptions that leave the
+global `*.pt` rule intact. Extracting `load_forecaster` out of `optimize/inputs.py` put
+every published dispatch number at risk — the scaled arrays both paths feed the model were
+verified **bit-identical on all three targets**, which is what licenses "the served
+forecast is the recorded one".
+
+**Phase 3 — a container.** `docker compose up`, no volume, no download; built from a
+clone-equivalent tree rather than the working directory, which would have hidden any
+dependence on an artifact only the owner has. 2.09 GB on disk, 443 MB content.
+
+S4 owns no experiment number and changed none. Both READMEs now open with how to run it.
 
 ---
 
@@ -562,7 +583,15 @@ cache. Neither is a per-item rate, because neither is a batch.
       is exactly what a clone will contain once those files are committed
       (2,238 tracked today, 2,251 after). Building in the working tree proves
       nothing this phase is about.
-- [ ] **Close — the READMEs.** This is where S4 becomes visible or does not
+- [x] **Close — the READMEs, done 2026-08-23.** `README.md` gains a
+      *Run it* section before Quick start, a one-line pointer under the title, a
+      status-table row, the new modules in Layout, and roadmap item 16; Quick
+      start now says outright that its eight steps rebuild the research and are
+      not needed to run the service. `README.zh-CN.md` gains the same content
+      written natively as 跑起来 plus its own item 16. Neither contains an emoji
+      or a checkmark status marker, and the new Chinese prose uses none of the
+      vocabulary `CLAUDE.md` §2 rules out.
+- [x] ~~Close — the READMEs (planned).~~ This is where S4 becomes visible or does not
       exist. `README.md`'s Quick start (line 761) still opens with "download
       Elia data" and then "train the forecast models"; neither README contains
       the words service, interface, API, Docker or container anywhere. Phases
@@ -572,7 +601,7 @@ cache. Neither is a per-item rate, because neither is a batch.
       work, so the clean-clone counts it will report are unknown until the owner
       commits and the workflow runs. Filling the template before that would be
       exactly the guess §13's closing note forbids.
-- [ ] Close — archive summary, task board row, ACTIVE TASK back to none
+- [x] Close — archive summary written (§1), task board row updated, ACTIVE TASK moved on
 
 ---
 
@@ -582,11 +611,28 @@ Fixed before the work, so the close cannot drift into a conclusion the round
 does not carry. S4 has no numeric headline; it has a capability statement:
 
 > A clean clone of this repository runs its full default test suite
-> automatically on every change (Python **\_\_\_**, **\_\_\_** tests selected,
-> **\_\_\_** deselected as slow, **\_\_\_** self-skipped without a database), and
-> can be started as a forecast service with one command. The suite guards
-> `optimize/system.py`'s battery physics through **\_\_\_**, which is what makes
-> task 15's change to that file safe to attempt.
+> automatically on every change (Python **3.14**, **273** tests selected,
+> **4** deselected as slow, **8** self-skipped without a database — 265 passed),
+> and can be started as a forecast service with one command. The suite guards
+> `optimize/system.py`'s battery physics through
+> **`test_optimize.py::test_soc_recursion_charge_then_discharge`,
+> `::test_soc_asymmetric_efficiency_loses_energy_on_a_cycle`,
+> `::test_soc_batch_matches_loop`, and `test_rl.py::test_soc_step_recursion_matches_trajectory`
+> plus `::test_soc_feasible_bounds_keep_next_soc_in_range`** — none `slow`-marked,
+> so all five run on every push — which is what makes task 15's change to that
+> file safe to attempt.
+
+Filled from the run of commit "S4 phases 2-3" (2026-08-23), not from a
+prediction. Two honesty notes the statement above must be read with:
+
+* the runner reports the latest 3.14.x, **3.14.7** at the phase-1 run against
+  the reference environment's 3.14.6 — same minor, one patch apart, and on
+  Linux rather than macOS (D6);
+* the guard named above covers three of the four physics sites task 15 touches.
+  **`battery_store_energies` still has no direct test in the committed tree** —
+  the four that close S4 phase 0 finding 3 live in task 15's uncommitted work
+  (`tests/test_optimize.py`), which is why the sentence names the five that do
+  run rather than claiming a complete guard.
 
 The last clause is the one that matters. If phase 0 finding 3 comes back empty,
 the template is not filled in with a guess — the sentence is rewritten to say

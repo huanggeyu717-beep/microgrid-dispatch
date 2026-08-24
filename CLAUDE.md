@@ -146,8 +146,8 @@ NSGA-III, TOPSIS), `pipeline/` (orchestration), `viz/`. Configs compose in
 | 12 | Static tie-line margin: the δ at which the LP plan becomes dispatchable, and what that headroom costs | ✅ done | [docs/tasks/12-tie-margin.md](docs/tasks/12-tie-margin.md) — results in [docs/experiments/12-tie-margin-log.md](docs/experiments/12-tie-margin-log.md) (§5 is the synthesis); artifacts `models/comparison/block_e/`, now a published read-only record. δ = 0.35 MW: 0/61 violating days at 4862.74 EUR/day realised, 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds; the headroom costs 5.51 EUR/day vs the unconstrained optimum. Branch-1 headline; all four predictions held; asymmetric-margin gate not fired, δ × CO₂ cross promoted (no spec, no board row). The margin arm is the baseline task 13 (MPC) must beat |
 | S2 | SQL layer: carry the task-08 dispatch-cache key through | ✅ done | [docs/tasks/S2-sql-cache-key.md](docs/tasks/S2-sql-cache-key.md) — plumbing only; no number in any README, task file or log may change |
 | S3 | SQL layer over the full 2019-2024 history (NaN = absent measurement) | ✅ done | [docs/tasks/S3-sql-full-history.md](docs/tasks/S3-sql-full-history.md) — a NaN is an absent measurement: dropped by design, count reported, never imputed; solar coverage starts 2020-06-30 |
-| S4 | Service layer: automated test run, callable forecast interface, container | 🔵 active (round B, phase 2); phase 1 green on GitHub Actions | [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) — owns no experiment number; phase 1 (the automated test run) is the guard that must exist before task 15 changes `optimize/system.py` |
-| 15 | SoC-dependent battery efficiency: physics the LP cannot represent | ⏸ parked mid-phase-1 (built, suite green, never run end to end) | [docs/tasks/15-soc-efficiency.md](docs/tasks/15-soc-efficiency.md) — results in `docs/experiments/15-soc-efficiency-log.md`; a new result set, so no task-15 number may share a table with a current-physics number |
+| S4 | Service layer: automated test run, callable forecast interface, container | ✅ done | [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) — owns no experiment number; `docker compose up` from a clean clone, request-carried input window, three LSTM checkpoints (468 kB) shipped; both READMEs updated |
+| 15 | SoC-dependent battery efficiency: physics the LP cannot represent | 🔵 active (round B, phase 1 — built and smoked, **uncommitted**, one open finding) | [docs/tasks/15-soc-efficiency.md](docs/tasks/15-soc-efficiency.md) — results in `docs/experiments/15-soc-efficiency-log.md`; a new result set, so no task-15 number may share a table with a current-physics number |
 
 Board notes: **13 and 14 are reserved and unused.** 13 is named as rolling MPC
 by task 12's closed, published log and 14 as the budget sweep by `docs/plan.md`;
@@ -163,51 +163,50 @@ It is explicitly not binding — it says so at the top.
 
 ## ACTIVE TASK
 
-> **ACTIVE TASK: S4 — the service layer**, round B, phase 2 (the callable
-> forecast interface) only. Spec:
-> [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) §2 and §7.
+> **ACTIVE TASK: task 15 — SoC-dependent battery efficiency**, round B, phase 1
+> (resuming). Spec: [docs/tasks/15-soc-efficiency.md](docs/tasks/15-soc-efficiency.md)
+> §2 and §7; results in
+> [docs/experiments/15-soc-efficiency-log.md](docs/experiments/15-soc-efficiency-log.md).
 >
-> **The schedule was resolved by the owner on 2026-08-23 in favour of the
-> service layer.** `plan.md` §2 item 3 says the untouched gap against this
-> repository's stated purpose is that nothing here can be *run* by someone who
-> has not set up a Python environment, and that "that gap is now the whole
-> schedule"; §3 then made task 15 the two-week main line and demoted S4's
-> phases 2–3 to filling its training waits. Those two readings conflict, and
-> item 3 wins: S4 phases 2–3 run now, and task 15 waits. Nothing about task 15
-> is withdrawn — it depends on nothing S4 does, and S4 depends on nothing
-> task 15 does.
+> **Phase 1 is built, its suite is green and it has been smoked — and none of it
+> is committed.** In the working tree: `configs/system/soc_efficiency.yaml`, four
+> physics sites in `optimize/system.py`, `energy_neutral_project`, `nsga3.py`,
+> 19 tests in `tests/test_optimize.py`, and the two task-15 documents. The
+> smoke run (3 days, 1 optimiser seed, `system=soc_efficiency`) reached the
+> energy-neutral manifold and gave a measured **14.32 s/day** against 3.49 s/day
+> on the current physics — 4.1x, so §9's compute budget was re-derived (phase 2's
+> NSGA-III item is ≈ 44 min, not ≈ 11) and the `tol` / `n_gen` trade was closed
+> without being taken.
 >
-> **Task 15 phase 1 is built and its suite is green, but it is parked mid-round
-> and has never been executed end to end.** No NSGA-III solve has yet run with
-> `system=soc_efficiency`; the coverage is unit-level. Its uncommitted work sits
-> in the tree — `configs/system/soc_efficiency.yaml`, four physics sites in
-> `optimize/system.py`, `energy_neutral_project`, `nsga3.py`, and 19 tests. **S4
-> must not touch `configs/system/**` or `optimize/system.py` while it is
-> parked.** Task 15's own §12 lists the two items it owes on resumption: the
-> smoke run, and §9's compute budget re-derived (the bisecting repair costs 34
-> trajectory walks per call where the old one-pass scaling cost one, so the
-> 3.49 s/day NSGA-III rate will move).
+> **One open finding blocks phase 2 and is the first thing to resolve.** The
+> smoke run emits `sbx.py: RuntimeWarning: invalid value encountered in power`
+> from pymoo's crossover. The pre-existing current-physics logs
+> (`compare_dispatch.log`, `optimize_dispatch.log`) contain **zero** occurrences,
+> so it is new to the new physics, not inherited noise. NaN offspring are
+> evaluated, come out infeasible and are discarded by feasibility-first ranking,
+> so nothing looks wrong — the cost is *lost search effort, silently*. Task 15
+> exists to compare a learned policy against NSGA-III, and `plan.md` §3.2 forbids
+> quietly weakening NSGA-III precisely because it flatters the policy in that
+> comparison. Resolve it before phase 2's arms run, not after. Detail in the
+> task file's §12.
 >
-> **S4 phase 1 closed on 2026-08-22.** The
-> automated test run is `.github/workflows/tests.yml` (GitHub Actions,
-> `ubuntu-latest`, Python 3.14.7 against the 3.14.6 reference environment), and
-> it now guards `optimize/system.py` on every change — which is the whole reason
-> it was sequenced first. On a clean clone the default selection is **265
-> passed, 8 skipped, 4 deselected**, two fewer executed than the reference
-> environment's 267/6/4 because two tests self-skip without gitignored
-> artifacts. A red suite was **demonstrated** to fail the run, not assumed: the
-> first probe passed a red suite silently because the `pytest` step lacked
-> `pipefail`, and that defect was found and fixed before the criterion was
-> ticked. Full record in
-> [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md) §12.
-> S4 phases 2–3 (callable forecast interface, container) are pending and are
-> sized to fit inside task 15's training waits.
+> **S4 closed on 2026-08-23** — archive summary at the top of
+> [docs/tasks/S4-service-layer.md](docs/tasks/S4-service-layer.md). Phases 1–3
+> are committed and both READMEs now open with how to run the project. Its rules
+> outlive it: **S4 owns no experiment number** and nothing it prints may enter a
+> README, a task file or a log; the three `models/<target>_lstm/best.pt` are now
+> **published artifacts of the repository** (468 kB, behind three exact-path
+> `.gitignore` negations — the global `*.pt` rule is unchanged), so a retrain
+> that replaces them is a visible change, not a local one; and the served
+> forecast is the recorded one, licensed by a bit-identical check of the scaled
+> arrays that `forecast/serve.py` and `optimize/inputs.py` feed the model.
 >
-> One rule from S4 phase 0 outlives it and binds task 15:
-> **`system.py::battery_store_energies` had no direct test** — its only cover
-> was an inequality in `test_milp.py` that a wrong store-energy total can
-> satisfy. The owner's decision (S4 §12 finding 3) is that the gap closes
-> *before* the function is touched, and phase 1 did that first.
+> One rule from S4 phase 0 still binds task 15:
+> **`system.py::battery_store_energies` had no direct test** — its only cover was
+> an inequality in `test_milp.py` that a wrong store-energy total can satisfy.
+> The owner's decision (S4 §12 finding 3) was to close the gap *before* touching
+> the function, and phase 1 did that first; those four tests are in the
+> uncommitted batch above.
 >
 > **Task 15 phase 0 closed on 2026-08-22.** Reading in
 > [docs/experiments/15-soc-efficiency-log.md](docs/experiments/15-soc-efficiency-log.md)

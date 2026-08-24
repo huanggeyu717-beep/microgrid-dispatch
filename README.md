@@ -4,6 +4,10 @@
 
 An end-to-end "forecasting → optimization → learning-based decision" microgrid project: deep-learning power/load forecasting + NSGA-III multi-objective day-ahead dispatch + a reinforcement-learning dispatch policy, topped by a PostgreSQL data layer and an LLM data agent (a Python rebuild and upgrade of my undergraduate thesis *Programming and Application of the NSGA-III Multi-Objective Optimization Algorithm*).
 
+> **Runnable in one command.** `docker compose up` starts the day-ahead forecast
+> service from a clean clone — nothing downloaded, nothing trained. See
+> [Run it](#run-it).
+
 ## Architecture
 
 ```mermaid
@@ -33,6 +37,7 @@ flowchart LR
 | Static tie-line margin — one number that makes the LP plan dispatchable, and its price | Complete |
 | PostgreSQL data layer | Complete |
 | LLM data agent (natural language → SQL) | Complete |
+| Service layer — test run on every push, callable forecast interface, container | Complete |
 
 ## Results preview
 
@@ -758,7 +763,57 @@ Steps 2 and 3 happened **without any human prompting**: the first LEFT JOIN prod
 
 Safety is **belt-and-braces**: a pure-function SQL validator (single SELECT/WITH statements only; blocks write keywords, multi-statement injection, `SELECT INTO`, and data-modifying CTEs) + database-side `READ ONLY` transactions with a statement timeout — **model-generated SQL is never trusted; the database enforces the rules** (the same philosophy as unique-key constraints). Any OpenAI-compatible endpoint works (`configs/agent/default.yaml`); API keys are read from environment variables only.
 
+## Run it
+
+The three trained LSTM forecasters ship with this repository — 468 kB together — and the
+forecast service takes its input window **in the request** rather than reading a dataset off
+disk. So a clone runs with nothing downloaded and nothing trained:
+
+```bash
+docker compose up
+```
+
+Then open <http://localhost:8000/docs>: an interactive page generated from the interface's
+own type declarations, where a day-ahead forecast can be requested from the browser. Or
+from a terminal:
+
+```bash
+curl -s http://localhost:8000/forecast/wind/contract   # what a call needs, read off the checkpoint
+curl -s http://localhost:8000/health                   # which checkpoints the service resolved
+```
+
+**One call** carries 96 quarter-hourly steps of measured wind, solar and load, 96 steps of
+the transmission operator's day-ahead forecast for the target, and an issue time — 384
+numbers, about 4.5 kB of JSON. It answers with 96 steps at three quantiles (q10 / q50 /
+q90) in MW. The service holds no dataset and the container mounts no volume; if it needed
+one, "one command" would not be true. Requests are checked before they reach the model: a
+window of the wrong length, a gap in the history, a missing column, an absent or
+wrong-length operator forecast, or an issue time off the 15-minute grid are each refused
+by name.
+
+The served forecast is the same one behind every dispatch number in this README — the
+interface and the research path load their checkpoints through one function, and the
+scaled arrays the two feed the model were checked to be bit-identical on all three targets.
+
+Without Docker, the same service starts from a local environment:
+
+```bash
+pip install -r requirements.txt && pip install -e .
+python scripts/serve_forecast.py                 # http://127.0.0.1:8000
+```
+
+Every push runs the test suite on GitHub Actions (`.github/workflows/tests.yml`) with the
+repository's own default selection: **265 passed, 8 skipped, 4 deselected** on a clean
+clone, Python 3.14, heavy end-to-end solves excluded and the PostgreSQL tests self-skipping
+when no database is reachable.
+
+Reproducing the *research* below — the dataset, the trained models, the dispatch
+comparisons — is a different matter, and needs the pipeline in Quick start.
+
 ## Quick start
+
+Steps 1–8 rebuild the project from scratch: they download six years of grid data and train
+the models. None of it is needed to run the forecast service above.
 
 ```bash
 pip install -r requirements.txt
@@ -849,6 +904,8 @@ src/microgrid/
                     #   pymoo problem / NSGA-III / entropy TOPSIS / scenario overrides / daily inputs / reports
   rl/               # DRL dispatch: env (gymnasium) / data (daily profiles) / baseline (rules) /
                     #   rollout (closed-loop execution + metrics) / train (SAC/PPO, resumable) / report
+  forecast/serve.py # serve a checkpoint from a self-contained input window (no dataset)
+  service/          # the HTTP interface over it (FastAPI); owns nothing numerical
   sql/              # SQL layer: db.py (connections / COPY / upsert) / extract.py (pure DataFrame→row transforms)
   agent/            # data agent: tools / guard (SQL validator) / loop (function-calling) / prompts
   pipeline/         # stage orchestration + quality report
@@ -856,6 +913,9 @@ src/microgrid/
 scripts/            # CLI entry points (hydra; train_rl / compare_dispatch / load_to_db / ask_data …)
 tests/              # unit tests (synthetic data, no downloads); heavy scenario + RL smoke marked @slow
 data/               # raw / interim / processed (git-ignored)
+.github/workflows/  # the test run that fires on every push
+Dockerfile          # the forecast service image (CPU-only torch)
+compose.yaml        # docker compose up
 ```
 
 ## Roadmap
@@ -875,3 +935,4 @@ data/               # raw / interim / processed (git-ignored)
 13. **Untested hypothesis, gated on split B** — Season-conditioned intervals: wind's within-month standard deviation swings from 746 MW (June) to 1369 MW (December), a factor of 1.8, while the model learns a single global quantile spread — a plausible mechanism for the winter under-coverage, but explicitly an untested hypothesis, not a finding, and no claim is made that it will help
 14. **Complete** — LP-plan execution check: both LP schedules (the cost optimum and the ε-constrained plan) replayed open-loop against the measured actuals through the same simulator as every other method, realised-versus-realised throughout, three optimiser seeds. The cost optimum realises 4857.2320 EUR/day — 575–603 EUR/day below the dispatched plan, cheaper on 61/61 days at every seed — but breaks the 3 MW tie limit on 33 of 61 days at 4.1475 steps/day, 90% of the forecast-free rule baseline's rate; the violations concentrate on the 37 tie-pinned days (31/37 vs 2/24, pre-registered and held). The ε plan keeps 383–396 EUR/day at 0–2 violating days, so the compromise's 179–209 EUR/day is what buys the tie limit back, and the planning-side "two thirds optimiser shortfall" split survives execution (65–69% vs 63%). Gated follow-on promoted: the tie-limit margin sweep — which, like the budget sweep, must now beat the realised ~390 EUR/day, not the planned 453 (done, and it did — item 15)
 15. **Complete** — Static tie-line margin: the LP re-planned with the planner's tie ceiling tightened to 3.0 − δ MW across six δ values, executed open-loop against the actuals, physics and verdict unchanged at 3.0 MW for every arm. δ = 0.35 MW yields the project's first dispatchable free-standing LP plan: 0 of 61 violating days at 4862.74 EUR/day realised — 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds (6.1× the noise floor) and 569–598 EUR/day below the dispatched plan, seedless, one 22.1 ms solve per day. The headroom costs 5.51 EUR/day over the unconstrained optimum, so executability was the cheapest part of the ε compromise's 179–209 EUR/day, under 3 % of it; all four pre-registered predictions held, both curves monotone, and the δ = 0 arm reproduced the cost optimum bit-for-bit. Promoted follow-on recorded, not started: the δ × CO₂ cross, which would split the ε arm's remaining 174–204 EUR/day into its CO₂ and excess-reservation parts. This margin arm is now the baseline the receding-horizon controller (C1) must beat
+16. **Complete** — Service layer: the repository made runnable by someone who has not set it up. Three pieces, in the order that made each one's guarantee real. A test run on **every push** (GitHub Actions, Python 3.14, the repository's own default marker selection) — verified by pushing a deliberately failing test, which the first version of the workflow passed *silently* because the `pytest` step lacked `pipefail`; the automation would have been decorative, and catching that is why the criterion reads *demonstrated, not asserted*. A **callable forecast interface** whose first design decision was where its inputs come from: a clone has neither the 35 MB dataset nor a checkpoint, so the request carries its own 96-step window (384 numbers, ~4.5 kB of JSON) and the three LSTM checkpoints (468 kB) ship with the repository behind exact-path exceptions that leave the global binary-exclusion rule intact. Extracting the window-to-prediction step out of the published forecast path put every dispatch number at risk, so the scaled arrays the two paths feed the model were compared bit for bit — identical on all three targets, which is what licenses the claim that the served forecast is the recorded one. And a **container**: `docker compose up`, no volume and no download, verified by building from a clone-equivalent tree rather than from the working directory, which would have concealed any dependence on an artifact only the author has. This item produces no experiment number and changes none; it serves what the items above already own
