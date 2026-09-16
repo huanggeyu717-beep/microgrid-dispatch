@@ -1,12 +1,35 @@
-**English** | [简体中文](README.zh-CN.md)
+<div align="center">
 
-# Microgrid Dispatch: Forecasting → Multi-Objective Optimization → RL
+# Microgrid Dispatch
+
+**Forecasting → Multi-Objective Optimization → Reinforcement Learning**
+
+[![tests](https://github.com/huanggeyu717-beep/microgrid-dispatch/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/huanggeyu717-beep/microgrid-dispatch/actions/workflows/tests.yml)
+![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?logo=pytorch&logoColor=white)
+![pymoo](https://img.shields.io/badge/pymoo-NSGA--III-6C4AB6)
+![SB3](https://img.shields.io/badge/stable--baselines3-SAC-2E7D32)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)
+
+**English** │ [简体中文](README.zh-CN.md) │ [Highlights](#highlights) │ [Architecture](#architecture) │ [Results](#results-preview) │ [Run it](#run-it) │ [Roadmap](#roadmap)
+
+</div>
 
 An end-to-end "forecasting → optimization → learning-based decision" microgrid project: deep-learning power/load forecasting + NSGA-III multi-objective day-ahead dispatch + a reinforcement-learning dispatch policy, topped by a PostgreSQL data layer and an LLM data agent (a Python rebuild and upgrade of my undergraduate thesis *Programming and Application of the NSGA-III Multi-Objective Optimization Algorithm*).
 
 > **Runnable in one command.** `docker compose up` starts the day-ahead forecast
 > service from a clean clone — nothing downloaded, nothing trained. See
 > [Run it](#run-it).
+
+## Highlights
+
+- **Six years of real grid data.** Elia open data, 2019–2024 at 15-minute resolution, split chronologically; the Nov–Dec 2024 test period stays untouched until final evaluation.
+- **Probabilistic day-ahead forecasting, reported honestly.** A quantile LSTM beats seasonal persistence by 46–79% (MAE), but ablations show most of that skill comes from Elia's own forecast in the inputs, and on wind the model is 21.6% worse than Elia's forecast.
+- **Every dispatch method is executed against measured data.** NSGA-III (cost / CO₂ / grid peak), SAC reinforcement learning and a rule baseline run through the same physical path on 61 test days, compared with paired statistics and against an MILP lower bound.
+- **A dispatchable learned controller.** Under the SoC-dependent battery model, the unconstrained RL policy breaks the tie-line limit on 21–32 of 61 days; projecting the tie line and terminal state of charge at every step brings both to 0/61, at a cost of 27.52 EUR/day — inside the 45.86 EUR/day noise floor.
+
+![Three-way comparison: cost / CO₂ / peak / terminal SoC deviation (mean ± std, 61 days)](reports/figures/dispatch_comparison_bars.png)
 
 ## Architecture
 
@@ -58,6 +81,9 @@ dataset only starts 2020-07, so windows before then are dropped for every
 target). Chronological split, never shuffled: train → 2024-09 (~18k windows),
 validation = Oct 2024 (372), test = Nov–Dec 2024 (721). The test period is
 untouched until final evaluation.
+
+<details>
+<summary>Show full analysis</summary>
 
 **Model.** Seq2seq LSTM, ~40k parameters, trains on CPU in ~1 min per target.
 Quantile loss at q = 0.1/0.5/0.9 gives 80% prediction intervals. The encoder
@@ -267,11 +293,16 @@ and 0.6% were inside single-seed noise). The protocol serves the statistical
 validity of a *comparison* — it is explicitly not reproducibility work;
 bit-level run-to-run repeatability remains a non-goal of this project.
 
+</details>
+
 ### Architecture: PatchTST vs LSTM, and what it took to measure it
 
 Does a transformer beat the seq2seq LSTM on this data? The question turned out
 to be unanswerable with the instrument the project had, and repairing the
 instrument produced two results worth more than the comparison itself.
+
+<details>
+<summary>Show full analysis</summary>
 
 **The problem.** Re-running the standalone LSTM baseline with three seeds
 instead of one gave a best-to-worst spread of 10.2% on wind, 7.7% on solar and
@@ -410,7 +441,12 @@ data as well as for weather.
 
 ![Day-ahead quantile forecast, load](reports/figures/forecast_load_lstm.png)
 
+</details>
+
 ### Day-ahead multi-objective dispatch (NSGA-III; cost / CO₂ emissions / grid peak)
+
+<details>
+<summary>Show full analysis</summary>
 
 > **Note**: the numbers in this section and the next were produced with the
 > *single-year* LSTM forecasts (`models/*_lstm/`, not the improved
@@ -435,9 +471,14 @@ For 2024-11-15 (wind/solar/load taken as their LSTM median forecasts): the front
 
 > **On net export**: after scaling, wind + solar capacity (2 + 3 = 5 MW) exceeds peak load (4 MW), so high-penetration days should see net export to the grid (sell price = 0.4 × buy price, no carbon credit, tie-line limited to ±3 MW — all implemented and unit-tested). But the Nov–Dec test window is winter with near-zero solar: in the measured data renewable output never exceeds load at any step (the whole year offers only ~0.85 MW of peak margin), so dispatch is import-dominated. Scaling parameters were deliberately **not** tuned to manufacture or avoid export; the export path triggers naturally on high-solar summer days.
 
+</details>
+
 ### RL dispatch policy (SAC, closed-loop) vs NSGA-III and a rule-based baseline
 
 Day-ahead dispatch is recast as a **sequential decision** problem: one day of 96 × 15 min is an episode; at each step the agent outputs turbine and battery power `[P_mt, P_bat]` (actions ∈ [-1,1], affinely mapped to device bounds); the grid tie-line remains the **derived slack** of the power balance.
+
+<details>
+<summary>Show full analysis</summary>
 
 - **Environment** (`src/microgrid/rl/env.py`, passes the official `gymnasium` `env_checker`): the physics **fully reuses** `system.py` — per-step primitives (`soc_step`/`fuel_cost_step`/…) were added for the closed loop, with unit tests asserting that "step-wise sums == the original vectorised whole-day functions", i.e. the environment introduces no new physics (the source of physics stays unique). **Feasibility via projection, not penalties**: actions are first clipped into the ramp-feasible interval (P_mt) and the SoC-feasible interval (P_bat), with projection magnitude logged as a diagnostic. Observations (all normalised) include SoC, sinusoidal within-day step encoding, current measured wind/solar/load, the next 2 h of LSTM median forecasts, current/next buy price, and the remaining-steps fraction.
 - **Reward**: `-(Δcost + carbon_price·ΔCO₂)/scale` accumulated per step, plus a terminal `-(w_soc·|SoC_T−SoC_0| + w_peak·grid_peak)` — so that all three comparison metrics (cost / CO₂ / peak) exert training pressure. **A non-trivial tuning lesson**: `w_soc` must be **greater than** the arbitrage value of draining the battery's initial charge (~266 EUR for a full discharge), otherwise the policy rationally empties the battery at day's end to cut cost — unfair cheating against the energy-neutral NSGA/rule baselines (symptom: `soc_dev` stuck at 0.35). Raising `w_soc` from 500 to 1500 restored near energy-neutrality (`soc_dev ≈ 0.03`).
@@ -472,6 +513,8 @@ a dispatchable controller needs.
 
 In one line: **offline with hard-constraint guarantees → NSGA-III; online, real-time and robust to forecast error → RL; a minimal interpretable floor → rule baseline.** The value is not "RL wins" but an honest, reproducible comparison of all three on the same physics engine and the same forecasts.
 
+</details>
+
 ### What is forecast accuracy worth to dispatch? (the forecast-value transfer function)
 
 Everything above treats the forecast as a given input. This section measures
@@ -480,6 +523,9 @@ actually gain? The complete record is
 [docs/experiments/08-forecast-value-log.md](docs/experiments/08-forecast-value-log.md)
 (its §11 is the synthesis); machine-readable aggregates sit in
 `models/comparison/block_b/`.
+
+<details>
+<summary>Show full analysis</summary>
 
 **Method.** The same NSGA-III dispatch is fed forecasts of controlled quality
 over the same 61 winter test days. One synthetic knob is **residual scaling**:
@@ -543,6 +589,8 @@ the same inversion), while the three-seed median curve is monotone. The
 ≥3-seed protocol this project adopted for forecasting turned out to change the
 shape of a dispatch curve as well.
 
+</details>
+
 ### How far is the heuristic from the true optimum? (the MILP optimality gap)
 
 Task 08 asked what a better forecast is worth to this dispatch; the natural
@@ -550,6 +598,9 @@ next question is what a better *optimiser* would be worth. The complete record
 is [docs/experiments/09-milp-gap-log.md](docs/experiments/09-milp-gap-log.md)
 (its §5 is the synthesis); machine-readable aggregates sit in
 `models/comparison/block_c/`.
+
+<details>
+<summary>Show full analysis</summary>
 
 **Method.** For this configuration the planning problem NSGA-III searches is
 exactly solvable: every objective and constraint term is convex and
@@ -610,6 +661,8 @@ lower bound (4780.15 EUR/day, on the forecast) and the realised NSGA-III cost
 forecast/execute boundary — their difference is not a saving and must never
 be computed.
 
+</details>
+
 ### Does the proven optimum survive execution? (the LP-plan execution check)
 
 Task 09 measured how far the dispatched plan sits from the proven optimum *of
@@ -619,6 +672,9 @@ does not price. This task prices the caveat. The complete record is
 [docs/experiments/11-lp-execution-log.md](docs/experiments/11-lp-execution-log.md)
 (its §5 is the synthesis); machine-readable aggregates sit in
 `models/comparison/block_d/`.
+
+<details>
+<summary>Show full analysis</summary>
 
 **Method and scope.** Both LP schedules — the unconstrained cost optimum and
 the ε-constrained one (the cheapest plan at the dispatched plan's own planned
@@ -675,6 +731,8 @@ Four findings behind the headline, each with its scope:
   EUR/day as their target, not task 09's planned 453. (The margin sweep has
   since been run and beat that bar — see the next section.)
 
+</details>
+
 ### Can one static number make the optimal plan dispatchable? (the tie-line margin)
 
 Task 11 left the project without a dispatchable LP plan: the cost optimum
@@ -688,6 +746,9 @@ every arm. The complete record is
 [docs/experiments/12-tie-margin-log.md](docs/experiments/12-tie-margin-log.md)
 (its §5 is the synthesis); machine-readable aggregates sit in
 `models/comparison/block_e/`.
+
+<details>
+<summary>Show full analysis</summary>
 
 **Method and scope.** Six margin values δ ∈ {0 (a reproduction arm), 0.05,
 0.10, 0.20, 0.35, 0.50} MW, each an LP plan on the nominal forecast replayed
@@ -754,6 +815,8 @@ This is the baseline the receding-horizon controller (roadmap C1) must beat:
 dynamic intraday correction that cannot beat a 5.51 EUR/day static insurance
 premium is not worth its complexity — a falsifiable bar, by construction.
 
+</details>
+
 ### Physics the exact solver cannot represent — and a dispatchable learned controller
 
 Every dispatch result above shares a hidden dependency: the deterministic LP of
@@ -768,6 +831,9 @@ variable and the SoC rows come in both directions. **The exact solver is not
 slowed here, it is inapplicable** — so there is no proven optimum to measure
 against, and the learned policy stops competing with a certificate and starts
 competing with a heuristic search.
+
+<details>
+<summary>Show full analysis</summary>
 
 `configs/system/soc_efficiency.yaml` is that model: `eta_chg(s) = eta_charge·(1 −
 k·s)` and `eta_dis(s) = eta_discharge·(1 − k·(1−s))` at `k = 0.10` both sides,
@@ -862,9 +928,14 @@ SoC-dependent model, where no LP exists to build a margin on, it is the
 Full record: `docs/experiments/15-soc-efficiency-log.md` and
 `docs/experiments/D1-safe-rl-log.md`.
 
+</details>
+
 ### SQL data layer + data agent (natural-language querying)
 
 The pipeline's outputs (measurements, forecasts, dispatch experiments), previously scattered across parquet/JSON files, are loaded into a **PostgreSQL relational layer**: 5 tables, 1,210,642 rows (raw_measurements 578,326 + forecasts 631,496 + dispatch_results 723 + dispatch_solution 1 + dispatch_schedule 96), idempotent bulk loading (COPY into a staging table + `ON CONFLICT DO UPDATE`), business `COMMENT`s on every table and column, plus 8 analysis queries with business conclusions (`sql/analysis/`). The layer covers the full 2019-01-01 – 2024-12-31 history; an absent measurement is an absent row, never a NULL (the loader reports the per-series dropped counts), and Elia's solar series only starts on 2020-06-30, so cross-series queries must mind the coverage.
+
+<details>
+<summary>Show full analysis</summary>
 
 On top of the database sits an **LLM data agent** (`scripts/ask_data.py`): through three tools — `list_tables / get_schema / run_query` — the model autonomously explores the schema (the column comments double as its semantic annotations), writes and executes SQL, self-corrects after errors, and answers with cited numbers in the language of the question.
 
@@ -883,6 +954,8 @@ A real traced run (question asked in Chinese — "Which wind forecast is more ac
 Steps 2 and 3 happened **without any human prompting**: the first LEFT JOIN produced a TSO MAE of 204.5 MW, diluted by full-year data; the agent checked the coverage itself and corrected the comparison basis. (The trace predates task S3's full-history load: the row counts in the screenshots reflect the then-2024-only layer — the TSO series now spans 2019–2024, which makes exactly this kind of coverage check matter more, not less.)
 
 Safety is **belt-and-braces**: a pure-function SQL validator (single SELECT/WITH statements only; blocks write keywords, multi-statement injection, `SELECT INTO`, and data-modifying CTEs) + database-side `READ ONLY` transactions with a statement timeout — **model-generated SQL is never trusted; the database enforces the rules** (the same philosophy as unique-key constraints). Any OpenAI-compatible endpoint works (`configs/agent/default.yaml`); API keys are read from environment variables only.
+
+</details>
 
 ## Run it
 
@@ -1041,6 +1114,9 @@ compose.yaml        # docker compose up
 
 ## Roadmap
 
+<details>
+<summary>Show the full roadmap (all items complete)</summary>
+
 1. **Complete** — Data pipeline: Elia wind/solar/load; cleaning, 15-min alignment, causal features
 2. **Complete** — Forecasting (phase 1): seq2seq LSTM baseline, quantile interval forecasts, leakage-free window splits, time-boxed resumable training. Ablation-driven diagnosis established that solar and load were **data-limited** (extending training from 9 months to 4.2 years flipped both from losing to Elia to matching/beating it) while wind is **information-limited *given Elia's forecast as an input*** (5.4× the data changed nothing; the model's error is flat across periods while Elia's tracks actual predictability). That qualifier is load-bearing and was added after the fact: the scaling curve later measured −15.9% for 10× the windows on wind **with the TSO input removed**, so "information-limited" describes the configuration, not the target
 3. **Complete** — Forecasting (phase 2): **NWP weather features** at an operationally legal 48 h lead. Headline finding: NWP's value is conditional on what else is in the input — inert while Elia's day-ahead forecast (itself an NWP product) is an input, worth −75.3% on wind once that input is removed. Established the multi-seed protocol (≥3 seeds, median with min–max range) after measuring seed noise at ~10% of MAE at this training scale; applying it retracted two single-seed conclusions
@@ -1057,3 +1133,5 @@ compose.yaml        # docker compose up
 14. **Complete** — LP-plan execution check: both LP schedules (the cost optimum and the ε-constrained plan) replayed open-loop against the measured actuals through the same simulator as every other method, realised-versus-realised throughout, three optimiser seeds. The cost optimum realises 4857.2320 EUR/day — 575–603 EUR/day below the dispatched plan, cheaper on 61/61 days at every seed — but breaks the 3 MW tie limit on 33 of 61 days at 4.1475 steps/day, 90% of the forecast-free rule baseline's rate; the violations concentrate on the 37 tie-pinned days (31/37 vs 2/24, pre-registered and held). The ε plan keeps 383–396 EUR/day at 0–2 violating days, so the compromise's 179–209 EUR/day is what buys the tie limit back, and the planning-side "two thirds optimiser shortfall" split survives execution (65–69% vs 63%). Gated follow-on promoted: the tie-limit margin sweep — which, like the budget sweep, must now beat the realised ~390 EUR/day, not the planned 453 (done, and it did — item 15)
 15. **Complete** — Static tie-line margin: the LP re-planned with the planner's tie ceiling tightened to 3.0 − δ MW across six δ values, executed open-loop against the actuals, physics and verdict unchanged at 3.0 MW for every arm. δ = 0.35 MW yields the project's first dispatchable free-standing LP plan: 0 of 61 violating days at 4862.74 EUR/day realised — 173.79–203.51 EUR/day cheaper than the ε arm at all three seeds (6.1× the noise floor) and 569–598 EUR/day below the dispatched plan, seedless, one 22.1 ms solve per day. The headroom costs 5.51 EUR/day over the unconstrained optimum, so executability was the cheapest part of the ε compromise's 179–209 EUR/day, under 3 % of it; all four pre-registered predictions held, both curves monotone, and the δ = 0 arm reproduced the cost optimum bit-for-bit. Promoted follow-on recorded, not started: the δ × CO₂ cross, which would split the ε arm's remaining 174–204 EUR/day into its CO₂ and excess-reservation parts. This margin arm is now the baseline the receding-horizon controller (C1) must beat
 16. **Complete** — Service layer: the repository made runnable by someone who has not set it up. Three pieces, in the order that made each one's guarantee real. A test run on **every push** (GitHub Actions, Python 3.14, the repository's own default marker selection) — verified by pushing a deliberately failing test, which the first version of the workflow passed *silently* because the `pytest` step lacked `pipefail`; the automation would have been decorative, and catching that is why the criterion reads *demonstrated, not asserted*. A **callable forecast interface** whose first design decision was where its inputs come from: a clone has neither the 35 MB dataset nor a checkpoint, so the request carries its own 96-step window (384 numbers, ~4.5 kB of JSON) and the three LSTM checkpoints (468 kB) ship with the repository behind exact-path exceptions that leave the global binary-exclusion rule intact. Extracting the window-to-prediction step out of the published forecast path put every dispatch number at risk, so the scaled arrays the two paths feed the model were compared bit for bit — identical on all three targets, which is what licenses the claim that the served forecast is the recorded one. And a **container**: `docker compose up`, no volume and no download, verified by building from a clone-equivalent tree rather than from the working directory, which would have concealed any dependence on an artifact only the author has. This item produces no experiment number and changes none; it serves what the items above already own
+
+</details>
